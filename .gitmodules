@@ -1,0 +1,3 @@
+[submodule "external/directx12-wrapper"]
+	path = external/directx12-wrapper
+	url = https://github.com/taiyaki-ichi/directx12-wrapper.git

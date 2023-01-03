@@ -2,6 +2,9 @@
 #include"../external/imgui/imgui.h"
 #include"../external/imgui/imgui_impl_dx12.h"
 #include"../external/imgui/imgui_impl_win32.h"
+#include"../external/mmd-loader/mmdl/pmx_loader.hpp"
+#include<fstream>
+#include<DirectXMath.h>
 
 constexpr LONG WINDOW_WIDTH = 1024;
 constexpr LONG WINDOW_HEIGHT = 768;
@@ -36,6 +39,17 @@ int main()
 	auto device = dx12w::create_device();
 	auto command_manamger = dx12w::create_command_manager<COMMAND_ALLOCATOR_NUM>(device.get());
 	auto swap_chain = dx12w::create_swap_chain(command_manamger.get_queue(), hwnd, FRAME_BUFFER_FORMAT, FRAME_BUFFER_NUM);
+
+	{
+		const wchar_t* file_path = L"../../../3dmodel/ƒpƒCƒ‚ƒ“/”h–Ö.pmx";
+		std::ifstream file{ file_path ,std::ios::binary };
+		auto header = mmdl::load_header<>(file);
+		auto info = mmdl::load_info<std::wstring>(file, header.encode);
+		auto vertex = mmdl::load_vertex<std::vector, DirectX::XMFLOAT2, DirectX::XMFLOAT3, DirectX::XMFLOAT4>(file, header.add_uv_number, header.bone_index_size);
+		auto surface = mmdl::load_surface<std::vector>(file, header.vertex_index_size);
+		auto texture_path = mmdl::load_texture_path<std::vector, std::wstring>(file, header.encode);
+		auto material = mmdl::load_material<std::vector, std::wstring, DirectX::XMFLOAT3, DirectX::XMFLOAT4>(file, header.encode, header.texture_index_size);
+	}
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
 		.Format = FRAME_BUFFER_FORMAT,

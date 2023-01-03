@@ -1,3 +1,6 @@
 [submodule "external/directx12-wrapper"]
 	path = external/directx12-wrapper
 	url = https://github.com/taiyaki-ichi/directx12-wrapper.git
+[submodule "external/mmd-loader"]
+	path = external/mmd-loader
+	url = https://github.com/taiyaki-ichi/mmd-loader.git

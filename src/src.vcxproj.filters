@@ -54,5 +54,21 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{49613d19-8850-44fb-97e5-454cbe493f79}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{6663ed11-10fd-49ef-9ae1-1f47326cc645}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shader\PixelShader.hlsl">
+      <Filter>shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\VertexShader.hlsl">
+      <Filter>shader</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\Header.hlsli">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -259,55 +259,21 @@ int main()
 	float camera_near_z = 0.01f;
 	float camera_far_z = 1000.f;
 
-	auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-
-	auto proj = DirectX::XMMatrixPerspectiveFovLH(
-		view_angle,
-		asspect,
-		camera_near_z,
-		camera_far_z
-	);
-
 	XMFLOAT3 direction_light_color{ 0.4f,0.4f,0.4f };
 	XMFLOAT3 direction_light_dir{ 0.f,-0.5f,-0.5f };
 
 	model_data model{};
 	model.world = XMMatrixIdentity();
+	float model_rotation_x = 0.f;
+	float model_rotation_y = 0.f;
+	float model_rotation_z = 0.f;
+
 
 	camera_data camera{};
-	camera.view = view;
-	camera.viewInv = XMMatrixInverse(nullptr, camera.view);
-	camera.proj = proj;
-	camera.projInv = XMMatrixInverse(nullptr, camera.proj);
-	camera.viewProj = view * proj;
-	camera.viewProjInv = XMMatrixInverse(nullptr, camera.viewProj);
-	camera.cameraNear = camera_near_z;
-	camera.cameraFar = camera_far_z;
-	camera.screenWidth = WINDOW_WIDTH;
-	camera.screenHeight = WINDOW_HEIGHT;
-	camera.eyePos = eye;
 
 	direction_light_data direction_light{};
 	direction_light.color = direction_light_color;
 	direction_light.dir = direction_light_dir;
-
-	{
-		model_data* tmp = nullptr;
-		model_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-		*tmp = model;
-	}
-
-	{
-		camera_data* tmp = nullptr;
-		camera_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-		*tmp = camera;
-	}
-
-	{
-		direction_light_data* tmp = nullptr;
-		direction_light_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-		*tmp = direction_light;
-	}
 
 
 	while (dx12w::update_window())
@@ -315,6 +281,47 @@ int main()
 		auto back_buffer_index = swap_chain->GetCurrentBackBufferIndex();
 
 		command_manager.reset_list(0);
+
+		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+
+		auto proj = DirectX::XMMatrixPerspectiveFovLH(
+			view_angle,
+			asspect,
+			camera_near_z,
+			camera_far_z
+		);
+
+		model.world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
+
+		camera.view = view;
+		camera.viewInv = XMMatrixInverse(nullptr, camera.view);
+		camera.proj = proj;
+		camera.projInv = XMMatrixInverse(nullptr, camera.proj);
+		camera.viewProj = view * proj;
+		camera.viewProjInv = XMMatrixInverse(nullptr, camera.viewProj);
+		camera.cameraNear = camera_near_z;
+		camera.cameraFar = camera_far_z;
+		camera.screenWidth = WINDOW_WIDTH;
+		camera.screenHeight = WINDOW_HEIGHT;
+		camera.eyePos = eye;
+
+		{
+			model_data* tmp = nullptr;
+			model_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+			*tmp = model;
+		}
+
+		{
+			camera_data* tmp = nullptr;
+			camera_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+			*tmp = camera;
+		}
+
+		{
+			direction_light_data* tmp = nullptr;
+			direction_light_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+			*tmp = direction_light;
+		}
 
 		//
 		// ImguiÇÃèÄîı
@@ -325,11 +332,11 @@ int main()
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		bool hoge = true;
-		ImGui::ShowDemoWindow(&hoge);
-
-		ImGui::Begin("Hello, world!");
-		ImGui::Text("This is some useful text.");
+		ImGui::Begin("conf");
+		ImGui::SliderFloat("model rotaion x", &model_rotation_x, -XM_PI, XM_PI);
+		ImGui::SliderFloat("model rotaion y", &model_rotation_y, -XM_PI, XM_PI);
+		ImGui::SliderFloat("model rotaion z", &model_rotation_z, -XM_PI, XM_PI);
+		ImGui::InputFloat3("eye", &eye.x);
 		ImGui::End();
 
 		// Rendering

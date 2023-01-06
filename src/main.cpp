@@ -251,8 +251,8 @@ int main()
 	// ÇªÇÃëºê›íË
 	//
 
-	XMFLOAT3 eye{ 0.f,5.f,5.f };
-	XMFLOAT3 target{ 0,0,0 };
+	XMFLOAT3 eye{ 0.f,5.f,-6.f };
+	XMFLOAT3 target{ 0.f,5.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	float view_angle = XM_PIDIV2;
@@ -337,6 +337,7 @@ int main()
 		ImGui::SliderFloat("model rotaion y", &model_rotation_y, -XM_PI, XM_PI);
 		ImGui::SliderFloat("model rotaion z", &model_rotation_z, -XM_PI, XM_PI);
 		ImGui::InputFloat3("eye", &eye.x);
+		ImGui::InputFloat3("target", &target.x);
 		ImGui::End();
 
 		// Rendering

@@ -260,7 +260,7 @@ int main()
 	float camera_far_z = 1000.f;
 
 	XMFLOAT3 direction_light_color{ 0.4f,0.4f,0.4f };
-	XMFLOAT3 direction_light_dir{ 0.f,-0.5f,-0.5f };
+	XMFLOAT3 direction_light_dir{ 0.f,0.5f,0.5f };
 
 	model_data model{};
 	model.world = XMMatrixIdentity();

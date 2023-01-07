@@ -153,6 +153,18 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_command_manager.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_create_view.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_descriptor_heap.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_device.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_pipeline_state.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_resource.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_root_signature.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_shader.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_swap_chain.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_utility.hpp" />
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_window.hpp" />
     <ClInclude Include="..\external\imgui\imconfig.h" />
     <ClInclude Include="..\external\imgui\imgui.h" />
     <ClInclude Include="..\external\imgui\imgui_impl_dx12.h" />
@@ -161,6 +173,7 @@
     <ClInclude Include="..\external\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\external\imgui\imstb_textedit.h" />
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\external\stb\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\Header.hlsli" />

@@ -3,8 +3,14 @@
 #include"../external/imgui/imgui_impl_dx12.h"
 #include"../external/imgui/imgui_impl_win32.h"
 #include"../external/mmd-loader/mmdl/pmx_loader.hpp"
+#define STBI_WINDOWS_UTF8
+#define STB_IMAGE_IMPLEMENTATION
+#include"../external/stb/stb_image.h"
 #include<fstream>
+#include<algorithm>
 #include<DirectXMath.h>
+
+
 
 using namespace DirectX;
 
@@ -17,6 +23,8 @@ constexpr DXGI_FORMAT FRAME_BUFFER_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 constexpr std::size_t FRAME_BUFFER_NUM = 2;
 
 constexpr DXGI_FORMAT DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D32_FLOAT;
+
+constexpr DXGI_FORMAT PMX_TEXTURE_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 // extern宣言
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -82,7 +90,7 @@ int main()
 	auto swap_chain = dx12w::create_swap_chain(command_manager.get_queue(), hwnd, FRAME_BUFFER_FORMAT, FRAME_BUFFER_NUM);
 
 
-	// パス後でやる
+	// TODO: 
 	const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
 
 	std::ifstream file{ file_path ,std::ios::binary };
@@ -174,6 +182,73 @@ int main()
 	auto pmx_index_shader = dx12w::load_blob(pmx_index_shader_cso);
 	pmx_index_shader_cso.close();
 
+	std::vector<dx12w::resource_and_state> pmx_texture_resrouce{};
+	{
+		// TODO: 
+		const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
+
+		for (auto& path : pmx_texture_path)
+		{
+			char buff[256];
+			stbi_convert_wchar_to_utf8(buff, 256, (std::wstring{ directory_path } + path).data());
+			int x, y, n;
+			std::uint8_t* data = stbi_load(buff, &x, &y, &n, 0);
+
+			auto dst_texture_resource = dx12w::create_commited_texture_resource(device.get(),
+				PMX_TEXTURE_FORMAT, x , y , 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
+
+			auto const dst_desc = dst_texture_resource.first->GetDesc();
+
+			// 情報を取得できるらしい
+			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+			UINT num_row;
+			UINT64 row_size_in_bytes, total_bytes;
+			device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &footprint, &num_row, &row_size_in_bytes, &total_bytes);
+
+			auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), total_bytes);
+			std::uint8_t* tmp = nullptr;
+			src_texture_resorce.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+
+			for (std::size_t y_i = 0; y_i < y; y_i++)
+			{
+				for (std::size_t x_i = 0; x_i < x; x_i++)
+				{
+					for (std::size_t n_i = 0; n_i < n; n_i++)
+					{
+						tmp[y_i * footprint.Footprint.RowPitch + x_i * 4 + n_i] = data[(y_i * x + x_i) * n + n_i];
+					}
+				}
+			}
+
+			std::cout << "row_size_in_bytes: " << row_size_in_bytes << std::endl;
+			std::cout << "rowptch: " << footprint.Footprint.RowPitch << std::endl;
+
+			auto [src_copy_location, dst_copy_location] = dx12w::get_texture_copy_location(device.get(),
+				src_texture_resorce.first.get(), dst_texture_resource.first.get());
+
+			std::cout << "size: " << sizeof(std::uint8_t) * dx12w::alignment<UINT64>(x, 256) * y * 4 << std::endl;
+			std::cout << "n: " << n << std::endl;
+			std::cout << "offset: " << footprint.Offset << std::endl;
+			std::cout << std::endl;
+
+			// 毎回excute呼び出すのはどうかと思う
+			// けど、楽なのでとりあえず
+			command_manager.reset_list(0);
+			// dx12w::resource_barrior(command_manager.get_list(), src_texture_resorce, D3D12_RESOURCE_STATE_COPY_SOURCE);
+			dx12w::resource_barrior(command_manager.get_list(), dst_texture_resource, D3D12_RESOURCE_STATE_COPY_DEST);
+			command_manager.get_list()->CopyTextureRegion(&dst_copy_location, 0, 0, 0, &src_copy_location, nullptr);
+			// dx12w::resource_barrior(command_manager.get_list(), src_texture_resorce, D3D12_RESOURCE_STATE_COMMON);
+			dx12w::resource_barrior(command_manager.get_list(), dst_texture_resource, D3D12_RESOURCE_STATE_COMMON);
+			command_manager.get_list()->Close();
+			command_manager.excute();
+			command_manager.signal();
+			command_manager.wait(0);
+
+			// TODO: サイズ分かってるからreserveするように変更する
+			pmx_texture_resrouce.emplace_back(std::move(dst_texture_resource));
+		}
+	}
+
 	//
 	// ディスクリプタヒープとビュー
 	//
@@ -189,10 +264,17 @@ int main()
 	auto depth_buffer_descriptor_heap_DSV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
 	dx12w::create_texture2D_DSV(device.get(), depth_buffer_descriptor_heap_DSV.get_CPU_handle(0), depth_buffer.first.get(), DEPTH_BUFFER_FORMAT, 0);
 
-	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3);
+	// マテリアルごとのビューの数
+	constexpr UINT material_view_num = 1;
+	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3 + material_view_num * pmx_material.size());
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(0), model_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(1), camera_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(2), direction_light_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(direction_light_data), 256));
+	for (std::size_t i = 0; i < pmx_material.size(); i++)
+	{
+		dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 0),
+			pmx_texture_resrouce[pmx_material[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+	}
 
 	D3D12_VERTEX_BUFFER_VIEW pmx_vertex_buffer_view{
 		.BufferLocation = pmx_vertex_buffer_resource.first->GetGPUVirtualAddress(),
@@ -217,7 +299,8 @@ int main()
 	//
 
 	auto pmx_root_signature = dx12w::create_root_signature(device.get(),
-		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}} }, {});
+		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}},{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV} } },
+		{ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER} });
 
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
 		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT } },
@@ -372,7 +455,15 @@ int main()
 		command_manager.get_list()->IASetVertexBuffers(0, 1, &pmx_vertex_buffer_view);
 		command_manager.get_list()->IASetIndexBuffer(&pmx_index_buffer_view);
 
-		command_manager.get_list()->DrawIndexedInstanced(pmx_surface.size(), 1, 0, 0, 0);
+		UINT index_offset = 0;
+		for (std::size_t i = 0; i < pmx_material.size(); i++)
+		{
+			command_manager.get_list()->SetGraphicsRootDescriptorTable(1, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(3 + material_view_num * i));
+			command_manager.get_list()->DrawIndexedInstanced(pmx_material[i].vertex_number, 1, index_offset, 0, 0);
+			index_offset += pmx_material[i].vertex_number;
+		}
+
+
 
 		// Imguiの描画
 		auto imgui_descriptor_heap_ptr = imgui_descriptor_heap.get();

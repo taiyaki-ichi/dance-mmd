@@ -49,6 +49,45 @@
     <ClInclude Include="..\external\imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
+    <ClInclude Include="..\external\stb\stb_image.h">
+      <Filter>stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_command_manager.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_create_view.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_descriptor_heap.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_device.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_pipeline_state.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_resource.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_root_signature.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_shader.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_swap_chain.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_utility.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_window.hpp">
+      <Filter>directx12_wrapper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -56,6 +95,12 @@
     </Filter>
     <Filter Include="shader">
       <UniqueIdentifier>{6663ed11-10fd-49ef-9ae1-1f47326cc645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="stb">
+      <UniqueIdentifier>{10806d11-9ba8-46d3-8214-8067c17e7bb5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="directx12_wrapper">
+      <UniqueIdentifier>{3d712ef0-2e30-455b-a9be-67b5420ec4d2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

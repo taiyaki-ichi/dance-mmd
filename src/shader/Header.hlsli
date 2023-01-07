@@ -47,3 +47,6 @@ cbuffer DirectionLightDataConstantBuffer : register(b2)
 	DirectionLightData directionLightData;
 }
 
+Texture2D<float4> tex : register(t0);
+
+SamplerState smp:register(s0);

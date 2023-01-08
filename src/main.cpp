@@ -80,6 +80,15 @@ struct direction_light_data
 	float _pad1;
 };
 
+struct material_data
+{
+	XMFLOAT4 diffuse;
+	XMFLOAT3 specular;
+	float specularity;
+	XMFLOAT3 ambient;
+	float _pad0;
+};
+
 
 int main()
 {
@@ -195,7 +204,7 @@ int main()
 			std::uint8_t* data = stbi_load(buff, &x, &y, &n, 0);
 
 			auto dst_texture_resource = dx12w::create_commited_texture_resource(device.get(),
-				PMX_TEXTURE_FORMAT, x , y , 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
+				PMX_TEXTURE_FORMAT, x, y, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
 
 			auto const dst_desc = dst_texture_resource.first->GetDesc();
 
@@ -214,6 +223,11 @@ int main()
 					for (std::size_t n_i = 0; n_i < n; n_i++)
 					{
 						tmp[y_i * src_footprint.Footprint.RowPitch + x_i * 4 + n_i] = data[(y_i * x + x_i) * n + n_i];
+					}
+
+					if (n == 3)
+					{
+						tmp[y_i * src_footprint.Footprint.RowPitch + x_i * 4 + 3] = 1.f;
 					}
 				}
 			}
@@ -245,6 +259,24 @@ int main()
 		}
 	}
 
+	std::vector<dx12w::resource_and_state> material_resource{};
+	{
+		for (auto& material : pmx_material)
+		{
+			auto tmp_material_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
+
+			material_data* tmp = nullptr;
+			tmp_material_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+			tmp->diffuse = material.diffuse;
+			tmp->specular = material.specular;
+			tmp->specularity = material.specularity;
+			tmp->ambient = material.ambient;
+			tmp_material_resource.first->Unmap(0, nullptr);
+
+			material_resource.emplace_back(std::move(tmp_material_resource));
+		}
+	}
+
 	//
 	// ディスクリプタヒープとビュー
 	//
@@ -261,7 +293,8 @@ int main()
 	dx12w::create_texture2D_DSV(device.get(), depth_buffer_descriptor_heap_DSV.get_CPU_handle(0), depth_buffer.first.get(), DEPTH_BUFFER_FORMAT, 0);
 
 	// マテリアルごとのビューの数
-	constexpr UINT material_view_num = 1;
+	// テクスチャ、material_data
+	constexpr UINT material_view_num = 2;
 	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3 + material_view_num * pmx_material.size());
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(0), model_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(1), camera_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
@@ -270,6 +303,8 @@ int main()
 	{
 		dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 0),
 			pmx_texture_resrouce[pmx_material[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+		dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 1),
+			material_resource[i].first.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
 	}
 
 	D3D12_VERTEX_BUFFER_VIEW pmx_vertex_buffer_view{
@@ -295,7 +330,7 @@ int main()
 	//
 
 	auto pmx_root_signature = dx12w::create_root_signature(device.get(),
-		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}},{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV} } },
+		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}},{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV},{/*material_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV}} },
 		{ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER} });
 
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
@@ -339,7 +374,7 @@ int main()
 	float camera_far_z = 1000.f;
 
 	XMFLOAT3 direction_light_color{ 0.4f,0.4f,0.4f };
-	XMFLOAT3 direction_light_dir{ 0.f,0.5f,0.5f };
+	XMFLOAT3 direction_light_dir{ 0.5f,0.5f,-0.5f };
 
 	model_data model{};
 	model.world = XMMatrixIdentity();

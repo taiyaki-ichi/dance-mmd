@@ -21,8 +21,16 @@ struct CameraData
 
 struct DirectionLightData
 {
-	float3 dir;
+	float3 direction;
 	float3 color;
+};
+
+struct MaterialData
+{
+	float4 diffuse;
+	float3 specular;
+	float specularity;
+	float3 ambient;
 };
 
 struct VSOutput
@@ -45,6 +53,11 @@ cbuffer CameraDataConstantBuffer : register(b1)
 cbuffer DirectionLightDataConstantBuffer : register(b2)
 {
 	DirectionLightData directionLightData;
+}
+
+cbuffer MaterialDataConstantBuffer : register(b3)
+{
+	MaterialData materialData;
 }
 
 Texture2D<float4> tex : register(t0);

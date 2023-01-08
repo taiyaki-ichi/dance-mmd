@@ -88,6 +88,18 @@
     <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_window.hpp">
       <Filter>directx12_wrapper</Filter>
     </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\generics_type.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_data.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\utility.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -101,6 +113,9 @@
     </Filter>
     <Filter Include="directx12_wrapper">
       <UniqueIdentifier>{3d712ef0-2e30-455b-a9be-67b5420ec4d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mmdl">
+      <UniqueIdentifier>{3f1bb054-f4ac-4ebb-a689-5f29b66e110f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

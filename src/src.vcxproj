@@ -173,6 +173,10 @@
     <ClInclude Include="..\external\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\external\imgui\imstb_textedit.h" />
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\generics_type.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_data.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\utility.hpp" />
     <ClInclude Include="..\external\stb\stb_image.h" />
   </ItemGroup>
   <ItemGroup>

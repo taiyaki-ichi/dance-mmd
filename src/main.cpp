@@ -100,8 +100,8 @@ int main()
 
 
 	// TODO: 
-	const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
-	// const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
+	// const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
+	const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
 
 	std::ifstream file{ file_path ,std::ios::binary };
 	auto pmx_header = mmdl::load_header<>(file);
@@ -195,8 +195,8 @@ int main()
 	std::vector<dx12w::resource_and_state> pmx_texture_resrouce{};
 	{
 		// TODO: 
-		const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
-		// const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
+		// const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
+		const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
 
 		for (auto& path : pmx_texture_path)
 		{
@@ -229,7 +229,7 @@ int main()
 
 					if (n == 3)
 					{
-						tmp[y_i * src_footprint.Footprint.RowPitch + x_i * 4 + 3] = 1.f;
+						tmp[y_i * src_footprint.Footprint.RowPitch + x_i * 4 + 3] = 255;
 					}
 				}
 			}
@@ -338,7 +338,7 @@ int main()
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
 		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT } },
 		{ FRAME_BUFFER_FORMAT }, { {pmx_vertex_shader.data(),pmx_vertex_shader.size()},{pmx_index_shader.data(),pmx_index_shader.size()} },
-		true, false, D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+		true, true, D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 
 	//
 	// Imguiの設定

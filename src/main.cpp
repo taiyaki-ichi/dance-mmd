@@ -199,13 +199,11 @@ int main()
 
 			auto const dst_desc = dst_texture_resource.first->GetDesc();
 
-			// 情報を取得できるらしい
-			D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
-			UINT num_row;
-			UINT64 row_size_in_bytes, total_bytes;
-			device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &footprint, &num_row, &row_size_in_bytes, &total_bytes);
+			D3D12_PLACED_SUBRESOURCE_FOOTPRINT src_footprint;
+			UINT64 src_total_bytes;
+			device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &src_footprint, nullptr, nullptr, &src_total_bytes);
 
-			auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), total_bytes);
+			auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), src_total_bytes);
 			std::uint8_t* tmp = nullptr;
 			src_texture_resorce.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 
@@ -215,29 +213,27 @@ int main()
 				{
 					for (std::size_t n_i = 0; n_i < n; n_i++)
 					{
-						tmp[y_i * footprint.Footprint.RowPitch + x_i * 4 + n_i] = data[(y_i * x + x_i) * n + n_i];
+						tmp[y_i * src_footprint.Footprint.RowPitch + x_i * 4 + n_i] = data[(y_i * x + x_i) * n + n_i];
 					}
 				}
 			}
 
-			std::cout << "row_size_in_bytes: " << row_size_in_bytes << std::endl;
-			std::cout << "rowptch: " << footprint.Footprint.RowPitch << std::endl;
+			D3D12_TEXTURE_COPY_LOCATION src_texture_copy_location{
+				.pResource = src_texture_resorce.first.get(),
+				.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
+				.PlacedFootprint = src_footprint,
+			};
 
-			auto [src_copy_location, dst_copy_location] = dx12w::get_texture_copy_location(device.get(),
-				src_texture_resorce.first.get(), dst_texture_resource.first.get());
-
-			std::cout << "size: " << sizeof(std::uint8_t) * dx12w::alignment<UINT64>(x, 256) * y * 4 << std::endl;
-			std::cout << "n: " << n << std::endl;
-			std::cout << "offset: " << footprint.Offset << std::endl;
-			std::cout << std::endl;
+			D3D12_TEXTURE_COPY_LOCATION dst_texture_copy_location{
+				.pResource = dst_texture_resource.first.get(),
+				.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+			};
 
 			// 毎回excute呼び出すのはどうかと思う
 			// けど、楽なのでとりあえず
 			command_manager.reset_list(0);
-			// dx12w::resource_barrior(command_manager.get_list(), src_texture_resorce, D3D12_RESOURCE_STATE_COPY_SOURCE);
 			dx12w::resource_barrior(command_manager.get_list(), dst_texture_resource, D3D12_RESOURCE_STATE_COPY_DEST);
-			command_manager.get_list()->CopyTextureRegion(&dst_copy_location, 0, 0, 0, &src_copy_location, nullptr);
-			// dx12w::resource_barrior(command_manager.get_list(), src_texture_resorce, D3D12_RESOURCE_STATE_COMMON);
+			command_manager.get_list()->CopyTextureRegion(&dst_texture_copy_location, 0, 0, 0, &src_texture_copy_location, nullptr);
 			dx12w::resource_barrior(command_manager.get_list(), dst_texture_resource, D3D12_RESOURCE_STATE_COMMON);
 			command_manager.get_list()->Close();
 			command_manager.excute();

@@ -100,8 +100,12 @@ int main()
 
 
 	// TODO: 
-	// const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
-	const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
+	const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
+	const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
+	//const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
+	//const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
+	//const wchar_t* file_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/ときのそら.pmx";
+	//const wchar_t* directory_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/";
 
 	std::ifstream file{ file_path ,std::ios::binary };
 	auto pmx_header = mmdl::load_header<>(file);
@@ -192,12 +196,88 @@ int main()
 	auto pmx_index_shader = dx12w::load_blob(pmx_index_shader_cso);
 	pmx_index_shader_cso.close();
 
+	// 白色のテクスチャ
+	// 大きさは4x4
+	auto white_texture_resource = dx12w::create_commited_texture_resource(device.get(),
+		DXGI_FORMAT_R8G8B8A8_UNORM, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
+	// 白色のテクスチャの作成
+	{
+		auto const dst_desc = white_texture_resource.first->GetDesc();
+
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT src_footprint;
+		UINT64 src_total_bytes;
+		device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &src_footprint, nullptr, nullptr, &src_total_bytes);
+
+		auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), src_total_bytes);
+		std::uint8_t* tmp = nullptr;
+		src_texture_resorce.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+
+		// 全て白
+		std::fill(tmp, tmp + src_total_bytes, 255);
+
+		D3D12_TEXTURE_COPY_LOCATION src_texture_copy_location{
+				.pResource = src_texture_resorce.first.get(),
+				.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
+				.PlacedFootprint = src_footprint,
+		};
+
+		D3D12_TEXTURE_COPY_LOCATION dst_texture_copy_location{
+			.pResource = white_texture_resource.first.get(),
+			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+		};
+
+		command_manager.reset_list(0);
+		dx12w::resource_barrior(command_manager.get_list(), white_texture_resource, D3D12_RESOURCE_STATE_COPY_DEST);
+		command_manager.get_list()->CopyTextureRegion(&dst_texture_copy_location, 0, 0, 0, &src_texture_copy_location, nullptr);
+		dx12w::resource_barrior(command_manager.get_list(), white_texture_resource, D3D12_RESOURCE_STATE_COMMON);
+		command_manager.get_list()->Close();
+		command_manager.excute();
+		command_manager.signal();
+		command_manager.wait(0);
+	}
+
+	// 黒色のテクスチャ
+	// 大きさは4x4
+	auto black_texture_resource = dx12w::create_commited_texture_resource(device.get(),
+		DXGI_FORMAT_R8G8B8A8_UNORM, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
+	// 黒のテクスチャの作成
+	{
+		auto dst_desc = black_texture_resource.first->GetDesc();
+
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT src_footprint;
+		UINT64 src_total_bytes;
+		device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &src_footprint, nullptr, nullptr, &src_total_bytes);
+
+		auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), src_total_bytes);
+		std::uint8_t* tmp = nullptr;
+		src_texture_resorce.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+
+		// 全て黒
+		std::fill(tmp, tmp + src_total_bytes, 0);
+
+		D3D12_TEXTURE_COPY_LOCATION src_texture_copy_location{
+				.pResource = src_texture_resorce.first.get(),
+				.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
+				.PlacedFootprint = src_footprint,
+		};
+
+		D3D12_TEXTURE_COPY_LOCATION dst_texture_copy_location{
+			.pResource = black_texture_resource.first.get(),
+			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
+		};
+
+		command_manager.reset_list(0);
+		dx12w::resource_barrior(command_manager.get_list(), black_texture_resource, D3D12_RESOURCE_STATE_COPY_DEST);
+		command_manager.get_list()->CopyTextureRegion(&dst_texture_copy_location, 0, 0, 0, &src_texture_copy_location, nullptr);
+		dx12w::resource_barrior(command_manager.get_list(), black_texture_resource, D3D12_RESOURCE_STATE_COMMON);
+		command_manager.get_list()->Close();
+		command_manager.excute();
+		command_manager.signal();
+		command_manager.wait(0);
+	}
+
 	std::vector<dx12w::resource_and_state> pmx_texture_resrouce{};
 	{
-		// TODO: 
-		// const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
-		const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
-
 		for (auto& path : pmx_texture_path)
 		{
 			char buff[256];
@@ -295,8 +375,8 @@ int main()
 	dx12w::create_texture2D_DSV(device.get(), depth_buffer_descriptor_heap_DSV.get_CPU_handle(0), depth_buffer.first.get(), DEPTH_BUFFER_FORMAT, 0);
 
 	// マテリアルごとのビューの数
-	// テクスチャ、material_data
-	constexpr UINT material_view_num = 2;
+	// テクスチャ、material_data、乗算スフィアマップ、加算スフィアマップ
+	constexpr UINT material_view_num = 4;
 	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3 + material_view_num * pmx_material.size());
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(0), model_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(1), camera_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
@@ -307,6 +387,33 @@ int main()
 			pmx_texture_resrouce[pmx_material[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 1),
 			material_resource[i].first.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
+
+		// 乗算スフィアマップを使用する場合
+		if (pmx_material[i].sphere_mode_value == mmdl::sphere_mode::sph)
+		{
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 2),
+				pmx_texture_resrouce[pmx_material[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+		}
+		// しない場合は白色のテクスチャ
+		else
+		{
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 2),
+				white_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+		}
+
+		// 加算スフィアマップを使用する場合
+		if (pmx_material[i].sphere_mode_value == mmdl::sphere_mode::spa)
+		{
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 3),
+				pmx_texture_resrouce[pmx_material[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+		}
+		// しない場合は黒色のテクスチャ
+		else {
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 3),
+				black_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+		}
+
+		// サブテクスチャのスフィアマップはとりあえず虫
 	}
 
 	D3D12_VERTEX_BUFFER_VIEW pmx_vertex_buffer_view{
@@ -332,7 +439,8 @@ int main()
 	//
 
 	auto pmx_root_signature = dx12w::create_root_signature(device.get(),
-		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}},{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV},{/*material_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV}} },
+		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}},
+		{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV},{/*material_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV},{/*乗算スフィアマップと加算スフィアマップ*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV,2}} },
 		{ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER} });
 
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),

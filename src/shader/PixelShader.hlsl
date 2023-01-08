@@ -2,8 +2,11 @@
 
 float4 main(VSOutput input) : SV_TARGET
 {
+	// スフィアマップ用のUV
+	float2 sphereUV = (input.vnormal.xy + float2(1.f,-1.f)) * float2(0.5f,-0.5f);
+
 	// テクスチャの色
-	float4 textureColor = tex.Sample(smp, input.uv);
+	float4 textureColor = tex.Sample(smp, input.uv) * sph.Sample(smp, sphereUV) + spa.Sample(smp, sphereUV);
 
 	// 光の反射のベクトル
 	float3 lightReflection = normalize(reflect(directionLightData.direction, input.normal.xyz));

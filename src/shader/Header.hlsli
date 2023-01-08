@@ -37,7 +37,10 @@ struct VSOutput
 {
 	float4 pos : SV_POSITION;
 	float4 normal : NORMAL;
+	// ビュー空間の法線
+	float4 vnormal : VNORMAL;
 	float2 uv : TEXCOORD;
+	// 対象頂点への視点からのベクトル
 	float3 ray:VECTOR;
 };
 
@@ -61,6 +64,13 @@ cbuffer MaterialDataConstantBuffer : register(b3)
 	MaterialData materialData;
 }
 
+// 通常のテクスチャ
 Texture2D<float4> tex : register(t0);
+
+// 乗算スフィアマップ
+Texture2D<float4> sph:register(t1);
+
+// 乗算スフィアマップ
+Texture2D<float4> spa:register(t2);
 
 SamplerState smp:register(s0);

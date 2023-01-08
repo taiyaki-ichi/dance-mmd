@@ -101,6 +101,7 @@ int main()
 
 	// TODO: 
 	const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
+	// const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
 
 	std::ifstream file{ file_path ,std::ios::binary };
 	auto pmx_header = mmdl::load_header<>(file);
@@ -195,6 +196,7 @@ int main()
 	{
 		// TODO: 
 		const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
+		// const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
 
 		for (auto& path : pmx_texture_path)
 		{

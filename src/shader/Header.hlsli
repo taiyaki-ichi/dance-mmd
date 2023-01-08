@@ -73,4 +73,10 @@ Texture2D<float4> sph:register(t1);
 // 乗算スフィアマップ
 Texture2D<float4> spa:register(t2);
 
+// トゥーン
+Texture2D<float4> toon:register(t3);
+
 SamplerState smp:register(s0);
+
+// トゥーン用のサンプラ
+SamplerState smpToon:register(s1);

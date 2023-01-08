@@ -11,9 +11,10 @@ float4 main(VSOutput input) : SV_TARGET
 	// Œõ‚Ì”½ŽË‚ÌƒxƒNƒgƒ‹
 	float3 lightReflection = normalize(reflect(directionLightData.direction, input.normal.xyz));
 
-	float4 diffuse = saturate(dot(directionLightData.direction, input.normal.xyz)) * materialData.diffuse * textureColor;
-	float4 specular = materialData.specularity <= 0.f ? float4(0.f,0.f,0.f,0.f) : pow(saturate(dot(lightReflection, -input.ray)), materialData.specularity) * float4(materialData.specular, 1.f) * textureColor;
+	float diffuseBias = saturate(dot(directionLightData.direction, input.normal.xyz));
+	float4 toonDiffuse = toon.Sample(smpToon, float2(0.5f, 1.f - diffuseBias)) * textureColor;
+	float4 specular = materialData.specularity <= 0.f ? float4(0.f, 0.f, 0.f, 0.f) : pow(saturate(dot(lightReflection, -input.ray)), materialData.specularity) * float4(materialData.specular, 1.f) * textureColor;
 	float4 ambient = textureColor * float4(materialData.ambient, 1.f);
 
-	return diffuse + specular + ambient;
+	return max(toonDiffuse + specular, ambient);
 }

@@ -199,7 +199,7 @@ int main()
 	// 白色のテクスチャ
 	// 大きさは4x4
 	auto white_texture_resource = dx12w::create_commited_texture_resource(device.get(),
-		DXGI_FORMAT_R8G8B8A8_UNORM, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
+		PMX_TEXTURE_FORMAT, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
 	// 白色のテクスチャの作成
 	{
 		auto const dst_desc = white_texture_resource.first->GetDesc();
@@ -239,7 +239,7 @@ int main()
 	// 黒色のテクスチャ
 	// 大きさは4x4
 	auto black_texture_resource = dx12w::create_commited_texture_resource(device.get(),
-		DXGI_FORMAT_R8G8B8A8_UNORM, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
+		PMX_TEXTURE_FORMAT, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
 	// 黒のテクスチャの作成
 	{
 		auto dst_desc = black_texture_resource.first->GetDesc();
@@ -375,8 +375,8 @@ int main()
 	dx12w::create_texture2D_DSV(device.get(), depth_buffer_descriptor_heap_DSV.get_CPU_handle(0), depth_buffer.first.get(), DEPTH_BUFFER_FORMAT, 0);
 
 	// マテリアルごとのビューの数
-	// テクスチャ、material_data、乗算スフィアマップ、加算スフィアマップ
-	constexpr UINT material_view_num = 4;
+	// テクスチャ、material_data、乗算スフィアマップ、加算スフィアマップ、トゥーン
+	constexpr UINT material_view_num = 5;
 	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3 + material_view_num * pmx_material.size());
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(0), model_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(1), camera_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
@@ -413,7 +413,22 @@ int main()
 				black_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 
-		// サブテクスチャのスフィアマップはとりあえず虫
+		// サブテクスチャのスフィアマップはとりあえず無視
+
+		// 非共有のトゥーン
+		// インデックスにmaxが入っている場合があるのではじく
+		if (pmx_material[i].toon_type_value == mmdl::toon_type::unshared && pmx_material[i].toon_texture < pmx_texture_path.size())
+		{
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 4),
+				pmx_texture_resrouce[pmx_material[i].toon_texture].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+		}
+		// それ以外は白色のテクスチャ
+		// 共有のトゥーンについては「PmxEditor/_data/toon」に画像があったけど、とりあえずは無視
+		else
+		{
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 4),
+				white_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+		}
 	}
 
 	D3D12_VERTEX_BUFFER_VIEW pmx_vertex_buffer_view{
@@ -440,8 +455,9 @@ int main()
 
 	auto pmx_root_signature = dx12w::create_root_signature(device.get(),
 		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}},
-		{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV},{/*material_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV},{/*乗算スフィアマップと加算スフィアマップ*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV,2}} },
-		{ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER} });
+		{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV},{/*material_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV},{/*乗算スフィアマップ、加算スフィアマップ、トゥーン*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV,3}} },
+		{ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER},
+		/*トゥーン用サンプラ*/{D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_COMPARISON_FUNC_NEVER} });
 
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
 		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT } },

@@ -120,10 +120,10 @@ int main()
 	auto pmx_surface = mmdl::load_surface<std::vector>(file, pmx_header.vertex_index_size);
 	auto pmx_texture_path = mmdl::load_texture_path<std::vector, std::wstring>(file, pmx_header.encode);
 	auto pmx_material = mmdl::load_material<std::vector, std::wstring, XMFLOAT3, XMFLOAT4>(file, pmx_header.encode, pmx_header.texture_index_size);
-
+	auto pmx_bone = mmdl::load_bone<std::vector, std::wstring, XMFLOAT3, std::vector>(file, pmx_header.encode, pmx_header.bone_index_size);
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
-		.Format = FRAME_BUFFER_FORMAT,
+	.Format = FRAME_BUFFER_FORMAT,
 		.Color = { 0.5f,0.5f,0.5f,1.f },
 	};
 
@@ -471,7 +471,7 @@ int main()
 		/*トゥーン用サンプラ*/{D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_COMPARISON_FUNC_NEVER} });
 
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
-		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT }, 
+		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT },
 		{ "BONEINDEX",DXGI_FORMAT_R32G32B32A32_UINT },{ "BONEWEIGHT",DXGI_FORMAT_R32G32B32A32_FLOAT } },
 		{ FRAME_BUFFER_FORMAT }, { {pmx_vertex_shader.data(),pmx_vertex_shader.size()},{pmx_index_shader.data(),pmx_index_shader.size()} },
 		true, true, D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);

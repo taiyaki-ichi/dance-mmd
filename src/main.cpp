@@ -8,6 +8,7 @@
 #include"../external/stb/stb_image.h"
 #include<fstream>
 #include<algorithm>
+#include<numeric>
 #include<DirectXMath.h>
 
 
@@ -25,6 +26,8 @@ constexpr std::size_t FRAME_BUFFER_NUM = 2;
 constexpr DXGI_FORMAT DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D32_FLOAT;
 
 constexpr DXGI_FORMAT PMX_TEXTURE_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+constexpr std::size_t MAX_BONE_NUM = 256;
 
 // extern宣言
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -47,6 +50,8 @@ struct vertex
 	XMFLOAT3 position{};
 	XMFLOAT3 normal{};
 	XMFLOAT2 uv{};
+	std::uint32_t bone_index[4]{};
+	float bone_weight[4]{};
 };
 
 using index = std::uint32_t;
@@ -54,6 +59,7 @@ using index = std::uint32_t;
 struct model_data
 {
 	XMMATRIX world;
+	XMMATRIX bone[MAX_BONE_NUM];
 };
 
 struct camera_data
@@ -167,6 +173,11 @@ int main()
 			tmp[i].position = pmx_vertex[i].position;
 			tmp[i].normal = pmx_vertex[i].normal;
 			tmp[i].uv = pmx_vertex[i].uv;
+			for (std::size_t j = 0; j < 4; j++)
+				tmp[i].bone_index[j] = pmx_vertex[i].bone[j];
+			auto weight_sum = std::accumulate(pmx_vertex[i].weight.begin(), pmx_vertex[i].weight.end(), 0.f);
+			for (std::size_t j = 0; j < 4; j++)
+				tmp[i].bone_weight[j] = pmx_vertex[i].weight[j] / weight_sum;
 		}
 		pmx_vertex_buffer_resource.first->Unmap(0, nullptr);
 	}
@@ -460,7 +471,8 @@ int main()
 		/*トゥーン用サンプラ*/{D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_COMPARISON_FUNC_NEVER} });
 
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
-		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT } },
+		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT }, 
+		{ "BONEINDEX",DXGI_FORMAT_R32G32B32A32_UINT },{ "BONEWEIGHT",DXGI_FORMAT_R32G32B32A32_FLOAT } },
 		{ FRAME_BUFFER_FORMAT }, { {pmx_vertex_shader.data(),pmx_vertex_shader.size()},{pmx_index_shader.data(),pmx_index_shader.size()} },
 		true, true, D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
 
@@ -507,7 +519,7 @@ int main()
 	float model_rotation_x = 0.f;
 	float model_rotation_y = 0.f;
 	float model_rotation_z = 0.f;
-
+	std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
 
 	camera_data camera{};
 

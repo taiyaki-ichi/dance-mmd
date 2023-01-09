@@ -1,7 +1,10 @@
 
+static const int MAX_BONE_NUM = 256;
+
 struct ModelData
 {
 	matrix world;
+	matrix bone[MAX_BONE_NUM];
 };
 
 struct CameraData

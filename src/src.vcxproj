@@ -177,6 +177,8 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\pmx_data.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\utility.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_data.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp" />
     <ClInclude Include="..\external\stb\stb_image.h" />
   </ItemGroup>
   <ItemGroup>

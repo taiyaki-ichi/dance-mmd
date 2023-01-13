@@ -3,6 +3,7 @@
 #include"../external/imgui/imgui_impl_dx12.h"
 #include"../external/imgui/imgui_impl_win32.h"
 #include"../external/mmd-loader/mmdl/pmx_loader.hpp"
+#include"../external/mmd-loader/mmdl/vpd_loader.hpp"
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 #include"../external/stb/stb_image.h"
@@ -121,6 +122,27 @@ int main()
 	auto pmx_texture_path = mmdl::load_texture_path<std::vector, std::wstring>(file, pmx_header.encode);
 	auto pmx_material = mmdl::load_material<std::vector, std::wstring, XMFLOAT3, XMFLOAT4>(file, pmx_header.encode, pmx_header.texture_index_size);
 	auto pmx_bone = mmdl::load_bone<std::vector, std::wstring, XMFLOAT3, std::vector>(file, pmx_header.encode, pmx_header.bone_index_size);
+
+	// posefata
+	const wchar_t* pose_file_path = L"../../../3dmodel/É|Å[ÉY25/1.vpd";
+	std::ifstream pose_file{ pose_file_path };
+
+	std::vector<mmdl::vpd_data<std::wstring, XMFLOAT3, XMFLOAT4>> vpd_data{};
+
+	{
+		auto tmp_container = mmdl::load_vpd_data<std::vector, std::string, XMFLOAT3, XMFLOAT4>(pose_file);
+		vpd_data.reserve(tmp_container.size());
+
+		for (auto&& tmp : std::move(tmp_container))
+		{
+			vpd_data.emplace_back(
+				mmdl::ansi_to_utf16<std::wstring, std::string>(std::move(tmp.name)),
+				std::move(tmp.transform),
+				std::move(tmp.quaternion)
+			);
+		}
+	}
+
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
 	.Format = FRAME_BUFFER_FORMAT,

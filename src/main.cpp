@@ -7,9 +7,11 @@
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 #include"../external/stb/stb_image.h"
+#include"utility.hpp"
 #include<fstream>
 #include<algorithm>
 #include<numeric>
+#include<unordered_map>
 #include<DirectXMath.h>
 
 
@@ -60,7 +62,7 @@ using index = std::uint32_t;
 struct model_data
 {
 	XMMATRIX world;
-	XMMATRIX bone[MAX_BONE_NUM];
+	std::array<XMMATRIX, MAX_BONE_NUM> bone;
 };
 
 struct camera_data
@@ -107,10 +109,10 @@ int main()
 
 
 	// TODO: 
-	const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
-	const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
-	//const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
-	//const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
+	//const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
+	//const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
+	const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
+	const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
 	//const wchar_t* file_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/ときのそら.pmx";
 	//const wchar_t* directory_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/";
 
@@ -122,6 +124,20 @@ int main()
 	auto pmx_texture_path = mmdl::load_texture_path<std::vector, std::wstring>(file, pmx_header.encode);
 	auto pmx_material = mmdl::load_material<std::vector, std::wstring, XMFLOAT3, XMFLOAT4>(file, pmx_header.encode, pmx_header.texture_index_size);
 	auto pmx_bone = mmdl::load_bone<std::vector, std::wstring, XMFLOAT3, std::vector>(file, pmx_header.encode, pmx_header.bone_index_size);
+
+	for (auto& bone : pmx_bone)
+	{
+		if (bone.bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
+		{
+			std::wcout << bone.name << std::endl;
+		}
+
+		if (bone.bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::access_point)])
+		{
+			std::wcout << bone.name << std::endl;
+			// std::wcout << bone.access_point_offset << std::endl;
+		}
+	}
 
 	// posefata
 	const wchar_t* pose_file_path = L"../../../3dmodel/ポーズ25/1.vpd";
@@ -142,6 +158,20 @@ int main()
 			);
 		}
 	}
+
+
+	// ボーンの名前から対応するボーンのインデックスを取得する際に使用する
+	std::unordered_map<std::wstring_view, std::size_t> bone_name_to_bone_index{};
+	{
+		bone_name_to_bone_index.reserve(pmx_bone.size());
+
+		for (std::size_t i = 0; i < pmx_bone.size(); i++)
+		{
+			bone_name_to_bone_index.emplace(pmx_bone[i].name, i);
+		}
+	}
+
+	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
 
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
@@ -525,8 +555,8 @@ int main()
 	// その他設定
 	//
 
-	XMFLOAT3 eye{ 0.f,5.f,-6.f };
-	XMFLOAT3 target{ 0.f,5.f,0.f };
+	XMFLOAT3 eye{ 0.f,10.f,-15.f };
+	XMFLOAT3 target{ 0.f,10.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	float view_angle = XM_PIDIV2;
@@ -543,6 +573,26 @@ int main()
 	float model_rotation_z = 0.f;
 	std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
 
+	// 指定されているボーンに適当な行列を設定
+	for (auto const& vpd : vpd_data)
+	{
+		auto index = bone_name_to_bone_index[vpd.name];
+
+		// 回転の適用
+		XMVECTOR quaternion_vector = XMLoadFloat4(&vpd.quaternion);
+		model.bone[index] *=
+			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
+			XMMatrixRotationQuaternion(quaternion_vector) *
+			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
+
+		// 移動の適用
+		model.bone[index] *= XMMatrixTranslation(vpd.transform.x, vpd.transform.y, vpd.transform.z);
+	}
+	
+	// それぞれの親のノードの回転、移動の行列を子へ伝播させる
+	recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
+
+	
 	camera_data camera{};
 
 	direction_light_data direction_light{};

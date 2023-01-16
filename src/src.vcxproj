@@ -180,7 +180,9 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_data.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp" />
     <ClInclude Include="..\external\stb\stb_image.h" />
-    <ClInclude Include="utility.hpp" />
+    <ClInclude Include="function.hpp" />
+    <ClInclude Include="parameter.hpp" />
+    <ClInclude Include="struct.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\Header.hlsli" />

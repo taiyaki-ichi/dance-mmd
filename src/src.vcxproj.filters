@@ -106,7 +106,9 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
-    <ClInclude Include="utility.hpp" />
+    <ClInclude Include="function.hpp" />
+    <ClInclude Include="struct.hpp" />
+    <ClInclude Include="parameter.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

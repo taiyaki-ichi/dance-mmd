@@ -7,7 +7,7 @@
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 #include"../external/stb/stb_image.h"
-#include"utility.hpp"
+#include"function.hpp"
 #include<fstream>
 #include<algorithm>
 #include<numeric>
@@ -15,22 +15,7 @@
 #include<DirectXMath.h>
 
 
-
 using namespace DirectX;
-
-constexpr LONG WINDOW_WIDTH = 1024;
-constexpr LONG WINDOW_HEIGHT = 768;
-
-constexpr std::size_t COMMAND_ALLOCATOR_NUM = 1;
-
-constexpr DXGI_FORMAT FRAME_BUFFER_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
-constexpr std::size_t FRAME_BUFFER_NUM = 2;
-
-constexpr DXGI_FORMAT DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D32_FLOAT;
-
-constexpr DXGI_FORMAT PMX_TEXTURE_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-constexpr std::size_t MAX_BONE_NUM = 516;
 
 // extern宣言
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -47,57 +32,6 @@ LRESULT CALLBACK wnd_proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
-
-struct vertex
-{
-	XMFLOAT3 position{};
-	XMFLOAT3 normal{};
-	XMFLOAT2 uv{};
-	std::uint32_t bone_index[4]{};
-	float bone_weight[4]{};
-};
-
-using index = std::uint32_t;
-
-struct model_data
-{
-	XMMATRIX world;
-	std::array<XMMATRIX, MAX_BONE_NUM> bone;
-};
-
-struct camera_data
-{
-	XMMATRIX view;
-	XMMATRIX viewInv;
-	XMMATRIX proj;
-	XMMATRIX projInv;
-	XMMATRIX viewProj;
-	XMMATRIX viewProjInv;
-	float cameraNear;
-	float cameraFar;
-	float screenWidth;
-	float screenHeight;
-	XMFLOAT3 eyePos;
-	float _pad0;
-};
-
-struct direction_light_data
-{
-	XMFLOAT3 dir;
-	float _pad0;
-	XMFLOAT3 color;
-	float _pad1;
-};
-
-struct material_data
-{
-	XMFLOAT4 diffuse;
-	XMFLOAT3 specular;
-	float specularity;
-	XMFLOAT3 ambient;
-	float _pad0;
-};
-
 
 int main()
 {
@@ -127,55 +61,16 @@ int main()
 	auto pmx_material = mmdl::load_material<std::vector, std::wstring, XMFLOAT3, XMFLOAT4>(file, pmx_header.encode, pmx_header.texture_index_size);
 	auto pmx_bone = mmdl::load_bone<std::vector, std::wstring, XMFLOAT3, std::vector>(file, pmx_header.encode, pmx_header.bone_index_size);
 
-	for (auto& bone : pmx_bone)
-	{
-		if (bone.bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
-		{
-			std::wcout << bone.name << std::endl;
-		}
 
-		if (bone.bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::access_point)])
-		{
-			std::wcout << bone.name << std::endl;
-			// std::wcout << bone.access_point_offset << std::endl;
-		}
-	}
-
-	// posefata
 	//const wchar_t* pose_file_path = L"../../../3dmodel/ポーズ25/4.vpd";
 	const wchar_t* pose_file_path = L"../../../3dmodel/Pose Pack 6 - Snorlaxin/9.vpd";
 	std::ifstream pose_file{ pose_file_path };
 
-	std::vector<mmdl::vpd_data<std::wstring, XMFLOAT3, XMFLOAT4>> vpd_data{};
-
-	{
-		auto tmp_container = mmdl::load_vpd_data<std::vector, std::string, XMFLOAT3, XMFLOAT4>(pose_file);
-		vpd_data.reserve(tmp_container.size());
-
-		for (auto&& tmp : std::move(tmp_container))
-		{
-			vpd_data.emplace_back(
-				mmdl::ansi_to_utf16<std::wstring, std::string>(std::move(tmp.name)),
-				std::move(tmp.transform),
-				std::move(tmp.quaternion)
-			);
-		}
-	}
-
+	// ポーズのデータ
+	auto vpd_data = get_utf16_vpd_data(pose_file);
 
 	// ボーンの名前から対応するボーンのインデックスを取得する際に使用する
-	std::unordered_map<std::wstring_view, std::size_t> bone_name_to_bone_index{};
-	{
-		bone_name_to_bone_index.reserve(pmx_bone.size());
-
-		for (std::size_t i = 0; i < pmx_bone.size(); i++)
-		{
-			bone_name_to_bone_index.emplace(pmx_bone[i].name, i);
-		}
-	}
-
-	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
-
+	auto bone_name_to_bone_index = get_bone_name_to_bone_index(pmx_bone);
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
 	.Format = FRAME_BUFFER_FORMAT,
@@ -262,168 +157,17 @@ int main()
 	auto pmx_index_shader = dx12w::load_blob(pmx_index_shader_cso);
 	pmx_index_shader_cso.close();
 
-	// 白色のテクスチャ
-	// 大きさは4x4
-	auto white_texture_resource = dx12w::create_commited_texture_resource(device.get(),
-		PMX_TEXTURE_FORMAT, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
-	// 白色のテクスチャの作成
-	{
-		auto const dst_desc = white_texture_resource.first->GetDesc();
+	// 4x4の白いテクスチャ
+	auto white_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 255);
+	
+	// 4x4の黒いテクスチャ
+	auto black_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 0);
 
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT src_footprint;
-		UINT64 src_total_bytes;
-		device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &src_footprint, nullptr, nullptr, &src_total_bytes);
+	// テクスチャのリソース
+	auto pmx_texture_resrouce = get_pmx_texture_resrouce(device, command_manager, pmx_texture_path, PMX_TEXTURE_FORMAT, directory_path);
 
-		auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), src_total_bytes);
-		std::uint8_t* tmp = nullptr;
-		src_texture_resorce.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-
-		// 全て白
-		std::fill(tmp, tmp + src_total_bytes, 255);
-
-		D3D12_TEXTURE_COPY_LOCATION src_texture_copy_location{
-				.pResource = src_texture_resorce.first.get(),
-				.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-				.PlacedFootprint = src_footprint,
-		};
-
-		D3D12_TEXTURE_COPY_LOCATION dst_texture_copy_location{
-			.pResource = white_texture_resource.first.get(),
-			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-		};
-
-		command_manager.reset_list(0);
-		dx12w::resource_barrior(command_manager.get_list(), white_texture_resource, D3D12_RESOURCE_STATE_COPY_DEST);
-		command_manager.get_list()->CopyTextureRegion(&dst_texture_copy_location, 0, 0, 0, &src_texture_copy_location, nullptr);
-		dx12w::resource_barrior(command_manager.get_list(), white_texture_resource, D3D12_RESOURCE_STATE_COMMON);
-		command_manager.get_list()->Close();
-		command_manager.excute();
-		command_manager.signal();
-		command_manager.wait(0);
-	}
-
-	// 黒色のテクスチャ
-	// 大きさは4x4
-	auto black_texture_resource = dx12w::create_commited_texture_resource(device.get(),
-		PMX_TEXTURE_FORMAT, 4, 4, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
-	// 黒のテクスチャの作成
-	{
-		auto dst_desc = black_texture_resource.first->GetDesc();
-
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT src_footprint;
-		UINT64 src_total_bytes;
-		device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &src_footprint, nullptr, nullptr, &src_total_bytes);
-
-		auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), src_total_bytes);
-		std::uint8_t* tmp = nullptr;
-		src_texture_resorce.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-
-		// 全て黒
-		std::fill(tmp, tmp + src_total_bytes, 0);
-
-		D3D12_TEXTURE_COPY_LOCATION src_texture_copy_location{
-				.pResource = src_texture_resorce.first.get(),
-				.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-				.PlacedFootprint = src_footprint,
-		};
-
-		D3D12_TEXTURE_COPY_LOCATION dst_texture_copy_location{
-			.pResource = black_texture_resource.first.get(),
-			.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-		};
-
-		command_manager.reset_list(0);
-		dx12w::resource_barrior(command_manager.get_list(), black_texture_resource, D3D12_RESOURCE_STATE_COPY_DEST);
-		command_manager.get_list()->CopyTextureRegion(&dst_texture_copy_location, 0, 0, 0, &src_texture_copy_location, nullptr);
-		dx12w::resource_barrior(command_manager.get_list(), black_texture_resource, D3D12_RESOURCE_STATE_COMMON);
-		command_manager.get_list()->Close();
-		command_manager.excute();
-		command_manager.signal();
-		command_manager.wait(0);
-	}
-
-	std::vector<dx12w::resource_and_state> pmx_texture_resrouce{};
-	{
-		for (auto& path : pmx_texture_path)
-		{
-			char buff[256];
-			stbi_convert_wchar_to_utf8(buff, 256, (std::wstring{ directory_path } + path).data());
-			int x, y, n;
-			std::uint8_t* data = stbi_load(buff, &x, &y, &n, 0);
-
-			auto dst_texture_resource = dx12w::create_commited_texture_resource(device.get(),
-				PMX_TEXTURE_FORMAT, x, y, 2, 1, 1, D3D12_RESOURCE_FLAG_NONE);
-
-			auto const dst_desc = dst_texture_resource.first->GetDesc();
-
-			D3D12_PLACED_SUBRESOURCE_FOOTPRINT src_footprint;
-			UINT64 src_total_bytes;
-			device->GetCopyableFootprints(&dst_desc, 0, 1, 0, &src_footprint, nullptr, nullptr, &src_total_bytes);
-
-			auto src_texture_resorce = dx12w::create_commited_upload_buffer_resource(device.get(), src_total_bytes);
-			std::uint8_t* tmp = nullptr;
-			src_texture_resorce.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-
-			for (std::size_t y_i = 0; y_i < y; y_i++)
-			{
-				for (std::size_t x_i = 0; x_i < x; x_i++)
-				{
-					for (std::size_t n_i = 0; n_i < n; n_i++)
-					{
-						tmp[y_i * src_footprint.Footprint.RowPitch + x_i * 4 + n_i] = data[(y_i * x + x_i) * n + n_i];
-					}
-
-					if (n == 3)
-					{
-						tmp[y_i * src_footprint.Footprint.RowPitch + x_i * 4 + 3] = 255;
-					}
-				}
-			}
-
-			D3D12_TEXTURE_COPY_LOCATION src_texture_copy_location{
-				.pResource = src_texture_resorce.first.get(),
-				.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-				.PlacedFootprint = src_footprint,
-			};
-
-			D3D12_TEXTURE_COPY_LOCATION dst_texture_copy_location{
-				.pResource = dst_texture_resource.first.get(),
-				.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-			};
-
-			// 毎回excute呼び出すのはどうかと思う
-			// けど、楽なのでとりあえず
-			command_manager.reset_list(0);
-			dx12w::resource_barrior(command_manager.get_list(), dst_texture_resource, D3D12_RESOURCE_STATE_COPY_DEST);
-			command_manager.get_list()->CopyTextureRegion(&dst_texture_copy_location, 0, 0, 0, &src_texture_copy_location, nullptr);
-			dx12w::resource_barrior(command_manager.get_list(), dst_texture_resource, D3D12_RESOURCE_STATE_COMMON);
-			command_manager.get_list()->Close();
-			command_manager.excute();
-			command_manager.signal();
-			command_manager.wait(0);
-
-			// TODO: サイズ分かってるからreserveするように変更する
-			pmx_texture_resrouce.emplace_back(std::move(dst_texture_resource));
-		}
-	}
-
-	std::vector<dx12w::resource_and_state> material_resource{};
-	{
-		for (auto& material : pmx_material)
-		{
-			auto tmp_material_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
-
-			material_data* tmp = nullptr;
-			tmp_material_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-			tmp->diffuse = material.diffuse;
-			tmp->specular = material.specular;
-			tmp->specularity = material.specularity;
-			tmp->ambient = material.ambient;
-			tmp_material_resource.first->Unmap(0, nullptr);
-
-			material_resource.emplace_back(std::move(tmp_material_resource));
-		}
-	}
+	// マテリアルのリソース
+	auto pmx_material_resource = get_pmx_material_resource(device, pmx_material);
 
 	//
 	// ディスクリプタヒープとビュー
@@ -452,7 +196,7 @@ int main()
 		dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 0),
 			pmx_texture_resrouce[pmx_material[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 1),
-			material_resource[i].first.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
+			pmx_material_resource[i].first.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
 
 		// 乗算スフィアマップを使用する場合
 		if (pmx_material[i].sphere_mode_value == mmdl::sphere_mode::sph)
@@ -516,7 +260,7 @@ int main()
 
 
 	//
-	//
+	// ルートシグネチャとグラフィクスパイプライン
 	//
 
 	auto pmx_root_signature = dx12w::create_root_signature(device.get(),
@@ -576,6 +320,8 @@ int main()
 	float model_rotation_z = 0.f;
 	std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
 
+	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
+
 	// 指定されているボーンに適当な行列を設定
 	for (auto const& vpd : vpd_data)
 	{
@@ -591,11 +337,11 @@ int main()
 		// 移動の適用
 		model.bone[index] *= XMMatrixTranslation(vpd.transform.x, vpd.transform.y, vpd.transform.z);
 	}
-	
+
 	// それぞれの親のノードの回転、移動の行列を子へ伝播させる
 	recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
 
-	
+
 	camera_data camera{};
 
 	direction_light_data direction_light{};

@@ -30,7 +30,7 @@ constexpr DXGI_FORMAT DEPTH_BUFFER_FORMAT = DXGI_FORMAT_D32_FLOAT;
 
 constexpr DXGI_FORMAT PMX_TEXTURE_FORMAT = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-constexpr std::size_t MAX_BONE_NUM = 256;
+constexpr std::size_t MAX_BONE_NUM = 516;
 
 // extern宣言
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -109,12 +109,14 @@ int main()
 
 
 	// TODO: 
-	//const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
-	//const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
-	const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
-	const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
+	const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
+	const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
+	//const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
+	//const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
 	//const wchar_t* file_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/ときのそら.pmx";
 	//const wchar_t* directory_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/";
+	//const wchar_t* file_path = L"../../../3dmodel/kizunaai/鏡音リンアペンド.pmx";
+	//const wchar_t* directory_path = L"../../../3dmodel/鏡音リンアペンド/";
 
 	std::ifstream file{ file_path ,std::ios::binary };
 	auto pmx_header = mmdl::load_header<>(file);
@@ -140,7 +142,8 @@ int main()
 	}
 
 	// posefata
-	const wchar_t* pose_file_path = L"../../../3dmodel/ポーズ25/1.vpd";
+	//const wchar_t* pose_file_path = L"../../../3dmodel/ポーズ25/4.vpd";
+	const wchar_t* pose_file_path = L"../../../3dmodel/Pose Pack 6 - Snorlaxin/9.vpd";
 	std::ifstream pose_file{ pose_file_path };
 
 	std::vector<mmdl::vpd_data<std::wstring, XMFLOAT3, XMFLOAT4>> vpd_data{};
@@ -555,8 +558,8 @@ int main()
 	// その他設定
 	//
 
-	XMFLOAT3 eye{ 0.f,10.f,-15.f };
-	XMFLOAT3 target{ 0.f,10.f,0.f };
+	XMFLOAT3 eye{ 0.f,3.f,-10.f };
+	XMFLOAT3 target{ 0.f,3.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	float view_angle = XM_PIDIV2;

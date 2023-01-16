@@ -1,5 +1,5 @@
 
-static const int MAX_BONE_NUM = 256;
+static const int MAX_BONE_NUM = 516;
 
 struct ModelData
 {

@@ -47,6 +47,32 @@ void set_bone_matrix_from_vpd(T& bone_matrix_container, U const& vpd_data, S con
 	}
 }
 
+inline float calc_bezier_curve(float x, float p1_x, float p1_y, float p2_x, float p2_y)
+{
+	// ニュートン法を適用するxのtについての式
+	auto f = [x, p1_x, p2_x](float t) {
+		return (1.f + 3.f * p1_x - 3.f * p2_x) * t * t * t
+			+ (3.f * p2_x - 6.f * p1_x) * t * t + 3.f * p1_x * t - x;
+	};
+
+	// fの導関数
+	auto df = [x, p1_x, p2_x](float t) {
+		return 3.f * (1.f + 3.f * p1_x - 3.f * p2_x) * t * t + 2.f * (3.f * p2_x - 6.f * p1_x) * t + 3.f * p1_x;
+	};
+
+	// 初期値
+	float t = 0.5;
+
+	// 収束するでしょ
+	for (std::size_t i = 0; i < 5; i++)
+	{
+		t -= f(t) / df(t);
+	}
+
+	// yの値
+	return 3.f * (1.f - t) * (1.f - t) * t * p1_y + 3.f * (1.f - t) * t * t * p2_y + t * t * t;
+}
+
 template<typename T, typename U, typename S, typename R>
 void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bone_motion_data, S const pmx_bone, R& bone_name_to_bone_index, std::size_t frame_num)
 {
@@ -70,8 +96,9 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 			XMVECTOR rit_quaternion = XMLoadFloat4(&rit->quaternion);
 			if (it != motion_data.end()) {
 				auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+				auto y = calc_bezier_curve(t, it->p1_x / 127.f, it->p1_y / 127.f, it->p2_x / 127.f, it->p2_y / 127.f);
 				XMVECTOR it_quaternion = XMLoadFloat4(&it->quaternion);
-				return XMMatrixRotationQuaternion(XMQuaternionSlerp(rit_quaternion, it_quaternion, t));
+				return XMMatrixRotationQuaternion(XMQuaternionSlerp(rit_quaternion, it_quaternion, y));
 			}
 			else {
 				return XMMatrixRotationQuaternion(rit_quaternion);
@@ -85,6 +112,7 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
 
 
+		/*
 		// これIK用のパラメータっぽい？間違っているかも
 		// 移動の適用
 		auto transform = [rit, it, &motion_data, frame_num]() {
@@ -102,6 +130,7 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 		}();
 
 		bone_matrix_container[index] *= XMMatrixTranslation(transform.x, transform.y, transform.z);
+		*/
 	}
 }
 
@@ -116,7 +145,8 @@ std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to
 		// ちゃんとやる
 		auto name = mmdl::ansi_to_utf16<std::wstring, std::string>(std::string{ vmd.name });
 
-		result[name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion);
+		result[name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion,
+			vmd.complement_parameter[3], vmd.complement_parameter[7], vmd.complement_parameter[11], vmd.complement_parameter[15]);
 	}
 
 	return result;

@@ -62,5 +62,13 @@ struct bone_motion_data
 	XMFLOAT3 transform;
 	XMFLOAT4 quaternion;
 
-	// 補完パラメータについてはまたあとで
+	// 回転の補間に使用するベジェ曲線を表す点、その１
+	char p1_x;
+	char p1_y;
+
+	// 回転の補間に使用するベジェ曲線を表す点、その２
+	char p2_x;
+	char p2_y;
+
+	// その他の補完パラメータについてはまたあとで
 };

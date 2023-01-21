@@ -109,6 +109,12 @@
     <ClInclude Include="function.hpp" />
     <ClInclude Include="struct.hpp" />
     <ClInclude Include="parameter.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_data.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

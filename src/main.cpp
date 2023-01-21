@@ -4,6 +4,7 @@
 #include"../external/imgui/imgui_impl_win32.h"
 #include"../external/mmd-loader/mmdl/pmx_loader.hpp"
 #include"../external/mmd-loader/mmdl/vpd_loader.hpp"
+#include"../external/mmd-loader/mmdl/vmd_loader.hpp"
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 #include"../external/stb/stb_image.h"
@@ -43,14 +44,15 @@ int main()
 
 
 	// TODO: 
-	const wchar_t* file_path = L"../../../3dmodel/パイモン/派蒙.pmx";
-	const wchar_t* directory_path = L"../../../3dmodel/パイモン/";
-	//const wchar_t* file_path = L"../../../3dmodel/kizunaai/kizunaai.pmx";
-	//const wchar_t* directory_path = L"../../../3dmodel/kizunaai/";
-	//const wchar_t* file_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/ときのそら.pmx";
-	//const wchar_t* directory_path = L"../../../3dmodel/ときのそら公式mmd_ver2.1/";
-	//const wchar_t* file_path = L"../../../3dmodel/kizunaai/鏡音リンアペンド.pmx";
-	//const wchar_t* directory_path = L"../../../3dmodel/鏡音リンアペンド/";
+	//const wchar_t* file_path = L"E:素材/原神/パイモン/派蒙.pmx";
+	//const wchar_t* directory_path = L"E:素材/原神/パイモン/";
+	//const wchar_t* file_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
+	//const wchar_t* directory_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/";
+	const wchar_t* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
+	const wchar_t* directory_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/";
+	//const wchar_t* file_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/PMX/Laplus_220516_1.pmx";
+	//const wchar_t* directory_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/sourceimages/";
+
 
 	std::ifstream file{ file_path ,std::ios::binary };
 	auto pmx_header = mmdl::load_header<>(file);
@@ -71,6 +73,12 @@ int main()
 
 	// ボーンの名前から対応するボーンのインデックスを取得する際に使用する
 	auto bone_name_to_bone_index = get_bone_name_to_bone_index(pmx_bone);
+
+	const wchar_t* motion_file_path = L"../../../3dmodel/スイマジ/sweetmagic-right.vmd";
+	std::ifstream motion_file{ motion_file_path,std::ios::binary };
+
+	auto vmd_header = mmdl::load_vmd_header(motion_file);
+	auto vmd_frame_data = mmdl::load_vmd_frame_data<std::vector, XMFLOAT3, XMFLOAT4>(motion_file, vmd_header.frame_data_num);
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
 	.Format = FRAME_BUFFER_FORMAT,

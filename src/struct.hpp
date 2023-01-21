@@ -55,3 +55,12 @@ struct material_data
 	XMFLOAT3 ambient;
 	float _pad0;
 };
+
+struct bone_motion_data
+{
+	int frame_num;
+	XMFLOAT3 transform;
+	XMFLOAT4 quaternion;
+
+	// •âŠ®ƒpƒ‰ƒ[ƒ^‚É‚Â‚¢‚Ä‚Í‚Ü‚½‚ ‚Æ‚Å
+};

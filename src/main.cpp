@@ -310,8 +310,8 @@ int main()
 	// その他設定
 	//
 
-	XMFLOAT3 eye{ 0.f,3.f,-10.f };
-	XMFLOAT3 target{ 0.f,3.f,0.f };
+	XMFLOAT3 eye{ 0.f,13.f,-10.f };
+	XMFLOAT3 target{ 0.f,13.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	float view_angle = XM_PIDIV2;
@@ -331,12 +331,7 @@ int main()
 	// 子ボーンのインデックスを取得するための配列を取得
 	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
 
-	// 指定されているボーンに適当な行列を設定
-	set_bone_matrix_from_vpd(model.bone, vpd_data, pmx_bone, bone_name_to_bone_index);
-
-	// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-	recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
-
+	auto bone_name_to_bone_motion_data = get_bone_name_to_bone_motion_data(vmd_frame_data);
 
 	camera_data camera{};
 
@@ -344,6 +339,7 @@ int main()
 	direction_light.color = direction_light_color;
 	direction_light.dir = direction_light_dir;
 
+	int frame_num = 0;
 
 	while (dx12w::update_window())
 	{
@@ -373,6 +369,16 @@ int main()
 		camera.screenWidth = WINDOW_WIDTH;
 		camera.screenHeight = WINDOW_HEIGHT;
 		camera.eyePos = eye;
+
+		// ボーンを初期化
+		std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
+
+		// 指定されているボーンに適当な行列を設定
+		set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+
+		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
+		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
+
 
 		{
 			model_data* tmp = nullptr;
@@ -407,6 +413,9 @@ int main()
 		ImGui::SliderFloat("model rotaion z", &model_rotation_z, -XM_PI, XM_PI);
 		ImGui::InputFloat3("eye", &eye.x);
 		ImGui::InputFloat3("target", &target.x);
+
+		ImGui::InputInt("frame num", &frame_num);
+
 		ImGui::End();
 
 		// Rendering
@@ -467,6 +476,8 @@ int main()
 		command_manager.wait(0);
 
 		swap_chain->Present(1, 0);
+
+		// frame_num++;
 	}
 
 

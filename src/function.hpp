@@ -4,6 +4,7 @@
 #include<limits>
 #include<DirectXMath.h>
 #include<unordered_map>
+#include<string>
 #include"../external/mmd-loader/mmdl/vpd_loader.hpp"
 #include"struct.hpp"
 
@@ -35,16 +36,63 @@ void set_bone_matrix_from_vpd(T& bone_matrix_container, U const& vpd_data, S con
 
 		// 回転の適用
 		XMVECTOR quaternion_vector = XMLoadFloat4(&vpd.quaternion);
-		bone_matrix_container[index] *=
+		bone_matrix_container[index] =
 			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
 			XMMatrixRotationQuaternion(quaternion_vector) *
 			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
 
+		// これIK用のパラメータっぽい？間違っているかも
 		// 移動の適用
 		bone_matrix_container[index] *= XMMatrixTranslation(vpd.transform.x, vpd.transform.y, vpd.transform.z);
 	}
 }
 
+template<typename T, typename U, typename S, typename R>
+void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bone_motion_data, S const pmx_bone, R& bone_name_to_bone_index, std::size_t frame_num)
+{
+	for (auto const& motion : bone_name_to_bone_motion_data)
+	{
+		auto index = bone_name_to_bone_index[motion.first];
+
+		auto const& motion_data = motion.second;
+
+		auto rit = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+		if (rit == motion_data.rend())
+		{
+			continue;
+		}
+
+		// 回転の適用
+		XMVECTOR quaternion_vector = XMLoadFloat4(&rit->quaternion);
+		bone_matrix_container[index] =
+			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
+			XMMatrixRotationQuaternion(quaternion_vector) *
+			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
+
+
+		// これIK用のパラメータっぽい？間違っているかも
+		// 移動の適用
+		// bone_matrix_container[index] *= XMMatrixTranslation(vmd.transform.x, vmd.transform.y, vmd.transform.z);
+	}
+}
+
+// intはframe num
+template<typename T>
+std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to_bone_motion_data(T&& vmd_data)
+{
+	std::unordered_map<std::wstring, std::vector<bone_motion_data>> result{};
+
+	for (auto&& vmd : std::forward<T>(vmd_data))
+	{
+		// ちゃんとやる
+		auto name = mmdl::ansi_to_utf16<std::wstring, std::string>(std::string{ vmd.name });
+
+		result[name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion);
+	}
+
+	return result;
+}
 
 // 親の回転、移動を表す行列を子に適用する
 template<typename T, typename U>

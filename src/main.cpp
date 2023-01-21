@@ -327,24 +327,12 @@ int main()
 	float model_rotation_y = 0.f;
 	float model_rotation_z = 0.f;
 	std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
-
+	
+	// 子ボーンのインデックスを取得するための配列を取得
 	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
 
 	// 指定されているボーンに適当な行列を設定
-	for (auto const& vpd : vpd_data)
-	{
-		auto index = bone_name_to_bone_index[vpd.name];
-
-		// 回転の適用
-		XMVECTOR quaternion_vector = XMLoadFloat4(&vpd.quaternion);
-		model.bone[index] *=
-			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
-			XMMatrixRotationQuaternion(quaternion_vector) *
-			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
-
-		// 移動の適用
-		model.bone[index] *= XMMatrixTranslation(vpd.transform.x, vpd.transform.y, vpd.transform.z);
-	}
+	set_bone_matrix_from_vpd(model.bone, vpd_data, pmx_bone, bone_name_to_bone_index);
 
 	// それぞれの親のノードの回転、移動の行列を子へ伝播させる
 	recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);

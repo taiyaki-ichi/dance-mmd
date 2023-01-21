@@ -26,6 +26,25 @@ std::vector<std::vector<std::size_t>> get_to_children_bone_index(T const& pmx_bo
 	return result;
 }
 
+template<typename T, typename U, typename S, typename R>
+void set_bone_matrix_from_vpd(T& bone_matrix_container, U const& vpd_data, S const pmx_bone, R& bone_name_to_bone_index)
+{
+	for (auto const& vpd : vpd_data)
+	{
+		auto index = bone_name_to_bone_index[vpd.name];
+
+		// 回転の適用
+		XMVECTOR quaternion_vector = XMLoadFloat4(&vpd.quaternion);
+		bone_matrix_container[index] *=
+			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
+			XMMatrixRotationQuaternion(quaternion_vector) *
+			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
+
+		// 移動の適用
+		bone_matrix_container[index] *= XMMatrixTranslation(vpd.transform.x, vpd.transform.y, vpd.transform.z);
+	}
+}
+
 
 // 親の回転、移動を表す行列を子に適用する
 template<typename T, typename U>
@@ -190,8 +209,8 @@ std::vector<dx12w::resource_and_state> get_pmx_texture_resrouce(T& device, U& co
 }
 
 
-template<typename T,typename U>
-std::vector<dx12w::resource_and_state> get_pmx_material_resource(T& device,U const& pmx_material)
+template<typename T, typename U>
+std::vector<dx12w::resource_and_state> get_pmx_material_resource(T& device, U const& pmx_material)
 {
 	std::vector<dx12w::resource_and_state> material_resource{};
 

@@ -63,17 +63,45 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 			continue;
 		}
 
+		// 一つ手前のボーンのモーションデータを参照できる
+		auto it = rit.base();
+
+		auto quaternion = [rit, it, &motion_data, frame_num]() {
+			XMVECTOR rit_quaternion = XMLoadFloat4(&rit->quaternion);
+			if (it != motion_data.end()) {
+				auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+				XMVECTOR it_quaternion = XMLoadFloat4(&it->quaternion);
+				return XMMatrixRotationQuaternion(XMQuaternionSlerp(rit_quaternion, it_quaternion, t));
+			}
+			else {
+				return XMMatrixRotationQuaternion(rit_quaternion);
+			}
+		}();
+
 		// 回転の適用
-		XMVECTOR quaternion_vector = XMLoadFloat4(&rit->quaternion);
 		bone_matrix_container[index] =
 			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
-			XMMatrixRotationQuaternion(quaternion_vector) *
+			quaternion *
 			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
 
 
 		// これIK用のパラメータっぽい？間違っているかも
 		// 移動の適用
-		// bone_matrix_container[index] *= XMMatrixTranslation(vmd.transform.x, vmd.transform.y, vmd.transform.z);
+		auto transform = [rit, it, &motion_data, frame_num]() {
+			if (it != motion_data.end()) {
+				auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+				return XMFLOAT3{
+					rit->transform.x * (1 - t) + it->transform.x * t ,
+					rit->transform.y * (1 - t) + it->transform.y * t,
+					rit->transform.z * (1 - t) + it->transform.z * t,
+				};
+			}
+			else {
+				return rit->transform;
+			}
+		}();
+
+		bone_matrix_container[index] *= XMMatrixTranslation(transform.x, transform.y, transform.z);
 	}
 }
 

@@ -167,7 +167,7 @@ int main()
 
 	// 4x4の白いテクスチャ
 	auto white_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 255);
-	
+
 	// 4x4の黒いテクスチャ
 	auto black_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 0);
 
@@ -310,8 +310,8 @@ int main()
 	// その他設定
 	//
 
-	XMFLOAT3 eye{ 0.f,13.f,-10.f };
-	XMFLOAT3 target{ 0.f,13.f,0.f };
+	XMFLOAT3 eye{ 0.f,8.f,-10.f };
+	XMFLOAT3 target{ 0.f,8.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	float view_angle = XM_PIDIV2;
@@ -327,7 +327,7 @@ int main()
 	float model_rotation_y = 0.f;
 	float model_rotation_z = 0.f;
 	std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
-	
+
 	// 子ボーンのインデックスを取得するための配列を取得
 	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
 
@@ -340,6 +340,10 @@ int main()
 	direction_light.dir = direction_light_dir;
 
 	int frame_num = 0;
+
+	float offset_x = 0.f;
+	float offset_y = 0.f;
+	float offset_z = 0.f;
 
 	while (dx12w::update_window())
 	{
@@ -374,10 +378,17 @@ int main()
 		std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
 
 		// 指定されているボーンに適当な行列を設定
-		set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+		// set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+
+		{
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"右足首"]].position), XMMatrixTranslation(offset_x, offset_y, offset_z));
+			XMFLOAT3 float3;
+			XMStoreFloat3(&float3, pos);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"右足ＩＫ"], pmx_bone, float3, to_children_bone_index);
+		}
 
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
+		//recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
 
 
 		{
@@ -415,6 +426,10 @@ int main()
 		ImGui::InputFloat3("target", &target.x);
 
 		ImGui::InputInt("frame num", &frame_num);
+
+		ImGui::SliderFloat("offset x", &offset_x, -10.f, 10.f);
+		ImGui::SliderFloat("offset y", &offset_y, -10.f, 10.f);
+		ImGui::SliderFloat("offset z", &offset_z, -10.f, 10.f);
 
 		ImGui::End();
 

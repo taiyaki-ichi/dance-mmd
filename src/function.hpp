@@ -5,6 +5,7 @@
 #include<DirectXMath.h>
 #include<unordered_map>
 #include<string>
+#include<algorithm>
 #include"../external/mmd-loader/mmdl/vpd_loader.hpp"
 #include"struct.hpp"
 
@@ -336,4 +337,84 @@ std::vector<dx12w::resource_and_state> get_pmx_material_resource(T& device, U co
 	}
 
 	return material_resource;
+}
+
+
+// bone行列は回転のみ適用されている
+void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
+	std::vector<std::vector<std::size_t>> const& to_children_bone_index)
+{
+	auto target_index = pmx_bone[root_index].ik_target_bone;
+
+	// ループしてIKを解決していく
+	for (std::size_t ik_roop_i = 0; ik_roop_i < static_cast<std::size_t>(pmx_bone[root_index].ik_roop_number); ik_roop_i++)
+	{
+		// それぞれのボーンを動かしていく
+		for (std::size_t ik_link_i = 0; ik_link_i < pmx_bone[root_index].ik_link.size(); ik_link_i++)
+		{
+			// 対象のik_linkのボーン
+			auto ik_link = pmx_bone[root_index].ik_link[ik_link_i];
+
+			// 現在のターゲットのボーンの位置
+			auto current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
+
+			// 対象のボーンの位置
+			auto ik_link_bone_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[ik_link.bone].position), bone[ik_link.bone]);
+
+			// 対象のボーンから現在のターゲットへのベクトル
+			auto to_current_target = XMVector3Normalize(XMVectorSubtract(current_target_position, ik_link_bone_position));
+
+			// 対象のボーンからターゲットへのベクトル
+			auto to_target = XMVector3Normalize(XMVectorSubtract(XMLoadFloat3(&target_position), ik_link_bone_position));
+
+			// ほぼ同じベクトルになってしまった場合は外積が計算できないため飛ばす
+			if (XMVector3Length(XMVectorSubtract(to_current_target, to_target)).m128_f32[0] <= std::numeric_limits<float>::epsilon()) {
+				continue;
+			}
+
+			// 外積および角度の計算
+			// pmxはローカル座標系みたいなパラメータがあるけど、とりあえず無視
+			auto cross = XMVector3Normalize(XMVector3Cross(to_current_target, to_target));
+			auto angle = XMVector3AngleBetweenVectors(to_current_target, to_target).m128_f32[0];
+
+
+			// 角度制限を反映
+			if (ik_link.min_max_angle_limit) {
+				auto [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
+				//std::cout << angle << std::endl;
+				// それぞれ3要素ずつあるがxにしか値が入ってないっぽい？
+				// XM_PIをかけているのはそういう仕様だから、らしい
+				//angle = std::clamp(angle, angle_limit_min.x / XM_PI * 180.f, angle_limit_max.x / XM_PI * 180.f);
+
+				//　角度制限はクオータニオンっぽい
+				// 参考　http://kzntov.seesaa.net/article/455959577.html
+			}
+
+
+			// 回転行列
+			auto rot = XMMatrixTranslationFromVector(-ik_link_bone_position) *
+				XMMatrixRotationAxis(cross, angle) *
+				XMMatrixTranslationFromVector(ik_link_bone_position);
+
+
+			// 対象のik_linkのボーンより末端のボーンに回転を適用する
+			// これっだとダメだ
+			for (auto i = 0; i <= ik_link_i; i++)
+			{
+				bone[pmx_bone[root_index].ik_link[i].bone] *= rot;
+			}
+
+
+			// ターゲットのボーンにも回転を適用
+			bone[target_index] *= rot;
+
+			// ターゲットのボーンの位置の更新
+			current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
+
+			// 十分近くなった場合ループを抜ける
+			if (XMVector3Length(XMVectorSubtract(current_target_position, XMLoadFloat3(&target_position))).m128_f32[0] <= std::numeric_limits<float>::epsilon()) {
+				break;
+			}
+		}
+	}
 }

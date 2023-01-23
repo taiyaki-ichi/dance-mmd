@@ -165,6 +165,18 @@ void recursive_aplly_parent_matrix(T& matrix_container, std::size_t current_inde
 	}
 }
 
+// 再帰的に行列をかけていくだけ
+template<typename T, typename U>
+void recursive_aplly_matrix(T& matrix_container, std::size_t current_index, XMMATRIX const& matrix, U const& to_children_bone_index_container)
+{
+	matrix_container[current_index] *= matrix;
+
+	for (auto children_index : to_children_bone_index_container[current_index])
+	{
+		recursive_aplly_matrix(matrix_container, children_index, matrix, to_children_bone_index_container);
+	}
+}
+
 // utf16のポーズのデータの読み込み
 inline std::vector<mmdl::vpd_data<std::wstring, XMFLOAT3, XMFLOAT4>> get_utf16_vpd_data(std::istream& in)
 {
@@ -396,17 +408,8 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 				XMMatrixRotationAxis(cross, angle) *
 				XMMatrixTranslationFromVector(ik_link_bone_position);
 
-
 			// 対象のik_linkのボーンより末端のボーンに回転を適用する
-			// これっだとダメだ
-			for (auto i = 0; i <= ik_link_i; i++)
-			{
-				bone[pmx_bone[root_index].ik_link[i].bone] *= rot;
-			}
-
-
-			// ターゲットのボーンにも回転を適用
-			bone[target_index] *= rot;
+			recursive_aplly_matrix(bone, ik_link.bone, rot, to_children_bone_index);
 
 			// ターゲットのボーンの位置の更新
 			current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);

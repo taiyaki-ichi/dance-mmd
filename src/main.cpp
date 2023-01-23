@@ -384,7 +384,7 @@ int main()
 			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position), XMMatrixTranslation(offset_x, offset_y, offset_z));
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
-			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index, frame_num);
 		}
 
 		// ‚»‚ê‚¼‚ê‚Ìe‚Ìƒm[ƒh‚Ì‰ñ“]AˆÚ“®‚Ìs—ñ‚ğq‚Ö“`”d‚³‚¹‚é

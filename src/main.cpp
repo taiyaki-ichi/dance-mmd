@@ -380,11 +380,12 @@ int main()
 		// 指定されているボーンに適当な行列を設定
 		// set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 
+		// IK
 		{
 			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"右足首"]].position), XMMatrixTranslation(offset_x, offset_y, offset_z));
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
-			solve_CCDIK(model.bone, bone_name_to_bone_index[L"右足ＩＫ"], pmx_bone, float3, to_children_bone_index, frame_num);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"右足ＩＫ"], pmx_bone, float3, to_children_bone_index);
 		}
 
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる

@@ -378,7 +378,10 @@ int main()
 		std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
 
 		// 指定されているボーンに適当な行列を設定
-		// set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+		set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+
+		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
+		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
 
 		// IK
 		{
@@ -388,9 +391,8 @@ int main()
 			solve_CCDIK(model.bone, bone_name_to_bone_index[L"右足ＩＫ"], pmx_bone, float3, to_children_bone_index);
 		}
 
-		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		//recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
-
+		// 移動させる
+		transform_center_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index);
 
 		{
 			model_data* tmp = nullptr;
@@ -493,7 +495,7 @@ int main()
 
 		swap_chain->Present(1, 0);
 
-		// frame_num++;
+		frame_num++;
 	}
 
 

@@ -11,6 +11,30 @@
 
 using namespace DirectX;
 
+// 親の回転、移動を表す行列を子に適用する
+template<typename T, typename U>
+void recursive_aplly_parent_matrix(T& matrix_container, std::size_t current_index, XMMATRIX const& parent_matrix, U const& to_children_bone_index_container)
+{
+	matrix_container[current_index] *= parent_matrix;
+
+	for (auto children_index : to_children_bone_index_container[current_index])
+	{
+		recursive_aplly_parent_matrix(matrix_container, children_index, matrix_container[current_index], to_children_bone_index_container);
+	}
+}
+
+// 再帰的に行列をかけていくだけ
+template<typename T, typename U>
+void recursive_aplly_matrix(T& matrix_container, std::size_t current_index, XMMATRIX const& matrix, U const& to_children_bone_index_container)
+{
+	matrix_container[current_index] *= matrix;
+
+	for (auto children_index : to_children_bone_index_container[current_index])
+	{
+		recursive_aplly_matrix(matrix_container, children_index, matrix, to_children_bone_index_container);
+	}
+}
+
 // 子ボーンへのインデックスのリストを作成
 template<typename T>
 std::vector<std::vector<std::size_t>> get_to_children_bone_index(T const& pmx_bone)
@@ -135,6 +159,51 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 	}
 }
 
+// センターの移動量をもとに全体を移動させる
+template<typename T, typename U, typename S, typename R>
+void transform_center_matrix(T& bone_matrix_container, U& bone_name_to_bone_motion_data, R& bone_name_to_bone_index,
+	std::size_t frame_num, S const& to_children_bone_index_container)
+{
+	auto& const center_motion_data = bone_name_to_bone_motion_data[L"センター"];
+	auto center_index = bone_name_to_bone_index[L"センター"];
+
+	auto rit = std::find_if(center_motion_data.rbegin(), center_motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+	if (rit == center_motion_data.rend())
+	{
+		return;
+	}
+
+	// 一つ手前のボーンのモーションデータを参照できる
+	auto it = rit.base();
+
+	auto transform = [rit, it, &center_motion_data, frame_num]() {
+
+		if (it != center_motion_data.end()) {
+			auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+
+			auto x_t = calc_bezier_curve(t, it->x_a[0] / 127.f, it->x_a[1] / 127.f, it->x_b[0] / 127.f, it->x_b[1] / 127.f);
+			auto y_t = calc_bezier_curve(t, it->y_a[0] / 127.f, it->y_a[1] / 127.f, it->y_b[0] / 127.f, it->y_b[1] / 127.f);
+			auto z_t = calc_bezier_curve(t, it->z_a[0] / 127.f, it->z_a[1] / 127.f, it->z_b[0] / 127.f, it->z_b[1] / 127.f);
+
+			// 回転じゃあないし、球面補間の必要はなさそう
+			// とりあえずヨコ移動はさせない
+			auto x = 0.f;// std::lerp(rit->transform.x, it->transform.x, x_t);
+			auto y =  std::lerp(rit->transform.y, it->transform.y, y_t);
+			auto z = 0.f;// std::lerp(rit->transform.z, it->transform.z, z_t);
+
+			return XMMatrixTranslation(x, y, z);
+
+		}
+		else {
+			return XMMatrixTranslation(rit->transform.x, rit->transform.y, rit->transform.z);
+		}
+	}();
+
+	// 全ての行列を移動さす
+	recursive_aplly_matrix(bone_matrix_container, center_index, transform, to_children_bone_index_container);
+}
+
 // intはframe num
 template<typename T>
 std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to_bone_motion_data(T&& vmd_data)
@@ -147,34 +216,14 @@ std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to
 		auto name = mmdl::ansi_to_utf16<std::wstring, std::string>(std::string{ vmd.name });
 
 		result[name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion,
-			vmd.complement_parameter[3], vmd.complement_parameter[7], vmd.complement_parameter[11], vmd.complement_parameter[15]);
+			vmd.complement_parameter[3], vmd.complement_parameter[7], vmd.complement_parameter[11], vmd.complement_parameter[15],
+			std::array<char, 2>{ vmd.complement_parameter[0], vmd.complement_parameter[4] }, std::array<char, 2>{ vmd.complement_parameter[8] ,vmd.complement_parameter[12] },
+			std::array<char, 2>{ vmd.complement_parameter[1] ,vmd.complement_parameter[5] }, std::array<char, 2>{ vmd.complement_parameter[9] ,vmd.complement_parameter[13] },
+			std::array<char, 2>{ vmd.complement_parameter[2] ,vmd.complement_parameter[6] }, std::array<char, 2> { vmd.complement_parameter[10] ,vmd.complement_parameter[14] }
+		);
 	}
 
 	return result;
-}
-
-// 親の回転、移動を表す行列を子に適用する
-template<typename T, typename U>
-void recursive_aplly_parent_matrix(T& matrix_container, std::size_t current_index, XMMATRIX const& parent_matrix, U const& to_children_bone_index_container)
-{
-	matrix_container[current_index] *= parent_matrix;
-
-	for (auto children_index : to_children_bone_index_container[current_index])
-	{
-		recursive_aplly_parent_matrix(matrix_container, children_index, matrix_container[current_index], to_children_bone_index_container);
-	}
-}
-
-// 再帰的に行列をかけていくだけ
-template<typename T, typename U>
-void recursive_aplly_matrix(T& matrix_container, std::size_t current_index, XMMATRIX const& matrix, U const& to_children_bone_index_container)
-{
-	matrix_container[current_index] *= matrix;
-
-	for (auto children_index : to_children_bone_index_container[current_index])
-	{
-		recursive_aplly_matrix(matrix_container, children_index, matrix, to_children_bone_index_container);
-	}
 }
 
 // utf16のポーズのデータの読み込み
@@ -407,7 +456,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 					// x軸の回転について調節
 					XMFLOAT3 x_axis{ 1.f,0.f,0.f };
 					auto rot_limit_max_x = std::sin(angle_limit_max.x * 0.5f);
-					auto rot_limit_min_x = std::sin(angle_limit_min.x * 0.5f); 
+					auto rot_limit_min_x = std::sin(angle_limit_min.x * 0.5f);
 					if (rot_quaternion.m128_f32[0] > rot_limit_max_x) {
 						rot_quaternion.m128_f32[0] = rot_limit_max_x;
 					}

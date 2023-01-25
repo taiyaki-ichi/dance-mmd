@@ -70,5 +70,15 @@ struct bone_motion_data
 	char p2_x;
 	char p2_y;
 
-	// その他の補完パラメータについてはまたあとで
+	std::array<char,2> x_a;
+	std::array<char, 2> x_b;
+
+	std::array<char, 2> y_a;
+	std::array<char, 2> y_b;
+
+	std::array<char, 2> z_a;
+	std::array<char, 2> z_b;
+
+
+	// 参考: http://atupdate.web.fc2.com/vmd_format.htm
 };

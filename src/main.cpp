@@ -14,6 +14,7 @@
 #include<numeric>
 #include<unordered_map>
 #include<DirectXMath.h>
+#include<chrono>
 
 
 using namespace DirectX;
@@ -310,7 +311,7 @@ int main()
 	// ÇªÇÃëºê›íË
 	//
 
-	XMFLOAT3 eye{ 0.f,8.f,-10.f };
+	XMFLOAT3 eye{ 0.f,8.f,-15.f };
 	XMFLOAT3 target{ 0.f,8.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
@@ -344,6 +345,8 @@ int main()
 	float offset_x = 0.f;
 	float offset_y = 0.f;
 	float offset_z = 0.f;
+
+	auto start_time = std::chrono::system_clock::now();
 
 	while (dx12w::update_window())
 	{
@@ -495,7 +498,14 @@ int main()
 
 		swap_chain->Present(1, 0);
 
-		frame_num++;
+		// frame_num++;
+		{
+			auto current_time = std::chrono::system_clock::now();
+			double elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current_time -start_time).count();
+
+			// 30fps
+			frame_num = elapsed / 1000.f * 30;
+		}
 	}
 
 

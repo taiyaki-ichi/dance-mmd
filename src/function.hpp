@@ -187,10 +187,9 @@ void transform_center_matrix(T& bone_matrix_container, U& bone_name_to_bone_moti
 			auto z_t = calc_bezier_curve(t, it->z_a[0] / 127.f, it->z_a[1] / 127.f, it->z_b[0] / 127.f, it->z_b[1] / 127.f);
 
 			// 回転じゃあないし、球面補間の必要はなさそう
-			// とりあえずヨコ移動はさせない
-			auto x = 0.f;// std::lerp(rit->transform.x, it->transform.x, x_t);
-			auto y =  std::lerp(rit->transform.y, it->transform.y, y_t);
-			auto z = 0.f;// std::lerp(rit->transform.z, it->transform.z, z_t);
+			auto x = std::lerp(rit->transform.x, it->transform.x, x_t);
+			auto y = std::lerp(rit->transform.y, it->transform.y, y_t);
+			auto z = std::lerp(rit->transform.z, it->transform.z, z_t);
 
 			return XMMatrixTranslation(x, y, z);
 

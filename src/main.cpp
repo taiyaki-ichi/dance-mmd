@@ -389,17 +389,55 @@ int main()
 		// ‚»‚ê‚¼‚ê‚Ìe‚Ìƒm[ƒh‚Ì‰ñ“]AˆÚ“®‚Ìs—ñ‚ğq‚Ö“`”d‚³‚¹‚é
 		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"‘S‚Ä‚Ìe"], XMMatrixIdentity(), to_children_bone_index);
 
+		// ˆÚ“®‚³‚¹‚é
+		// transform_center_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index);
+
 		// IK
-		/*
 		{
-			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position), XMMatrixTranslation(offset_x, offset_y, offset_z));
+			auto [center_x, center_y, center_z] = calc_transfom_matrix_2(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"ƒZƒ“ƒ^[");
+			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‘«‚h‚j");
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position), transform);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
+			float3.x -= center_x;
+			float3.y -= center_y;
+			float3.z -= center_z;
 			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index);
 		}
-		*/
+		{
+			auto [center_x, center_y, center_z] = calc_transfom_matrix_2(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"ƒZƒ“ƒ^[");
+			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‚Â‚Üæ‚h‚j");
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‚Â‚Üæ"]].position), transform);
+			XMFLOAT3 float3;
+			XMStoreFloat3(&float3, pos);
+			float3.x -= center_x;
+			float3.y -= center_y;
+			float3.z -= center_z;
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index);
+		}
+		{
+			auto [center_x, center_y, center_z] = calc_transfom_matrix_2(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"ƒZƒ“ƒ^[");
+			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‘«‚h‚j");
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‘«ñ"]].position), transform);
+			XMFLOAT3 float3;
+			XMStoreFloat3(&float3, pos);
+			float3.x -= center_x;
+			float3.y -= center_y;
+			float3.z -= center_z;
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‘«‚h‚j"], pmx_bone, float3, to_children_bone_index);
+		}
+		{
+			auto [center_x, center_y, center_z] = calc_transfom_matrix_2(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"ƒZƒ“ƒ^[");
+			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‚Â‚Üæ‚h‚j");
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‚Â‚Üæ"]].position), transform);
+			XMFLOAT3 float3;
+			XMStoreFloat3(&float3, pos);
+			float3.x -= center_x;
+			float3.y -= center_y;
+			float3.z -= center_z;
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index);
+		}
 
-		// ˆÚ“®‚³‚¹‚é
 		transform_center_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index);
 
 		{

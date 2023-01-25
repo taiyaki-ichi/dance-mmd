@@ -8,6 +8,7 @@
 #include<algorithm>
 #include"../external/mmd-loader/mmdl/vpd_loader.hpp"
 #include"struct.hpp"
+#include<tuple>
 
 using namespace DirectX;
 
@@ -203,6 +204,93 @@ void transform_center_matrix(T& bone_matrix_container, U& bone_name_to_bone_moti
 	recursive_aplly_matrix(bone_matrix_container, center_index, transform, to_children_bone_index_container);
 }
 
+// フレーム番号から対象のボーンの移動ベクトルを求める
+template<typename T, typename U, typename S, typename R>
+XMMATRIX calc_transfom_matrix(T& bone_matrix_container, U& bone_name_to_bone_motion_data, R& bone_name_to_bone_index,
+	std::size_t frame_num, S const& to_children_bone_index_container, wchar_t const* bone_name)
+{
+	auto& const center_motion_data = bone_name_to_bone_motion_data[bone_name];
+	auto center_index = bone_name_to_bone_index[bone_name];
+
+	auto rit = std::find_if(center_motion_data.rbegin(), center_motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+	if (rit == center_motion_data.rend())
+	{
+		return XMMatrixIdentity();
+	}
+
+	// 一つ手前のボーンのモーションデータを参照できる
+	auto it = rit.base();
+
+	auto transform = [rit, it, &center_motion_data, frame_num]() {
+
+		if (it != center_motion_data.end()) {
+			auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+
+			auto x_t = calc_bezier_curve(t, it->x_a[0] / 127.f, it->x_a[1] / 127.f, it->x_b[0] / 127.f, it->x_b[1] / 127.f);
+			auto y_t = calc_bezier_curve(t, it->y_a[0] / 127.f, it->y_a[1] / 127.f, it->y_b[0] / 127.f, it->y_b[1] / 127.f);
+			auto z_t = calc_bezier_curve(t, it->z_a[0] / 127.f, it->z_a[1] / 127.f, it->z_b[0] / 127.f, it->z_b[1] / 127.f);
+
+			// 回転じゃあないし、球面補間の必要はなさそう
+			auto x = std::lerp(rit->transform.x, it->transform.x, x_t);
+			auto y = std::lerp(rit->transform.y, it->transform.y, y_t);
+			auto z = std::lerp(rit->transform.z, it->transform.z, z_t);
+
+			std::cout << x << " " << y << " " << z << std::endl;
+			return XMMatrixTranslation(x, y, z);
+
+		}
+		else {
+			return XMMatrixTranslation(rit->transform.x, rit->transform.y, rit->transform.z);
+		}
+	}();
+
+	return transform;
+}
+
+// フレーム番号から対象のボーンの移動ベクトルを求める
+template<typename T, typename U, typename S, typename R>
+std::tuple<float, float, float> calc_transfom_matrix_2(T& bone_matrix_container, U& bone_name_to_bone_motion_data, R& bone_name_to_bone_index,
+	std::size_t frame_num, S const& to_children_bone_index_container, wchar_t const* bone_name)
+{
+	auto& const center_motion_data = bone_name_to_bone_motion_data[bone_name];
+	auto center_index = bone_name_to_bone_index[bone_name];
+
+	auto rit = std::find_if(center_motion_data.rbegin(), center_motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+	if (rit == center_motion_data.rend())
+	{
+		return std::tuple<float, float, float>{ 0.f,0.f,0.f };
+	}
+
+	// 一つ手前のボーンのモーションデータを参照できる
+	auto it = rit.base();
+
+	auto transform = [rit, it, &center_motion_data, frame_num]() {
+
+		if (it != center_motion_data.end()) {
+			auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+
+			auto x_t = calc_bezier_curve(t, it->x_a[0] / 127.f, it->x_a[1] / 127.f, it->x_b[0] / 127.f, it->x_b[1] / 127.f);
+			auto y_t = calc_bezier_curve(t, it->y_a[0] / 127.f, it->y_a[1] / 127.f, it->y_b[0] / 127.f, it->y_b[1] / 127.f);
+			auto z_t = calc_bezier_curve(t, it->z_a[0] / 127.f, it->z_a[1] / 127.f, it->z_b[0] / 127.f, it->z_b[1] / 127.f);
+
+			// 回転じゃあないし、球面補間の必要はなさそう
+			auto x = std::lerp(rit->transform.x, it->transform.x, x_t);
+			auto y = std::lerp(rit->transform.y, it->transform.y, y_t);
+			auto z = std::lerp(rit->transform.z, it->transform.z, z_t);
+
+			return std::tuple<float, float, float>{ x,y,z };
+
+		}
+		else {
+			return std::tuple<float, float, float>{ rit->transform.x, rit->transform.y, rit->transform.z };
+		}
+	}();
+
+	return transform;
+}
+
 // intはframe num
 template<typename T>
 std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to_bone_motion_data(T&& vmd_data)
@@ -216,9 +304,9 @@ std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to
 
 		result[name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion,
 			vmd.complement_parameter[3], vmd.complement_parameter[7], vmd.complement_parameter[11], vmd.complement_parameter[15],
-			std::array<char, 2>{ vmd.complement_parameter[0], vmd.complement_parameter[4] }, std::array<char, 2>{ vmd.complement_parameter[8] ,vmd.complement_parameter[12] },
-			std::array<char, 2>{ vmd.complement_parameter[1] ,vmd.complement_parameter[5] }, std::array<char, 2>{ vmd.complement_parameter[9] ,vmd.complement_parameter[13] },
-			std::array<char, 2>{ vmd.complement_parameter[2] ,vmd.complement_parameter[6] }, std::array<char, 2> { vmd.complement_parameter[10] ,vmd.complement_parameter[14] }
+			std::array<char, 2>{ vmd.complement_parameter[0], vmd.complement_parameter[4] }, std::array<char, 2>{ vmd.complement_parameter[8], vmd.complement_parameter[12] },
+			std::array<char, 2>{ vmd.complement_parameter[1], vmd.complement_parameter[5] }, std::array<char, 2>{ vmd.complement_parameter[9], vmd.complement_parameter[13] },
+			std::array<char, 2>{ vmd.complement_parameter[2], vmd.complement_parameter[6] }, std::array<char, 2> { vmd.complement_parameter[10], vmd.complement_parameter[14] }
 		);
 	}
 
@@ -449,7 +537,6 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 				else
 				{
 					auto [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
-					// 前回、角度制限のため回転しきれなかった分を反映
 					auto rot_quaternion = XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle));
 
 					// x軸の回転について調節

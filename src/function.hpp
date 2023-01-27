@@ -465,6 +465,19 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			// 修正されていた場合は残存ベクトルを更新
 			if (is_fixed_rotaion) {
 				residual_rotation = XMQuaternionMultiply(ideal_rotation, XMQuaternionInverse(actual_rotation));
+
+				auto [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
+
+				// 修正されていない軸についての要素を0ニすることで
+				// 不要な振動を抑えることができる
+				if (angle_limit_min.x == 0.f && angle_limit_max.x == 0.f)
+					residual_rotation.m128_f32[0] = 0.f;
+				if (angle_limit_min.y == 0.f && angle_limit_max.y == 0.f)
+					residual_rotation.m128_f32[1] = 0.f;
+				if (angle_limit_min.z == 0.f && angle_limit_max.z == 0.f)
+					residual_rotation.m128_f32[2] = 0.f;
+
+				residual_rotation = XMQuaternionNormalize(residual_rotation);
 			}
 			else {
 				residual_rotation = XMQuaternionIdentity();

@@ -365,6 +365,11 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			return;
 		}
 
+		// 残存回転
+		// ボーンが一直線になり外積の計算が行えなくなうような事態を避けるため
+		// 参考: http://kzntov.seesaa.net/article/455959577.html
+		XMVECTOR residual_rotation = XMQuaternionIdentity();
+
 		// それぞれのボーンを動かしていく
 		for (std::size_t ik_link_i = 0; ik_link_i < pmx_bone[root_index].ik_link.size(); ik_link_i++)
 		{
@@ -393,62 +398,82 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			auto cross = XMVector3Normalize(XMVector3Cross(to_current_target, to_target));
 			auto angle = XMVector3AngleBetweenVectors(to_current_target, to_target).m128_f32[0];
 
-			// 角度の制限を考慮した実際の回転を表す行列
-			auto actual_rotation = [&cross, &angle, &ik_link]() {
+			// 角度制限を考慮しない理想的な回転
+			auto ideal_rotation = XMQuaternionMultiply(XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle)), residual_rotation);
+
+			// 角度の制限を考慮した実際の回転を表す行列と回転の行列が修正されたかどうか
+			auto [actual_rotation,is_fixed_rotaion] = [&cross, &angle, &ik_link](auto const& ideal_rotation) {
 
 				// 制限がない場合そのまま
 				if (!ik_link.min_max_angle_limit)
 				{
-					return XMMatrixRotationAxis(cross, angle);
+					return std::make_pair(ideal_rotation, false);
 				}
 				// 制限がある場合は調整する
 				else
 				{
 					auto [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
-					// 前回、角度制限のため回転しきれなかった分を反映
-					auto rot_quaternion = XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle));
+					// コピーする
+					auto result = ideal_rotation;
+					auto is_fixed_rotaion = false;
 
 					// x軸の回転について調節
 					XMFLOAT3 x_axis{ 1.f,0.f,0.f };
 					auto rot_limit_max_x = std::sin(angle_limit_max.x * 0.5f);
 					auto rot_limit_min_x = std::sin(angle_limit_min.x * 0.5f); 
-					if (rot_quaternion.m128_f32[0] > rot_limit_max_x) {
-						rot_quaternion.m128_f32[0] = rot_limit_max_x;
+					if (result.m128_f32[0] > rot_limit_max_x) {
+						result.m128_f32[0] = rot_limit_max_x;
+						is_fixed_rotaion = true;
 					}
-					if (rot_quaternion.m128_f32[0] < rot_limit_min_x) {
-						rot_quaternion.m128_f32[0] = rot_limit_min_x;
+					else if (result.m128_f32[0] < rot_limit_min_x) {
+						result.m128_f32[0] = rot_limit_min_x;
+						is_fixed_rotaion = true;
 					}
 
 					// y軸の回転について調節
 					XMFLOAT3 y_axis{ 0.f,1.f,0.f };
 					auto rot_limit_max_y = std::sin(angle_limit_max.y * 0.5f);
 					auto rot_limit_min_y = std::sin(angle_limit_min.y * 0.5f);
-					if (rot_quaternion.m128_f32[1] > rot_limit_max_y) {
-						rot_quaternion.m128_f32[1] = rot_limit_max_y;
+					if (result.m128_f32[1] > rot_limit_max_y) {
+						result.m128_f32[1] = rot_limit_max_y;
+						is_fixed_rotaion = true;
 					}
-					if (rot_quaternion.m128_f32[1] < rot_limit_min_y) {
-						rot_quaternion.m128_f32[1] = rot_limit_min_y;
+					else if (result.m128_f32[1] < rot_limit_min_y) {
+						result.m128_f32[1] = rot_limit_min_y;
+						is_fixed_rotaion = true;
 					}
 
 					// z軸の回転についての調節
 					XMFLOAT3 z_axis{ 0.f,0.f,1.f };
 					auto rot_limit_max_z = std::sin(angle_limit_max.z * 0.5f);
 					auto rot_limit_min_z = std::sin(angle_limit_min.z * 0.5f);
-					if (rot_quaternion.m128_f32[2] > rot_limit_max_z) {
-						rot_quaternion.m128_f32[2] = rot_limit_max_z;
+					if (result.m128_f32[2] > rot_limit_max_z) {
+						result.m128_f32[2] = rot_limit_max_z;
+						is_fixed_rotaion = true;
 					}
-					if (rot_quaternion.m128_f32[2] < rot_limit_min_z) {
-						rot_quaternion.m128_f32[2] = rot_limit_min_z;
+					else if (result.m128_f32[2] < rot_limit_min_z) {
+						result.m128_f32[2] = rot_limit_min_z;
+						is_fixed_rotaion = true;
 					}
 
 					// 正規化して行列に変換して返す
-					return XMMatrixRotationQuaternion(XMQuaternionNormalize(rot_quaternion));
+					return std::make_pair(XMQuaternionNormalize(result), is_fixed_rotaion);
 				}
-			}();
+			}(ideal_rotation);
+
+
+			// 修正されていた場合は残存ベクトルを更新
+			if (is_fixed_rotaion) {
+				residual_rotation = XMQuaternionMultiply(ideal_rotation, XMQuaternionInverse(actual_rotation));
+			}
+			else {
+				residual_rotation = XMQuaternionIdentity();
+			}
+
 
 			// 原点wp中心に回転するように修正
 			auto rot = XMMatrixTranslationFromVector(-ik_link_bone_position) *
-				actual_rotation *
+				XMMatrixRotationQuaternion(actual_rotation) *
 				XMMatrixTranslationFromVector(ik_link_bone_position);
 
 			// 対象のik_linkのボーンより末端のボーンに回転を適用する

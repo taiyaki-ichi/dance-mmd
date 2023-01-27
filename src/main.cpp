@@ -379,6 +379,8 @@ int main()
 
 		// 指定されているボーンに適当な行列を設定
 		// set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+		set_bone_matrix_from_vpd(model.bone, vpd_data, pmx_bone, bone_name_to_bone_index);
+		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
 
 		// IK
 		{

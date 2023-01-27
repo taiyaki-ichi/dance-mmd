@@ -354,13 +354,17 @@ std::vector<dx12w::resource_and_state> get_pmx_material_resource(T& device, U co
 
 // bone行列は回転のみ適用されている
 void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
-	std::vector<std::vector<std::size_t>> const& to_children_bone_index)
+	std::vector<std::vector<std::size_t>> const& to_children_bone_index,std::size_t ik_roop_max_num)
 {
 	auto target_index = pmx_bone[root_index].ik_target_bone;
 
 	// ループしてIKを解決していく
 	for (std::size_t ik_roop_i = 0; ik_roop_i < static_cast<std::size_t>(pmx_bone[root_index].ik_roop_number); ik_roop_i++)
 	{
+		if (ik_roop_i >= ik_roop_max_num) {
+			return;
+		}
+
 		// それぞれのボーンを動かしていく
 		for (std::size_t ik_link_i = 0; ik_link_i < pmx_bone[root_index].ik_link.size(); ik_link_i++)
 		{

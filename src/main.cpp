@@ -311,8 +311,8 @@ int main()
 	// ‚»‚Ì‘¼İ’è
 	//
 
-	XMFLOAT3 eye{ 0.f,8.f,-15.f };
-	XMFLOAT3 target{ 0.f,8.f,0.f };
+	XMFLOAT3 eye{ 10.f,8.f,-12.f };
+	XMFLOAT3 target{ 10.f,8.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	float view_angle = XM_PIDIV2;
@@ -342,6 +342,13 @@ int main()
 
 	int frame_num = 0;
 	bool auto_animation = true;
+
+	// IK‚Ìˆ—‚Åƒ{[ƒ“‚ğ‰ñ“]‚³‚¹‚é”
+	int ik_rotation_num = -1;
+	// IK‚É‚æ‚Á‚ÄÅŒã‚É‰ñ“]‚³‚¹‚½ƒ{[ƒ“‚ÌŠe§ŒÀ‚ğ–³‹‚µ‚½‰ñ“]‚ğ•\¦
+	bool is_ideal_rotation = false;
+	// c—]‰ñ“]‚ğ“K—p‚·‚é‚©‚Ç‚¤‚©
+	bool is_residual = false;
 
 	float offset_x = 0.f;
 	float offset_y = 0.f;
@@ -398,29 +405,33 @@ int main()
 			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position), transform);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
-			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
+		/*
 		{
 			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‚Â‚Üæ‚h‚j");
 			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‚Â‚Üæ"]].position), transform);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
-			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
+		*/
 		{
 			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‘«‚h‚j");
 			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‘«ñ"]].position), transform);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
-			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‘«‚h‚j"], pmx_bone, float3, to_children_bone_index);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‘«‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
+		/*
 		{
 			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‚Â‚Üæ‚h‚j");
 			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‚Â‚Üæ"]].position), transform);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
-			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
+		*/
 
 		{
 			model_data* tmp = nullptr;
@@ -458,6 +469,10 @@ int main()
 
 		ImGui::InputInt("frame num", &frame_num);
 		ImGui::Checkbox("auto animation", &auto_animation);
+
+		ImGui::InputInt("ik rotation num", &ik_rotation_num);
+		ImGui::Checkbox("is ideal rotation", &is_ideal_rotation);
+		ImGui::Checkbox("is residual", &is_residual);
 
 		ImGui::SliderFloat("offset x", &offset_x, -10.f, 10.f);
 		ImGui::SliderFloat("offset y", &offset_y, -10.f, 10.f);

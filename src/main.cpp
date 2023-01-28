@@ -341,6 +341,7 @@ int main()
 
 	int ik_roop_max_num = 0;
 	bool ideal = false;
+	bool is_residual = true;
 
 	float offset_x = 0.f;
 	float offset_y = 0.f;
@@ -388,7 +389,7 @@ int main()
 			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position), XMMatrixTranslation(offset_x, offset_y, offset_z));
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
-			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_roop_max_num, ideal);
+			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_roop_max_num, ideal, is_residual);
 		}
 
 		// ‚»‚ê‚¼‚ê‚Ìe‚Ìƒm[ƒh‚Ì‰ñ“]AˆÚ“®‚Ìs—ñ‚ğq‚Ö“`”d‚³‚¹‚é
@@ -431,6 +432,7 @@ int main()
 
 		ImGui::InputInt("ik roop max num", &ik_roop_max_num);
 		ImGui::Checkbox("ideal", &ideal);
+		ImGui::Checkbox("is_residual", &is_residual);
 
 		ImGui::SliderFloat("offset x", &offset_x, -10.f, 10.f);
 		ImGui::SliderFloat("offset y", &offset_y, -10.f, 10.f);

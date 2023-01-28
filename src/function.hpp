@@ -354,14 +354,14 @@ std::vector<dx12w::resource_and_state> get_pmx_material_resource(T& device, U co
 
 // bone行列は回転のみ適用されている
 void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
-	std::vector<std::vector<std::size_t>> const& to_children_bone_index,std::size_t ik_roop_max_num,bool ideal)
+	std::vector<std::vector<std::size_t>> const& to_children_bone_index, std::size_t ik_roop_max_num, bool ideal, bool is_residual)
 {
 	auto target_index = pmx_bone[root_index].ik_target_bone;
 
 	// ループしてIKを解決していく
 	for (std::size_t ik_roop_i = 0; ik_roop_i < static_cast<std::size_t>(pmx_bone[root_index].ik_roop_number); ik_roop_i++)
 	{
-		
+
 		// 残存回転
 		// ボーンが一直線になり外積の計算が行えなくなうような事態を避けるため
 		// 参考: http://kzntov.seesaa.net/article/455959577.html
@@ -370,7 +370,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 		// それぞれのボーンを動かしていく
 		for (std::size_t ik_link_i = 0; ik_link_i < pmx_bone[root_index].ik_link.size(); ik_link_i++)
 		{
-			if (ik_roop_i* pmx_bone[root_index].ik_link.size()+ik_link_i >= ik_roop_max_num) {
+			if (ik_roop_i * pmx_bone[root_index].ik_link.size() + ik_link_i >= ik_roop_max_num) {
 				return;
 			}
 
@@ -407,12 +407,17 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 
 			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i << " cross_angle_rotaion.x: " << XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle)).m128_f32[0] << std::endl;
 			// 角度制限を考慮しない理想的な回転
-			auto ideal_rotation = XMQuaternionNormalize(XMQuaternionMultiply(XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle)), residual_rotation));
+			auto ideal_rotation = [&is_residual, &residual_rotation, &cross, &angle]() {
+				if (is_residual)
+					return XMQuaternionNormalize(XMQuaternionMultiply(residual_rotation, XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle))));
+				else
+					return XMQuaternionNormalize(XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle)));
+			}();
 			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i << " ideal_rotation.x: " << ideal_rotation.m128_f32[0] << std::endl;
 			//std::cout << "ideal: " << (ideal_rotation.m128_f32[3] > 0.f ? true : false) << std::endl;
 
 			// 角度の制限を考慮した実際の回転を表す行列と回転の行列が修正されたかどうか
-			auto [actual_rotation,is_fixed_rotaion] = [&cross, &angle, &ik_link](auto const& ideal_rotation) {
+			auto [actual_rotation, is_fixed_rotaion] = [&cross, &angle, &ik_link](auto const& ideal_rotation) {
 
 				// 制限がない場合そのまま
 				if (!ik_link.min_max_angle_limit)
@@ -425,6 +430,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 					auto [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
 					// コピーする
 					auto result = ideal_rotation;
+
 					result.m128_f32[0] /= result.m128_f32[3];
 					result.m128_f32[1] /= result.m128_f32[3];
 					result.m128_f32[2] /= result.m128_f32[3];
@@ -435,7 +441,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 					// x軸の回転について調節
 					XMFLOAT3 x_axis{ 1.f,0.f,0.f };
 					auto rot_limit_max_x = std::sin(angle_limit_max.x * 0.5f);
-					auto rot_limit_min_x = std::sin(angle_limit_min.x * 0.5f); 
+					auto rot_limit_min_x = std::sin(angle_limit_min.x * 0.5f);
 					if (result.m128_f32[0] > rot_limit_max_x) {
 						result.m128_f32[0] = rot_limit_max_x;
 						is_fixed_rotaion = true;
@@ -519,7 +525,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 				break;
 			}
 
-			std::cout << std::endl;
+			//std::cout << std::endl;
 		}
 	}
 }

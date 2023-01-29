@@ -516,16 +516,27 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			// 現在のターゲットのボーンの位置
 			auto current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
 
+			auto const& to_world = bone[ik_link.bone];
+			auto to_local = XMMatrixInverse(nullptr, to_world);
+
+			auto local_current_target_position = XMVector3Transform(current_target_position, to_local);
+
 			// 対象のボーンの位置
 			auto ik_link_bone_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[ik_link.bone].position), bone[ik_link.bone]);
 
+			auto local_ik_link_bone_position = XMLoadFloat3(&pmx_bone[ik_link.bone].position);
+
+			auto local_target_position = XMVector3Transform(XMLoadFloat3(&target_position), to_local);
+
 			// 対象のボーンから現在のターゲットへのベクトル
-			auto to_current_target = XMVector3Normalize(XMVectorSubtract(current_target_position, ik_link_bone_position));
+			//auto to_current_target = XMVector3Normalize(XMVectorSubtract(current_target_position, ik_link_bone_position));
+			auto to_current_target = XMVector3Normalize(XMVectorSubtract(local_current_target_position, local_ik_link_bone_position));
 			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i <<
 				//" to_current_target: " << to_current_target.m128_f32[0] << " " << to_current_target.m128_f32[1] << " " << to_current_target.m128_f32[2] << " " << to_current_target.m128_f32[3] << std::endl;
 
 			// 対象のボーンからターゲットへのベクトル
-			auto to_target = XMVector3Normalize(XMVectorSubtract(XMLoadFloat3(&target_position), ik_link_bone_position));
+			//auto to_target = XMVector3Normalize(XMVectorSubtract(XMLoadFloat3(&target_position), ik_link_bone_position));
+			auto to_target = XMVector3Normalize(XMVectorSubtract(local_target_position, local_ik_link_bone_position));
 			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i <<
 				//" to_target: " << to_target.m128_f32[0] << " " << to_target.m128_f32[1] << " " << to_target.m128_f32[2] << " " << to_target.m128_f32[3] << std::endl;
 
@@ -646,9 +657,16 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 
 
 			// 原点wp中心に回転するように修正
+			/*
 			auto rot = XMMatrixTranslationFromVector(-ik_link_bone_position) *
 				XMMatrixRotationQuaternion(actual_rotation) *
 				XMMatrixTranslationFromVector(ik_link_bone_position);
+				*/
+			auto rot = to_local *
+				XMMatrixTranslationFromVector(-local_ik_link_bone_position) *
+				XMMatrixRotationQuaternion(actual_rotation) *
+				XMMatrixTranslationFromVector(local_ik_link_bone_position)
+				* to_world;
 
 			// 対象のik_linkのボーンより末端のボーンに回転を適用する
 			recursive_aplly_matrix(bone, ik_link.bone, rot, to_children_bone_index);

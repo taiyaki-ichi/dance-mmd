@@ -260,7 +260,7 @@ std::tuple<float, float, float> calc_transfom_matrix_2(T& bone_matrix_container,
 
 	if (rit == center_motion_data.rend())
 	{
-		return std::tuple<float, float, float>{ 0.f,0.f,0.f };
+		return std::tuple<float, float, float>{ 0.f, 0.f, 0.f };
 	}
 
 	// 一つ手前のボーンのモーションデータを参照できる
@@ -280,7 +280,7 @@ std::tuple<float, float, float> calc_transfom_matrix_2(T& bone_matrix_container,
 			auto y = std::lerp(rit->transform.y, it->transform.y, y_t);
 			auto z = std::lerp(rit->transform.z, it->transform.z, z_t);
 
-			return std::tuple<float, float, float>{ x,y,z };
+			return std::tuple<float, float, float>{ x, y, z };
 
 		}
 		else {
@@ -488,9 +488,54 @@ std::vector<dx12w::resource_and_state> get_pmx_material_resource(T& device, U co
 }
 
 
+// クォータニオンをクランプする
+inline bool clamp_quaternion(XMVECTOR& q, float x_min, float x_max, float y_min, float y_max, float z_min, float z_max)
+{
+	// それぞれの軸周りの回転を取得できるようにクォータニオンを修正
+	q.m128_f32[0] /= q.m128_f32[3];
+	q.m128_f32[1] /= q.m128_f32[3];
+	q.m128_f32[2] /= q.m128_f32[3];
+	q.m128_f32[3] = 1.f;
+
+	// 実際に値が変更されたかどうか
+	auto is_clamped = false;
+
+	// x軸の回転について
+	auto const x_min_rot = std::sin(x_min * 0.5f);
+	auto const x_max_rot = std::sin(x_max * 0.5f);
+	auto const x_updated = std::clamp(q.m128_f32[0], x_min_rot, x_max_rot);
+	if (q.m128_f32[0] != x_updated) {
+		q.m128_f32[0] = x_updated;
+		is_clamped = true;
+	}
+
+	// y軸の回転について
+	auto const y_min_rot = std::sin(y_min * 0.5f);
+	auto const y_max_rot = std::sin(y_max * 0.5f);
+	auto const y_updated = std::clamp(q.m128_f32[1], y_min_rot, y_max_rot);
+	if (q.m128_f32[1] != y_updated) {
+		q.m128_f32[1] = y_updated;
+		is_clamped = true;
+	}
+
+	// z軸の回転について
+	auto const z_min_rot = std::sin(z_min * 0.5f);
+	auto const z_max_rot = std::sin(z_max * 0.5f);
+	auto const z_updated = std::clamp(q.m128_f32[2], z_min_rot, z_max_rot);
+	if (q.m128_f32[2] != z_updated) {
+		q.m128_f32[2] = z_updated;
+		is_clamped = true;
+	}
+
+	XMQuaternionNormalize(q);
+
+	return is_clamped;
+}
+
+
 // bone行列は回転のみ適用されている
 void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
-	std::vector<std::vector<std::size_t>> const& to_children_bone_index, std::size_t ik_roop_max_num, bool ideal, bool is_residual)
+	std::vector<std::vector<std::size_t>> const& to_children_bone_index, std::size_t ik_bone_rotation_num, bool check_ideal_rotation, bool is_residual)
 {
 	auto target_index = pmx_bone[root_index].ik_target_bone;
 
@@ -506,39 +551,41 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 		// それぞれのボーンを動かしていく
 		for (std::size_t ik_link_i = 0; ik_link_i < pmx_bone[root_index].ik_link.size(); ik_link_i++)
 		{
-			if (ik_roop_i * pmx_bone[root_index].ik_link.size() + ik_link_i >= ik_roop_max_num) {
+			if (ik_roop_i * pmx_bone[root_index].ik_link.size() + ik_link_i >= ik_bone_rotation_num) {
 				return;
 			}
 
-			// 対象のik_linkのボーン
-			auto ik_link = pmx_bone[root_index].ik_link[ik_link_i];
+			// 回転の対象であるik_linkのボーン
+			auto const& ik_link = pmx_bone[root_index].ik_link[ik_link_i];
 
-			// 現在のターゲットのボーンの位置
-			auto current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
-
+			// 対象のik_linkのボーンの座標系からワールド座標への変換
 			auto const& to_world = bone[ik_link.bone];
-			auto to_local = XMMatrixInverse(nullptr, to_world);
+			// ワールド座標系から対象のik_linkのボーンの座標系への変換
+			// WARNING: 逆行列計算のコストは?
+			auto const to_local = XMMatrixInverse(nullptr, to_world);
 
-			auto local_current_target_position = XMVector3Transform(current_target_position, to_local);
+			// 現在のターゲットのボーンのワールド座標での位置
+			auto const world_current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
 
-			// 対象のボーンの位置
-			auto ik_link_bone_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[ik_link.bone].position), bone[ik_link.bone]);
+			// 現在のターゲットのボーンの対象のik_linkのボーンの座標系の位置
+			auto const local_current_target_position = XMVector3Transform(world_current_target_position, to_local);
 
-			auto local_ik_link_bone_position = XMLoadFloat3(&pmx_bone[ik_link.bone].position);
+			// 対象のボーンのワールド座標での位置
+			auto const world_ik_link_bone_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[ik_link.bone].position), bone[ik_link.bone]);
 
-			auto local_target_position = XMVector3Transform(XMLoadFloat3(&target_position), to_local);
+			// 対象のボーンの座標系での対象のボーンの位置
+			// つまり、そのままの座標
+			auto const local_ik_link_bone_position = XMLoadFloat3(&pmx_bone[ik_link.bone].position);
+
+			// 対象のボーンの座標系でのターゲットのボーンの理想的な位置
+			// （local_current_target_position を local_target_position へ近づけるのが目的）
+			auto const local_target_position = XMVector3Transform(XMLoadFloat3(&target_position), to_local);
 
 			// 対象のボーンから現在のターゲットへのベクトル
-			//auto to_current_target = XMVector3Normalize(XMVectorSubtract(current_target_position, ik_link_bone_position));
-			auto to_current_target = XMVector3Normalize(XMVectorSubtract(local_current_target_position, local_ik_link_bone_position));
-			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i <<
-				//" to_current_target: " << to_current_target.m128_f32[0] << " " << to_current_target.m128_f32[1] << " " << to_current_target.m128_f32[2] << " " << to_current_target.m128_f32[3] << std::endl;
+			auto const to_current_target = XMVector3Normalize(XMVectorSubtract(local_current_target_position, local_ik_link_bone_position));
 
 			// 対象のボーンからターゲットへのベクトル
-			//auto to_target = XMVector3Normalize(XMVectorSubtract(XMLoadFloat3(&target_position), ik_link_bone_position));
-			auto to_target = XMVector3Normalize(XMVectorSubtract(local_target_position, local_ik_link_bone_position));
-			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i <<
-				//" to_target: " << to_target.m128_f32[0] << " " << to_target.m128_f32[1] << " " << to_target.m128_f32[2] << " " << to_target.m128_f32[3] << std::endl;
+			auto const to_target = XMVector3Normalize(XMVectorSubtract(local_target_position, local_ik_link_bone_position));
 
 
 			// ほぼ同じベクトルになってしまった場合は外積が計算できないため飛ばす
@@ -547,24 +594,28 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			}
 
 			// 外積および角度の計算
-			// pmxはローカル座標系みたいなパラメータがあるけど、とりあえず無視
-			auto cross = XMVector3Normalize(XMVector3Cross(to_current_target, to_target));
-			auto angle = XMVector3AngleBetweenVectors(to_current_target, to_target).m128_f32[0];
+			auto const cross = XMVector3Normalize(XMVector3Cross(to_current_target, to_target));
+			auto const angle = XMVector3AngleBetweenVectors(to_current_target, to_target).m128_f32[0];
 
-
-			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i << " cross_angle_rotaion.x: " << XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle)).m128_f32[0] << std::endl;
 			// 角度制限を考慮しない理想的な回転
-			auto ideal_rotation = [&is_residual, &residual_rotation, &cross, &angle]() {
+			auto const ideal_rotation = [&is_residual, &residual_rotation, &cross, &angle]() {
 				if (is_residual)
 					return XMQuaternionNormalize(XMQuaternionMultiply(residual_rotation, XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle))));
 				else
 					return XMQuaternionNormalize(XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle)));
 			}();
-			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i << " ideal_rotation.x: " << ideal_rotation.m128_f32[0] << std::endl;
-			//std::cout << "ideal: " << (ideal_rotation.m128_f32[3] > 0.f ? true : false) << std::endl;
+
+			// デバック用
+			// 角制限を無視した場合の回転を表示するためのフラグ
+			bool const use_ideal_rotation_for_debug = check_ideal_rotation && ik_roop_i * pmx_bone[root_index].ik_link.size() + ik_link_i == ik_bone_rotation_num - 1;
 
 			// 角度の制限を考慮した実際の回転を表す行列と回転の行列が修正されたかどうか
-			auto [actual_rotation, is_fixed_rotaion] = [&cross, &angle, &ik_link](auto const& ideal_rotation) {
+			auto const [actual_rotation, is_updated_rotaion] = [&cross, &angle, &ik_link, use_ideal_rotation_for_debug](auto const& ideal_rotation) {
+
+				// 理想回転を確認するとき
+				if (use_ideal_rotation_for_debug) {
+					return std::make_pair(ideal_rotation, false);
+				}
 
 				// 制限がない場合そのまま
 				if (!ik_link.min_max_angle_limit)
@@ -574,71 +625,24 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 				// 制限がある場合は調整する
 				else
 				{
-					auto [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
+					auto const& [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
 					// コピーする
 					auto result = ideal_rotation;
 
-					result.m128_f32[0] /= result.m128_f32[3];
-					result.m128_f32[1] /= result.m128_f32[3];
-					result.m128_f32[2] /= result.m128_f32[3];
-					result.m128_f32[3] = 1.f;
-
-					auto is_fixed_rotaion = false;
-
-					// x軸の回転について調節
-					XMFLOAT3 x_axis{ 1.f,0.f,0.f };
-					auto rot_limit_max_x = std::sin(angle_limit_max.x * 0.5f);
-					auto rot_limit_min_x = std::sin(angle_limit_min.x * 0.5f);
-					if (result.m128_f32[0] > rot_limit_max_x) {
-						result.m128_f32[0] = rot_limit_max_x;
-						is_fixed_rotaion = true;
-					}
-					else if (result.m128_f32[0] < rot_limit_min_x) {
-						result.m128_f32[0] = rot_limit_min_x;
-						is_fixed_rotaion = true;
-					}
-
-					// y軸の回転について調節
-					XMFLOAT3 y_axis{ 0.f,1.f,0.f };
-					auto rot_limit_max_y = std::sin(angle_limit_max.y * 0.5f);
-					auto rot_limit_min_y = std::sin(angle_limit_min.y * 0.5f);
-					if (result.m128_f32[1] > rot_limit_max_y) {
-						result.m128_f32[1] = rot_limit_max_y;
-						is_fixed_rotaion = true;
-					}
-					else if (result.m128_f32[1] < rot_limit_min_y) {
-						result.m128_f32[1] = rot_limit_min_y;
-						is_fixed_rotaion = true;
-					}
-
-					// z軸の回転についての調節
-					XMFLOAT3 z_axis{ 0.f,0.f,1.f };
-					auto rot_limit_max_z = std::sin(angle_limit_max.z * 0.5f);
-					auto rot_limit_min_z = std::sin(angle_limit_min.z * 0.5f);
-					if (result.m128_f32[2] > rot_limit_max_z) {
-						result.m128_f32[2] = rot_limit_max_z;
-						is_fixed_rotaion = true;
-					}
-					else if (result.m128_f32[2] < rot_limit_min_z) {
-						result.m128_f32[2] = rot_limit_min_z;
-						is_fixed_rotaion = true;
-					}
+					auto const is_updated = clamp_quaternion(result,
+						angle_limit_min.x, angle_limit_max.x, angle_limit_min.y, angle_limit_max.y, angle_limit_min.z, angle_limit_max.z);
 
 					// 正規化して行列に変換して返す
-					return std::make_pair(XMQuaternionNormalize(result), is_fixed_rotaion);
+					return std::make_pair(XMQuaternionNormalize(result), is_updated);
 				}
 			}(ideal_rotation);
-			//std::cout << "ik_roop_i: " << ik_roop_i << " ik_link_i: " << ik_link_i << " actual_rotation.x: " << actual_rotation.m128_f32[0] << std::endl;
 
-			if (ik_roop_i * pmx_bone[root_index].ik_link.size() + ik_link_i == ik_roop_max_num - 1 && ideal) {
-				actual_rotation = ideal_rotation;
-			}
 
 			// 修正されていた場合は残存ベクトルを更新
-			if (is_fixed_rotaion) {
+			if (is_updated_rotaion) {
 				residual_rotation = XMQuaternionMultiply(ideal_rotation, XMQuaternionInverse(actual_rotation));
 
-				auto [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
+				auto const& [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
 
 				// 全く回転しない軸についての要素を0ニすることで
 				// 不要な振動を抑えることができる
@@ -656,30 +660,24 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			}
 
 
-			// 原点wp中心に回転するように修正
-			/*
-			auto rot = XMMatrixTranslationFromVector(-ik_link_bone_position) *
-				XMMatrixRotationQuaternion(actual_rotation) *
-				XMMatrixTranslationFromVector(ik_link_bone_position);
-				*/
-			auto rot = to_local *
+			// ローカル座標での回転を表すように行列を作成
+			auto const rotaion = to_local *
 				XMMatrixTranslationFromVector(-local_ik_link_bone_position) *
 				XMMatrixRotationQuaternion(actual_rotation) *
 				XMMatrixTranslationFromVector(local_ik_link_bone_position)
 				* to_world;
 
 			// 対象のik_linkのボーンより末端のボーンに回転を適用する
-			recursive_aplly_matrix(bone, ik_link.bone, rot, to_children_bone_index);
+			recursive_aplly_matrix(bone, ik_link.bone, rotaion, to_children_bone_index);
 
 			// ターゲットのボーンの位置の更新
-			current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
+			auto const updated_world_current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
 
 			// 十分近くなった場合ループを抜ける
-			if (XMVector3Length(XMVectorSubtract(current_target_position, XMLoadFloat3(&target_position))).m128_f32[0] <= std::numeric_limits<float>::epsilon()) {
+			if (XMVector3Length(XMVectorSubtract(updated_world_current_target_position, XMLoadFloat3(&target_position))).m128_f32[0] <= std::numeric_limits<float>::epsilon()) {
 				break;
 			}
-
-			//std::cout << std::endl;
 		}
 	}
 }
+

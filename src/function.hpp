@@ -122,7 +122,7 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 			XMVECTOR rit_quaternion = XMLoadFloat4(&rit->quaternion);
 			if (it != motion_data.end()) {
 				auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
-				auto y = calc_bezier_curve(t, it->p1_x / 127.f, it->p1_y / 127.f, it->p2_x / 127.f, it->p2_y / 127.f);
+				auto y = calc_bezier_curve(t, it->r_a[0] / 127.f, it->r_a[1] / 127.f, it->r_b[0] / 127.f, it->r_b[1] / 127.f);
 				XMVECTOR it_quaternion = XMLoadFloat4(&it->quaternion);
 				return XMMatrixRotationQuaternion(XMQuaternionSlerp(rit_quaternion, it_quaternion, y));
 			}
@@ -137,8 +137,66 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 			quaternion *
 			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
 
+		if (pmx_bone[index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
+		{
+			// 移動の適用
+			auto transform = [rit, it, &motion_data, frame_num]() {
+				if (it != motion_data.end()) {
+					auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+					return XMFLOAT3{
+						rit->transform.x * (1 - t) + it->transform.x * t ,
+						rit->transform.y * (1 - t) + it->transform.y * t,
+						rit->transform.z * (1 - t) + it->transform.z * t,
+					};
+				}
+				else {
+					return rit->transform;
+				}
+			}();
 
-		/*
+			bone_matrix_container[index] *= XMMatrixTranslation(transform.x, transform.y, transform.z);
+		}
+	}
+}
+
+template<typename T, typename U, typename S, typename R>
+void set_bone_matrix_from_vmd_2(T& bone_matrix_container, U const& bone_name_to_bone_motion_data, S const pmx_bone, R& bone_name_to_bone_index, std::size_t frame_num)
+{
+	for (auto const& motion : bone_name_to_bone_motion_data)
+	{
+		auto index = bone_name_to_bone_index[motion.first];
+
+		auto const& motion_data = motion.second;
+
+		auto rit = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+		if (rit == motion_data.rend())
+		{
+			continue;
+		}
+
+		// 一つ手前のボーンのモーションデータを参照できる
+		auto it = rit.base();
+
+		auto quaternion = [rit, it, &motion_data, frame_num]() {
+			XMVECTOR rit_quaternion = XMLoadFloat4(&rit->quaternion);
+			if (it != motion_data.end()) {
+				auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+				auto y = calc_bezier_curve(t, it->r_a[0] / 127.f, it->r_a[1] / 127.f, it->r_b[0] / 127.f, it->r_b[1] / 127.f);
+				XMVECTOR it_quaternion = XMLoadFloat4(&it->quaternion);
+				return XMMatrixRotationQuaternion(XMQuaternionSlerp(rit_quaternion, it_quaternion, y));
+			}
+			else {
+				return XMMatrixRotationQuaternion(rit_quaternion);
+			}
+		}();
+
+		// 回転の適用
+		bone_matrix_container[index] =
+			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
+			quaternion *
+			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
+
 		// これIK用のパラメータっぽい？間違っているかも
 		// 移動の適用
 		auto transform = [rit, it, &motion_data, frame_num]() {
@@ -156,7 +214,6 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 		}();
 
 		bone_matrix_container[index] *= XMMatrixTranslation(transform.x, transform.y, transform.z);
-		*/
 	}
 }
 
@@ -248,6 +305,50 @@ XMMATRIX calc_transfom_matrix(T& bone_matrix_container, U& bone_name_to_bone_mot
 	return transform;
 }
 
+// フレーム番号から回転と移動の行列を取得する
+template<typename T, typename U, typename S, typename R>
+std::pair<XMMATRIX, XMMATRIX> calc_rotation_and_transfom_matrix(T& bone_matrix_container, U& bone_name_to_bone_motion_data, R& bone_name_to_bone_index,
+	std::size_t frame_num, S const& to_children_bone_index_container, wchar_t const* bone_name)
+{
+	auto& const center_motion_data = bone_name_to_bone_motion_data[bone_name];
+	auto center_index = bone_name_to_bone_index[bone_name];
+
+	auto rit = std::find_if(center_motion_data.rbegin(), center_motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+	if (rit == center_motion_data.rend())
+	{
+		return std::make_pair(XMMatrixIdentity(), XMMatrixIdentity());
+	}
+
+	// 一つ手前のボーンのモーションデータを参照できる
+	auto it = rit.base();
+
+	if (it != center_motion_data.end()) {
+		auto const t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
+
+		auto const x_t = calc_bezier_curve(t, it->x_a[0] / 127.f, it->x_a[1] / 127.f, it->x_b[0] / 127.f, it->x_b[1] / 127.f);
+		auto const y_t = calc_bezier_curve(t, it->y_a[0] / 127.f, it->y_a[1] / 127.f, it->y_b[0] / 127.f, it->y_b[1] / 127.f);
+		auto const z_t = calc_bezier_curve(t, it->z_a[0] / 127.f, it->z_a[1] / 127.f, it->z_b[0] / 127.f, it->z_b[1] / 127.f);
+		auto const r_t = calc_bezier_curve(t, it->r_a[0] / 127.f, it->r_a[1] / 127.f, it->r_b[0] / 127.f, it->r_b[1] / 127.f);
+
+		// 線形補間
+		auto const x = std::lerp(rit->transform.x, it->transform.x, x_t);
+		auto const y = std::lerp(rit->transform.y, it->transform.y, y_t);
+		auto const z = std::lerp(rit->transform.z, it->transform.z, z_t);
+		auto const transform = XMMatrixTranslation(x, y, z);
+
+		// 球面補間
+		auto const rotation = XMMatrixRotationQuaternion(XMQuaternionSlerp(XMLoadFloat4(&rit->quaternion), XMLoadFloat4(&it->quaternion), r_t));
+
+		return std::make_pair(rotation, transform);
+
+	}
+	else {
+		return std::make_pair(XMMatrixRotationQuaternion(XMLoadFloat4(&rit->quaternion)), XMMatrixTranslation(rit->transform.x, rit->transform.y, rit->transform.z));
+	}
+
+}
+
 // フレーム番号から対象のボーンの移動ベクトルを求める
 template<typename T, typename U, typename S, typename R>
 std::tuple<float, float, float> calc_transfom_matrix_2(T& bone_matrix_container, U& bone_name_to_bone_motion_data, R& bone_name_to_bone_index,
@@ -303,7 +404,7 @@ std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to
 		auto name = mmdl::ansi_to_utf16<std::wstring, std::string>(std::string{ vmd.name });
 
 		result[name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion,
-			vmd.complement_parameter[3], vmd.complement_parameter[7], vmd.complement_parameter[11], vmd.complement_parameter[15],
+			std::array<char, 2>{vmd.complement_parameter[3], vmd.complement_parameter[7] }, std::array<char, 2>{vmd.complement_parameter[11], vmd.complement_parameter[15]},
 			std::array<char, 2>{ vmd.complement_parameter[0], vmd.complement_parameter[4] }, std::array<char, 2>{ vmd.complement_parameter[8], vmd.complement_parameter[12] },
 			std::array<char, 2>{ vmd.complement_parameter[1], vmd.complement_parameter[5] }, std::array<char, 2>{ vmd.complement_parameter[9], vmd.complement_parameter[13] },
 			std::array<char, 2>{ vmd.complement_parameter[2], vmd.complement_parameter[6] }, std::array<char, 2> { vmd.complement_parameter[10], vmd.complement_parameter[14] }
@@ -571,7 +672,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			auto const local_current_target_position = XMVector3Transform(world_current_target_position, to_local);
 
 			// 対象のボーンのワールド座標での位置
-			auto const world_ik_link_bone_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[ik_link.bone].position), bone[ik_link.bone]);
+			auto const world_ik_link_bone_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[ik_link.bone].position), to_world);
 
 			// 対象のボーンの座標系での対象のボーンの位置
 			// つまり、そのままの座標

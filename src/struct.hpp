@@ -62,13 +62,8 @@ struct bone_motion_data
 	XMFLOAT3 transform;
 	XMFLOAT4 quaternion;
 
-	// 回転の補間に使用するベジェ曲線を表す点、その１
-	char p1_x;
-	char p1_y;
-
-	// 回転の補間に使用するベジェ曲線を表す点、その２
-	char p2_x;
-	char p2_y;
+	std::array<char, 2> r_a;
+	std::array<char, 2> r_b;
 
 	std::array<char,2> x_a;
 	std::array<char, 2> x_b;

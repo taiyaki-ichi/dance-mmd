@@ -401,37 +401,45 @@ int main()
 
 		// IK
 		{
-			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‘«‚h‚j");
-			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position), transform);
+			//auto [rotation, transform] = calc_rotation_and_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‘«‚h‚j");
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position), model.bone[bone_name_to_bone_index[L"‰E‘«‚h‚j"]]);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
 			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‘«‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
-		/*
 		{
-			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‚Â‚Üæ‚h‚j");
-			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‚Â‚Üæ"]].position), transform);
+			/*
+			auto [rotation, transform] = calc_rotation_and_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‚Â‚Üæ‚h‚j");
+			auto [hoge, fuga] = calc_rotation_and_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"‰E‘«‚h‚j");
+			auto rot = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position)) *
+				hoge *
+				XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‘«ñ"]].position));
+				*/
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"‰E‚Â‚Üæ"]].position), model.bone[bone_name_to_bone_index[L"‰E‚Â‚Üæ‚h‚j"]]);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
 			solve_CCDIK(model.bone, bone_name_to_bone_index[L"‰E‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
-		*/
 		{
-			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‘«‚h‚j");
-			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‘«ñ"]].position), transform);
+			//auto [rotation, transform] = calc_rotation_and_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‘«‚h‚j");
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‘«ñ"]].position), model.bone[bone_name_to_bone_index[L"¶‘«‚h‚j"]]);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
 			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‘«‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
-		/*
 		{
-			auto transform = calc_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‚Â‚Üæ‚h‚j");
-			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‚Â‚Üæ"]].position), transform);
+			/*
+			auto [rotation, transform] = calc_rotation_and_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‚Â‚Üæ‚h‚j");
+			auto [hoge, fuga] = calc_rotation_and_transfom_matrix(model.bone, bone_name_to_bone_motion_data, bone_name_to_bone_index, frame_num, to_children_bone_index, L"¶‘«‚h‚j");
+			auto rot = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‘«ñ"]].position)) *
+				hoge *
+				XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‘«ñ"]].position));
+				*/
+			auto pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_name_to_bone_index[L"¶‚Â‚Üæ"]].position), model.bone[bone_name_to_bone_index[L"¶‚Â‚Üæ‚h‚j"]]);
 			XMFLOAT3 float3;
 			XMStoreFloat3(&float3, pos);
 			solve_CCDIK(model.bone, bone_name_to_bone_index[L"¶‚Â‚Üæ‚h‚j"], pmx_bone, float3, to_children_bone_index, ik_rotation_num, is_ideal_rotation, is_residual);
 		}
-		*/
 
 		{
 			model_data* tmp = nullptr;

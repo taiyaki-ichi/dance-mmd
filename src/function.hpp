@@ -115,6 +115,7 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 
 		auto const& motion_data = motion.second;
 
+		// 配列の末尾から検索しフレーム数より大きく、かつフレーム数に一番近いモーションデータを検索する
 		auto const curr_motion_riter = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
 
 		// 対象のモーションデータが存在しない場合は飛ばす
@@ -130,6 +131,7 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 			if (prev_motion_iter != motion_data.end()) {
 				auto const t = static_cast<float>(frame_num - curr_motion_riter->frame_num) / static_cast<float>(prev_motion_iter->frame_num - curr_motion_riter->frame_num);
 
+				// ベジェ曲線を利用したそれぞれのパラメータを計算
 				auto const x_t = calc_bezier_curve(t, prev_motion_iter->x_a[0] / 127.f, prev_motion_iter->x_a[1] / 127.f, prev_motion_iter->x_b[0] / 127.f, prev_motion_iter->x_b[1] / 127.f);
 				auto const y_t = calc_bezier_curve(t, prev_motion_iter->y_a[0] / 127.f, prev_motion_iter->y_a[1] / 127.f, prev_motion_iter->y_b[0] / 127.f, prev_motion_iter->y_b[1] / 127.f);
 				auto const z_t = calc_bezier_curve(t, prev_motion_iter->z_a[0] / 127.f, prev_motion_iter->z_a[1] / 127.f, prev_motion_iter->z_b[0] / 127.f, prev_motion_iter->z_b[1] / 127.f);
@@ -741,3 +743,26 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 	}
 }
 
+// 再帰的にボーンをたどっていきikの処理を行う
+template<typename T,typename U,typename S>
+void recursive_aplly_ik(T& bone, std::size_t current_index, U const& to_children_bone_index,S const& pmx_bone)
+{
+	// 現在の対象のボーンがikの場合
+	if (pmx_bone[current_index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
+	{
+		auto const target_bone_index = pmx_bone[current_index].ik_target_bone;
+		auto const target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_bone_index].position), bone[current_index]);
+
+		// TODO:
+		XMFLOAT3 float3;
+		XMStoreFloat3(&float3, target_position);
+
+		solve_CCDIK(bone, current_index, pmx_bone, float3, to_children_bone_index, -1, false, false);
+	}
+
+	// 再帰的に子ボーンをたどっていく
+	for (auto children_index : to_children_bone_index[current_index])
+	{
+		recursive_aplly_ik(bone, children_index, to_children_bone_index, pmx_bone);
+	}
+}

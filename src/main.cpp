@@ -173,7 +173,7 @@ int main()
 	auto black_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 0);
 
 	// テクスチャのリソース
-	auto pmx_texture_resrouce = get_pmx_texture_resrouce(device, command_manager, pmx_texture_path, PMX_TEXTURE_FORMAT, directory_path);
+	auto pmx_texture_resrouce = get_pmx_texture_resource(device, command_manager, pmx_texture_path, PMX_TEXTURE_FORMAT, directory_path);
 
 	// マテリアルのリソース
 	auto pmx_material_resource = get_pmx_material_resource(device, pmx_material);

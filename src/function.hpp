@@ -119,7 +119,7 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 		auto const curr_motion_riter = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
 
 		// 対象のモーションデータが存在しない場合は飛ばす
-		if (curr_motion_riter == motion_data.crend()){
+		if (curr_motion_riter == motion_data.crend()) {
 			continue;
 		}
 
@@ -127,7 +127,7 @@ void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bo
 		auto const prev_motion_iter = curr_motion_riter.base();
 
 		// 回転の計算
-		auto const [rotation,transform] = [curr_motion_riter, prev_motion_iter, &motion_data, frame_num]() {
+		auto const [rotation, transform] = [curr_motion_riter, prev_motion_iter, &motion_data, frame_num]() {
 			if (prev_motion_iter != motion_data.end()) {
 				auto const t = static_cast<float>(frame_num - curr_motion_riter->frame_num) / static_cast<float>(prev_motion_iter->frame_num - curr_motion_riter->frame_num);
 
@@ -597,7 +597,7 @@ inline bool clamp_quaternion(XMVECTOR& q, float x_min, float x_max, float y_min,
 
 // bone行列は回転のみ適用されている
 void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
-	std::vector<std::vector<std::size_t>> const& to_children_bone_index, std::size_t ik_bone_rotation_num, bool check_ideal_rotation)
+	std::vector<std::vector<std::size_t>> const& to_children_bone_index, int debug_ik_rotation_num = -1, int* debug_ik_rotation_counter = nullptr, bool debug_check_ideal_rotation = false)
 {
 	auto target_index = pmx_bone[root_index].ik_target_bone;
 
@@ -608,7 +608,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 		// それぞれのボーンを動かしていく
 		for (std::size_t ik_link_i = 0; ik_link_i < pmx_bone[root_index].ik_link.size(); ik_link_i++)
 		{
-			if (ik_roop_i * pmx_bone[root_index].ik_link.size() + ik_link_i >= ik_bone_rotation_num) {
+			if (debug_ik_rotation_counter != nullptr && debug_ik_rotation_num >= 0 && *debug_ik_rotation_counter >= debug_ik_rotation_num) {
 				return;
 			}
 
@@ -659,7 +659,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 
 			// デバック用
 			// 角制限を無視した場合の回転を表示するためのフラグ
-			bool const use_ideal_rotation_for_debug = check_ideal_rotation && ik_roop_i * pmx_bone[root_index].ik_link.size() + ik_link_i == ik_bone_rotation_num - 1;
+			bool const use_ideal_rotation_for_debug = debug_check_ideal_rotation && debug_ik_rotation_counter != nullptr && *debug_ik_rotation_counter >= debug_ik_rotation_num - 1;
 
 			// 角度の制限を考慮した実際の回転を表す行列と回転の行列が修正されたかどうか
 			auto const actual_rotation = [&cross, &angle, &ik_link, use_ideal_rotation_for_debug](auto const& ideal_rotation) {
@@ -682,7 +682,7 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 					auto result = ideal_rotation;
 
 					// クランプ
-					clamp_quaternion(result,angle_limit_min.x, angle_limit_max.x, angle_limit_min.y, angle_limit_max.y, angle_limit_min.z, angle_limit_max.z);
+					clamp_quaternion(result, angle_limit_min.x, angle_limit_max.x, angle_limit_min.y, angle_limit_max.y, angle_limit_min.z, angle_limit_max.z);
 
 					return result;
 				}
@@ -698,6 +698,12 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 			// 対象のik_linkのボーンより末端のボーンに回転を適用する
 			recursive_aplly_matrix(bone, ik_link.bone, rotaion, to_children_bone_index);
 
+			// デバッグ用
+			// ikの処理によって回転した回数を記録する
+			if (debug_ik_rotation_counter) {
+				(*debug_ik_rotation_counter)++;
+			}
+
 			// ターゲットのボーンの位置の更新
 			auto const updated_world_current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index]);
 
@@ -710,8 +716,8 @@ void solve_CCDIK(std::array<XMMATRIX, MAX_BONE_NUM>& bone, std::size_t root_inde
 }
 
 // 再帰的にボーンをたどっていきikの処理を行う
-template<typename T,typename U,typename S>
-void recursive_aplly_ik(T& bone, std::size_t current_index, U const& to_children_bone_index,S const& pmx_bone)
+template<typename T, typename U, typename S>
+void recursive_aplly_ik(T& bone, std::size_t current_index, U const& to_children_bone_index, S const& pmx_bone, int debug_ik_rotation_num = -1, int* debug_ik_rotation_counter = nullptr, bool debug_check_ideal_rotation = false)
 {
 	// 現在の対象のボーンがikの場合
 	if (pmx_bone[current_index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
@@ -723,12 +729,13 @@ void recursive_aplly_ik(T& bone, std::size_t current_index, U const& to_children
 		XMFLOAT3 float3;
 		XMStoreFloat3(&float3, target_position);
 
-		solve_CCDIK(bone, current_index, pmx_bone, float3, to_children_bone_index, -1, false);
+		solve_CCDIK(bone, current_index, pmx_bone, float3, to_children_bone_index, debug_ik_rotation_num, debug_ik_rotation_counter, debug_check_ideal_rotation);
+
 	}
 
 	// 再帰的に子ボーンをたどっていく
 	for (auto children_index : to_children_bone_index[current_index])
 	{
-		recursive_aplly_ik(bone, children_index, to_children_bone_index, pmx_bone);
+		recursive_aplly_ik(bone, children_index, to_children_bone_index, pmx_bone, debug_ik_rotation_num, debug_ik_rotation_counter, debug_check_ideal_rotation);
 	}
 }

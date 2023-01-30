@@ -346,7 +346,7 @@ int main()
 	// IKの処理でボーンを回転させる数
 	int ik_rotation_num = -1;
 	// IKによって最後に回転させたボーンの各制限を無視した回転を表示
-	bool is_ideal_rotation = false;
+	bool check_ideal_rotation = false;
 	// 残余回転を適用するかどうか
 	bool is_residual = false;
 
@@ -397,7 +397,8 @@ int main()
 		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
 
 		// IK
-		recursive_aplly_ik(model.bone, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone);
+		int ik_rotation_counter = 0;
+		recursive_aplly_ik(model.bone, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
 
 
 		{
@@ -438,7 +439,7 @@ int main()
 		ImGui::Checkbox("auto animation", &auto_animation);
 
 		ImGui::InputInt("ik rotation num", &ik_rotation_num);
-		ImGui::Checkbox("is ideal rotation", &is_ideal_rotation);
+		ImGui::Checkbox("is ideal rotation", &check_ideal_rotation);
 		ImGui::Checkbox("is residual", &is_residual);
 
 		ImGui::SliderFloat("offset x", &offset_x, -10.f, 10.f);

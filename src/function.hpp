@@ -100,62 +100,65 @@ inline float calc_bezier_curve(float x, float p1_x, float p1_y, float p2_x, floa
 }
 
 template<typename T, typename U, typename S, typename R>
-void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bone_motion_data, S const pmx_bone, R& bone_name_to_bone_index, std::size_t frame_num)
+void set_bone_matrix_from_vmd(T& bone_matrix_container, U const& bone_name_to_bone_motion_data, S const& pmx_bone, R const& bone_name_to_bone_index, std::size_t frame_num)
 {
 	for (auto const& motion : bone_name_to_bone_motion_data)
 	{
-		auto index = bone_name_to_bone_index[motion.first];
+		auto const bone_name_and_index = bone_name_to_bone_index.find(motion.first);
+
+		// 対象のボーンが存在しない場合は飛ばす
+		if (bone_name_and_index == bone_name_to_bone_index.end()) {
+			continue;
+		}
+
+		auto const& bone_position = pmx_bone[bone_name_and_index->second].position;
 
 		auto const& motion_data = motion.second;
 
-		auto rit = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+		auto const curr_motion_riter = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
 
-		if (rit == motion_data.rend())
-		{
+		// 対象のモーションデータが存在しない場合は飛ばす
+		if (curr_motion_riter == motion_data.crend()){
 			continue;
 		}
 
 		// 一つ手前のボーンのモーションデータを参照できる
-		auto it = rit.base();
+		auto const prev_motion_iter = curr_motion_riter.base();
 
-		auto quaternion = [rit, it, &motion_data, frame_num]() {
-			XMVECTOR rit_quaternion = XMLoadFloat4(&rit->quaternion);
-			if (it != motion_data.end()) {
-				auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
-				auto y = calc_bezier_curve(t, it->r_a[0] / 127.f, it->r_a[1] / 127.f, it->r_b[0] / 127.f, it->r_b[1] / 127.f);
-				XMVECTOR it_quaternion = XMLoadFloat4(&it->quaternion);
-				return XMMatrixRotationQuaternion(XMQuaternionSlerp(rit_quaternion, it_quaternion, y));
+		// 回転の計算
+		auto const [rotation,transform] = [curr_motion_riter, prev_motion_iter, &motion_data, frame_num]() {
+			if (prev_motion_iter != motion_data.end()) {
+				auto const t = static_cast<float>(frame_num - curr_motion_riter->frame_num) / static_cast<float>(prev_motion_iter->frame_num - curr_motion_riter->frame_num);
+
+				auto const x_t = calc_bezier_curve(t, prev_motion_iter->x_a[0] / 127.f, prev_motion_iter->x_a[1] / 127.f, prev_motion_iter->x_b[0] / 127.f, prev_motion_iter->x_b[1] / 127.f);
+				auto const y_t = calc_bezier_curve(t, prev_motion_iter->y_a[0] / 127.f, prev_motion_iter->y_a[1] / 127.f, prev_motion_iter->y_b[0] / 127.f, prev_motion_iter->y_b[1] / 127.f);
+				auto const z_t = calc_bezier_curve(t, prev_motion_iter->z_a[0] / 127.f, prev_motion_iter->z_a[1] / 127.f, prev_motion_iter->z_b[0] / 127.f, prev_motion_iter->z_b[1] / 127.f);
+				auto const r_t = calc_bezier_curve(t, prev_motion_iter->r_a[0] / 127.f, prev_motion_iter->r_a[1] / 127.f, prev_motion_iter->r_b[0] / 127.f, prev_motion_iter->r_b[1] / 127.f);
+
+				// 線形補間
+				auto const x = std::lerp(curr_motion_riter->transform.x, prev_motion_iter->transform.x, x_t);
+				auto const y = std::lerp(curr_motion_riter->transform.y, prev_motion_iter->transform.y, y_t);
+				auto const z = std::lerp(curr_motion_riter->transform.z, prev_motion_iter->transform.z, z_t);
+				auto const transform = XMMatrixTranslation(x, y, z);
+
+				// 球面補間
+				auto const rotation = XMMatrixRotationQuaternion(XMQuaternionSlerp(XMLoadFloat4(&curr_motion_riter->quaternion), XMLoadFloat4(&prev_motion_iter->quaternion), r_t));
+
+				return std::make_pair(rotation, transform);
 			}
 			else {
-				return XMMatrixRotationQuaternion(rit_quaternion);
+				return std::make_pair(XMMatrixRotationQuaternion(XMLoadFloat4(&curr_motion_riter->quaternion)), XMMatrixTranslation(curr_motion_riter->transform.x, curr_motion_riter->transform.y, curr_motion_riter->transform.z));
 			}
 		}();
 
-		// 回転の適用
-		bone_matrix_container[index] =
-			XMMatrixTranslation(-pmx_bone[index].position.x, -pmx_bone[index].position.y, -pmx_bone[index].position.z) *
-			quaternion *
-			XMMatrixTranslation(pmx_bone[index].position.x, pmx_bone[index].position.y, pmx_bone[index].position.z);
+		// 原点を中心とした回転
+		auto const rotation_origin =
+			XMMatrixTranslation(-bone_position.x, -bone_position.y, -bone_position.z) *
+			rotation *
+			XMMatrixTranslation(bone_position.x, bone_position.y, bone_position.z);
 
-		if (pmx_bone[index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
-		{
-			// 移動の適用
-			auto transform = [rit, it, &motion_data, frame_num]() {
-				if (it != motion_data.end()) {
-					auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
-					return XMFLOAT3{
-						rit->transform.x * (1 - t) + it->transform.x * t ,
-						rit->transform.y * (1 - t) + it->transform.y * t,
-						rit->transform.z * (1 - t) + it->transform.z * t,
-					};
-				}
-				else {
-					return rit->transform;
-				}
-			}();
-
-			bone_matrix_container[index] *= XMMatrixTranslation(transform.x, transform.y, transform.z);
-		}
+		// ボーン行列に反映
+		bone_matrix_container[bone_name_and_index->second] = rotation_origin * transform;
 	}
 }
 
@@ -215,50 +218,6 @@ void set_bone_matrix_from_vmd_2(T& bone_matrix_container, U const& bone_name_to_
 
 		bone_matrix_container[index] *= XMMatrixTranslation(transform.x, transform.y, transform.z);
 	}
-}
-
-// センターの移動量をもとに全体を移動させる
-template<typename T, typename U, typename S, typename R>
-void transform_center_matrix(T& bone_matrix_container, U& bone_name_to_bone_motion_data, R& bone_name_to_bone_index,
-	std::size_t frame_num, S const& to_children_bone_index_container)
-{
-	auto& const center_motion_data = bone_name_to_bone_motion_data[L"センター"];
-	auto center_index = bone_name_to_bone_index[L"センター"];
-
-	auto rit = std::find_if(center_motion_data.rbegin(), center_motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
-
-	if (rit == center_motion_data.rend())
-	{
-		return;
-	}
-
-	// 一つ手前のボーンのモーションデータを参照できる
-	auto it = rit.base();
-
-	auto transform = [rit, it, &center_motion_data, frame_num]() {
-
-		if (it != center_motion_data.end()) {
-			auto t = static_cast<float>(frame_num - rit->frame_num) / static_cast<float>(it->frame_num - rit->frame_num);
-
-			auto x_t = calc_bezier_curve(t, it->x_a[0] / 127.f, it->x_a[1] / 127.f, it->x_b[0] / 127.f, it->x_b[1] / 127.f);
-			auto y_t = calc_bezier_curve(t, it->y_a[0] / 127.f, it->y_a[1] / 127.f, it->y_b[0] / 127.f, it->y_b[1] / 127.f);
-			auto z_t = calc_bezier_curve(t, it->z_a[0] / 127.f, it->z_a[1] / 127.f, it->z_b[0] / 127.f, it->z_b[1] / 127.f);
-
-			// 回転じゃあないし、球面補間の必要はなさそう
-			auto x = std::lerp(rit->transform.x, it->transform.x, x_t);
-			auto y = std::lerp(rit->transform.y, it->transform.y, y_t);
-			auto z = std::lerp(rit->transform.z, it->transform.z, z_t);
-
-			return XMMatrixTranslation(x, y, z);
-
-		}
-		else {
-			return XMMatrixTranslation(rit->transform.x, rit->transform.y, rit->transform.z);
-		}
-	}();
-
-	// 全ての行列を移動さす
-	recursive_aplly_matrix(bone_matrix_container, center_index, transform, to_children_bone_index_container);
 }
 
 // フレーム番号から対象のボーンの移動ベクトルを求める

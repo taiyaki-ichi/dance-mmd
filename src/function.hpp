@@ -641,7 +641,7 @@ inline bool clamp_quaternion(XMVECTOR& q, float x_min, float x_max, float y_min,
 		is_clamped = true;
 	}
 
-	XMQuaternionNormalize(q);
+	q = XMQuaternionNormalize(q);
 
 	return is_clamped;
 }

@@ -338,6 +338,12 @@ std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to
 		);
 	}
 
+	// 後で検索できるようにそれぞれのモーションをフレーム番号順にソート
+	for (auto& motion : result)
+	{
+		std::sort(motion.second.begin(), motion.second.end(), [](auto const& a, auto const& b) {return a.frame_num < b.frame_num; });
+	}
+
 	return result;
 }
 

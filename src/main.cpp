@@ -75,7 +75,8 @@ int main()
 	// ボーンの名前から対応するボーンのインデックスを取得する際に使用する
 	auto bone_name_to_bone_index = get_bone_name_to_bone_index(pmx_bone);
 
-	const wchar_t* motion_file_path = L"../../../3dmodel/スイマジ/sweetmagic-right.vmd";
+	//const wchar_t* motion_file_path = L"../../../3dmodel/スイマジ/sweetmagic-right.vmd";
+	const wchar_t* motion_file_path = L"../../../3dmodel/サラマンダー モーション(short)/サラマンダー モーション(short).vmd";
 	std::ifstream motion_file{ motion_file_path,std::ios::binary };
 
 	auto vmd_header = mmdl::load_vmd_header(motion_file);
@@ -311,8 +312,8 @@ int main()
 	// その他設定
 	//
 
-	XMFLOAT3 eye{ 10.f,8.f,-12.f };
-	XMFLOAT3 target{ 10.f,8.f,0.f };
+	XMFLOAT3 eye{ 0.f,10.f,-15.f };
+	XMFLOAT3 target{ 0.f,10.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
 	float view_angle = XM_PIDIV2;

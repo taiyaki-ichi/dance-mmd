@@ -645,3 +645,261 @@ inline bool clamp_quaternion(XMVECTOR& q, float x_min, float x_max, float y_min,
 
 	return is_clamped;
 }
+
+
+// ボーン行列の生成
+template<typename T, typename U, typename S>
+void bone_data_to_bone_matrix(T& bone_data, U& bone_matrix, S const& pmx_bone)
+{
+	for (std::size_t i = 0; i < pmx_bone.size(); i++)
+	{
+		bone_matrix[i] =
+			XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[i].position)) *
+			bone_data[i].rotation *
+			XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[i].position)) *
+			XMMatrixTranslation(bone_data[i].transform.x, bone_data[i].transform.y, bone_data[i].transform.z) *
+			bone_data[i].to_world;
+	}
+}
+
+// ボーンデータの初期化
+template<typename T>
+void initialize_bone_data(T& bone_data)
+{
+	for (std::size_t i = 0; i < bone_data.size(); i++)
+	{
+		bone_data[i].rotation = XMMatrixIdentity();
+		bone_data[i].transform = XMFLOAT3{ 0.f,0.f,0.f };
+		bone_data[i].to_world = XMMatrixIdentity();
+	}
+}
+
+// 再帰的に走査し親ボーンの情報を保持させる
+template<typename T, typename U, typename S>
+void set_to_world_matrix(T& bone_data, U const& to_children_index, std::size_t current_index, XMMATRIX const& parent_matrix, S const& pmx_bone)
+{
+	bone_data[current_index].to_world = parent_matrix;
+
+	for (auto const children_index : to_children_index[current_index])
+	{
+		auto rotaion_origin = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[current_index].position)) *
+			bone_data[current_index].rotation *
+			XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[current_index].position));
+
+		auto current_matrix = rotaion_origin *
+			XMMatrixTranslation(bone_data[current_index].transform.x, bone_data[current_index].transform.y, bone_data[current_index].transform.x) *
+			parent_matrix;
+
+		set_to_world_matrix(bone_data, to_children_index, children_index, current_matrix, pmx_bone);
+	}
+}
+
+
+// pmdのデータをボーンに反映させる
+template<typename T, typename U, typename S, typename R>
+void set_bone_data_from_vmd(T& bone_data, U const& bone_name_to_bone_motion_data, S const& pmx_bone, R const& bone_name_to_bone_index, std::size_t frame_num)
+{
+	for (auto const& motion : bone_name_to_bone_motion_data)
+	{
+		auto const bone_name_and_index = bone_name_to_bone_index.find(motion.first);
+
+		// 対象のボーンが存在しない場合は飛ばす
+		if (bone_name_and_index == bone_name_to_bone_index.end()) {
+			continue;
+		}
+
+		auto const& bone_position = pmx_bone[bone_name_and_index->second].position;
+
+		auto const& motion_data = motion.second;
+
+		// 配列の末尾から検索しフレーム数より大きく、かつフレーム数に一番近いモーションデータを検索する
+		auto const curr_motion_riter = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+		// 対象のモーションデータが存在しない場合は飛ばす
+		if (curr_motion_riter == motion_data.crend()) {
+			continue;
+		}
+
+		// 一つ手前のボーンのモーションデータを参照できる
+		auto const prev_motion_iter = curr_motion_riter.base();
+
+		// 回転の計算
+		auto const [rotation, transform] = [curr_motion_riter, prev_motion_iter, &motion_data, frame_num]() {
+			if (prev_motion_iter != motion_data.end()) {
+				auto const t = static_cast<float>(frame_num - curr_motion_riter->frame_num) / static_cast<float>(prev_motion_iter->frame_num - curr_motion_riter->frame_num);
+
+				// ベジェ曲線を利用したそれぞれのパラメータを計算
+				auto const x_t = calc_bezier_curve(t, prev_motion_iter->x_a[0] / 127.f, prev_motion_iter->x_a[1] / 127.f, prev_motion_iter->x_b[0] / 127.f, prev_motion_iter->x_b[1] / 127.f);
+				auto const y_t = calc_bezier_curve(t, prev_motion_iter->y_a[0] / 127.f, prev_motion_iter->y_a[1] / 127.f, prev_motion_iter->y_b[0] / 127.f, prev_motion_iter->y_b[1] / 127.f);
+				auto const z_t = calc_bezier_curve(t, prev_motion_iter->z_a[0] / 127.f, prev_motion_iter->z_a[1] / 127.f, prev_motion_iter->z_b[0] / 127.f, prev_motion_iter->z_b[1] / 127.f);
+				auto const r_t = calc_bezier_curve(t, prev_motion_iter->r_a[0] / 127.f, prev_motion_iter->r_a[1] / 127.f, prev_motion_iter->r_b[0] / 127.f, prev_motion_iter->r_b[1] / 127.f);
+
+				// 線形補間
+				auto const x = std::lerp(curr_motion_riter->transform.x, prev_motion_iter->transform.x, x_t);
+				auto const y = std::lerp(curr_motion_riter->transform.y, prev_motion_iter->transform.y, y_t);
+				auto const z = std::lerp(curr_motion_riter->transform.z, prev_motion_iter->transform.z, z_t);
+				auto const transform = XMFLOAT3{ x,y,z };
+
+				// 球面補間
+				auto const rotation = XMMatrixRotationQuaternion(XMQuaternionSlerp(XMLoadFloat4(&curr_motion_riter->quaternion), XMLoadFloat4(&prev_motion_iter->quaternion), r_t));
+
+				return std::make_pair(rotation, transform);
+			}
+			else {
+				return std::make_pair(XMMatrixRotationQuaternion(XMLoadFloat4(&curr_motion_riter->quaternion)), XMFLOAT3{ curr_motion_riter->transform.x, curr_motion_riter->transform.y, curr_motion_riter->transform.z });
+			}
+		}();
+
+		// ボーンデータに反映
+		bone_data[bone_name_and_index->second].rotation = rotation;
+		bone_data[bone_name_and_index->second].transform = transform;
+	}
+}
+
+void solve_CCDIK(std::vector<bone_data>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
+	std::vector<std::vector<std::size_t>> const& to_children_bone_index, int debug_ik_rotation_num, int* debug_ik_rotation_counter, bool debug_check_ideal_rotation)
+{
+	auto target_index = pmx_bone[root_index].ik_target_bone;
+
+	// ループしてIKを解決していく
+	for (std::size_t ik_roop_i = 0; ik_roop_i < static_cast<std::size_t>(pmx_bone[root_index].ik_roop_number); ik_roop_i++)
+	{
+
+		// それぞれのボーンを動かしていく
+		for (std::size_t ik_link_i = 0; ik_link_i < pmx_bone[root_index].ik_link.size(); ik_link_i++)
+		{
+			if (debug_ik_rotation_counter != nullptr && debug_ik_rotation_num >= 0 && *debug_ik_rotation_counter >= debug_ik_rotation_num) {
+				return;
+			}
+
+			// 回転の対象であるik_linkのボーン
+			auto const& ik_link = pmx_bone[root_index].ik_link[ik_link_i];
+
+			// 対象のik_linkのボーンの座標系からワールド座標への変換
+			auto const to_world = bone[ik_link.bone].rotation *
+				XMMatrixTranslation(bone[ik_link.bone].transform.x, bone[ik_link.bone].transform.y, bone[ik_link.bone].transform.z) *
+				bone[ik_link.bone].to_world;
+
+			// ワールド座標系から対象のik_linkのボーンの座標系への変換
+			// WARNING: 逆行列計算のコストは?
+			auto const to_local = XMMatrixInverse(nullptr, to_world);
+
+			// 現在のターゲットのボーンのワールド座標での位置
+			auto const world_current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index].rotation *
+				XMMatrixTranslation(bone[target_index].transform.x, bone[target_index].transform.y, bone[target_index].transform.z) *
+				bone[target_index].to_world);
+
+			// 現在のターゲットのボーンの対象のik_linkのボーンの座標系の位置
+			auto const local_current_target_position = XMVector3Transform(world_current_target_position, to_local);
+
+			// 対象のボーンのワールド座標での位置
+			auto const world_ik_link_bone_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[ik_link.bone].position), to_world);
+
+			// 対象のボーンの座標系での対象のボーンの位置
+			// つまり、そのままの座標
+			auto const local_ik_link_bone_position = XMLoadFloat3(&pmx_bone[ik_link.bone].position);
+
+			// 対象のボーンの座標系でのターゲットのボーンの理想的な位置
+			// （local_current_target_position を local_target_position へ近づけるのが目的）
+			auto const local_target_position = XMVector3Transform(XMLoadFloat3(&target_position), to_local);
+
+			// 対象のボーンから現在のターゲットへのベクトル
+			auto const to_current_target = XMVector3Normalize(XMVectorSubtract(local_current_target_position, local_ik_link_bone_position));
+
+			// 対象のボーンからターゲットへのベクトル
+			auto const to_target = XMVector3Normalize(XMVectorSubtract(local_target_position, local_ik_link_bone_position));
+
+
+			// ほぼ同じベクトルになってしまった場合は外積が計算できないため飛ばす
+			if (XMVector3Length(XMVectorSubtract(to_current_target, to_target)).m128_f32[0] <= std::numeric_limits<float>::epsilon()) {
+				continue;
+			}
+
+			// 外積および角度の計算
+			auto const cross = XMVector3Normalize(XMVector3Cross(to_current_target, to_target));
+			auto const angle = XMVector3AngleBetweenVectors(to_current_target, to_target).m128_f32[0];
+
+			// 角度制限を考慮しない理想的な回転
+			auto const ideal_rotation = XMQuaternionNormalize(XMQuaternionRotationMatrix(XMMatrixRotationAxis(cross, angle)));
+
+			// デバック用
+			// 角制限を無視した場合の回転を表示するためのフラグ
+			bool const use_ideal_rotation_for_debug = debug_check_ideal_rotation && debug_ik_rotation_counter != nullptr && *debug_ik_rotation_counter >= debug_ik_rotation_num - 1;
+
+			// 角度の制限を考慮した実際の回転を表す行列と回転の行列が修正されたかどうか
+			auto const actual_rotation = [&cross, &angle, &ik_link, use_ideal_rotation_for_debug](auto const& ideal_rotation) {
+
+				// デバッグ目的で理想回転を確認するとき
+				if (use_ideal_rotation_for_debug) {
+					return ideal_rotation;
+				}
+
+				// 制限がない場合そのまま
+				if (!ik_link.min_max_angle_limit)
+				{
+					return ideal_rotation;
+				}
+				// 制限がある場合は調整する
+				else
+				{
+					auto const& [angle_limit_min, angle_limit_max] = ik_link.min_max_angle_limit.value();
+					// コピーする
+					auto result = ideal_rotation;
+
+					// クランプ
+					clamp_quaternion(result, angle_limit_min.x, angle_limit_max.x, angle_limit_min.y, angle_limit_max.y, angle_limit_min.z, angle_limit_max.z);
+
+					return result;
+				}
+			}(ideal_rotation);
+
+			// 回転を反映
+			bone[ik_link.bone].rotation *= XMMatrixRotationQuaternion(actual_rotation);
+
+			// 対象のik_linkのボーンより末端のボーンに回転を適用する
+			set_to_world_matrix(bone, to_children_bone_index, ik_link.bone, bone[ik_link.bone].to_world, pmx_bone);
+
+			// デバッグ用
+			// ikの処理によって回転した回数を記録する
+			if (debug_ik_rotation_counter) {
+				(*debug_ik_rotation_counter)++;
+			}
+
+			// ターゲットのボーンの位置の更新
+			auto const updated_world_current_target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_index].position), bone[target_index].rotation *
+				XMMatrixTranslation(bone[target_index].transform.x, bone[target_index].transform.y, bone[target_index].transform.z) *
+				bone[target_index].to_world);
+
+			// 十分近くなった場合ループを抜ける
+			if (XMVector3Length(XMVectorSubtract(updated_world_current_target_position, XMLoadFloat3(&target_position))).m128_f32[0] <= std::numeric_limits<float>::epsilon()) {
+				break;
+			}
+		}
+	}
+}
+
+template<typename U, typename S>
+void recursive_aplly_ik(std::vector<bone_data>& bone, std::size_t current_index, U const& to_children_bone_index, S const& pmx_bone, int debug_ik_rotation_num, int* debug_ik_rotation_counter, bool debug_check_ideal_rotation)
+{
+	// 現在の対象のボーンがikの場合
+	if (pmx_bone[current_index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
+	{
+		auto const target_bone_index = pmx_bone[current_index].ik_target_bone;
+		auto const target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_bone_index].position),
+			XMMatrixTranslation(bone[current_index].transform.x, bone[current_index].transform.y, bone[current_index].transform.z) *
+			bone[current_index].to_world);
+
+		// TODO:
+		XMFLOAT3 float3;
+		XMStoreFloat3(&float3, target_position);
+
+		solve_CCDIK(bone, current_index, pmx_bone, float3, to_children_bone_index, debug_ik_rotation_num, debug_ik_rotation_counter, debug_check_ideal_rotation);
+
+	}
+
+	// 再帰的に子ボーンをたどっていく
+	for (auto children_index : to_children_bone_index[current_index])
+	{
+		recursive_aplly_ik(bone, children_index, to_children_bone_index, pmx_bone, debug_ik_rotation_num, debug_ik_rotation_counter, debug_check_ideal_rotation);
+	}
+}

@@ -47,6 +47,8 @@ int main()
 	// TODO: 
 	//const wchar_t* file_path = L"E:素材/原神/パイモン/派蒙.pmx";
 	//const wchar_t* directory_path = L"E:素材/原神/パイモン/";
+	//const wchar_t* file_path = L"E:素材/原神/スクロース/砂糖.pmx";
+	//const wchar_t* directory_path = L"E:素材/原神/スクロース/";
 	//const wchar_t* file_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
 	//const wchar_t* directory_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/";
 	const wchar_t* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
@@ -312,7 +314,7 @@ int main()
 	// その他設定
 	//
 
-	XMFLOAT3 eye{ 0.f,10.f,-15.f };
+	XMFLOAT3 eye{ 0.f,14.f,-16.f };
 	XMFLOAT3 target{ 0.f,10.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
@@ -358,6 +360,8 @@ int main()
 	auto prev_frame_time = std::chrono::system_clock::now();
 	double elapsed = 0.0;
 
+	std::vector<bone_data> bone_data(MAX_BONE_NUM);
+
 	while (dx12w::update_window())
 	{
 
@@ -389,18 +393,27 @@ int main()
 		camera.eyePos = eye;
 
 		// ボーンを初期化
-		std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
+		// std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
+		initialize_bone_data(bone_data);
 
 		// 指定されているボーンに適当な行列を設定
-		set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+		//set_bone_matrix_from_vpd(model.bone, vpd_data, pmx_bone, bone_name_to_bone_index);
+		// set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+		set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+
 
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
+		// recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
+		set_to_world_matrix(bone_data, to_children_bone_index, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), pmx_bone);
+
 
 		// IK
 		int ik_rotation_counter = 0;
-		recursive_aplly_ik(model.bone, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
+		//recursive_aplly_ik(model.bone, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
+		recursive_aplly_ik(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
 
+		// 
+		bone_data_to_bone_matrix(bone_data, model.bone, pmx_bone);
 
 		{
 			model_data* tmp = nullptr;

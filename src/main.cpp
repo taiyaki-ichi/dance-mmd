@@ -401,6 +401,7 @@ int main()
 		// set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 		set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 
+		bone_data[bone_name_to_bone_index[L"右足ＩＫ"]].transform += XMVECTOR{ offset_x, offset_y, offset_z };
 
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
 		// recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);

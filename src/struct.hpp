@@ -81,11 +81,11 @@ struct bone_motion_data
 // ボーンを計算する時に使う
 struct bone_data
 {
-	// 回転を表す行列
-	XMMATRIX rotation;
+	// 回転を表すクオータニオン
+	XMVECTOR rotation;
 
 	// 並行移動を表すベクタ
-	XMFLOAT3 transform;
+	XMVECTOR transform;
 
 	float _pad0;
 

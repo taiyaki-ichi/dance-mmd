@@ -325,12 +325,9 @@ int main()
 	XMFLOAT3 direction_light_color{ 0.4f,0.4f,0.4f };
 	XMFLOAT3 direction_light_dir{ 0.5f,0.5f,-0.5f };
 
-	model_data model{};
-	model.world = XMMatrixIdentity();
 	float model_rotation_x = 0.f;
 	float model_rotation_y = 0.f;
 	float model_rotation_z = 0.f;
-	std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
 
 	// 子ボーンのインデックスを取得するための配列を取得
 	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
@@ -378,8 +375,6 @@ int main()
 			camera_far_z
 		);
 
-		model.world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
-
 		camera.view = view;
 		camera.viewInv = XMMatrixInverse(nullptr, camera.view);
 		camera.proj = proj;
@@ -392,37 +387,30 @@ int main()
 		camera.screenHeight = WINDOW_HEIGHT;
 		camera.eyePos = eye;
 
-		// ボーンを初期化
-		// std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
+		// ボーンのデータをを初期化
 		initialize_bone_data(bone_data);
 
 		// 指定されているボーンに適当な行列を設定
 		//set_bone_matrix_from_vpd(model.bone, vpd_data, pmx_bone, bone_name_to_bone_index);
-		// set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 		set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 
-		bone_data[bone_name_to_bone_index[L"右足ＩＫ"]].transform += XMVECTOR{ offset_x, offset_y, offset_z };
-
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		// recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
 		set_to_world_matrix(bone_data, to_children_bone_index, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), pmx_bone);
-
 
 		// IK
 		int ik_rotation_counter = 0;
-		//recursive_aplly_ik(model.bone, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
 		recursive_aplly_ik(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
 
 		// 付与の解決
 		recursive_aplly_grant(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone);
 
-		// 
-		bone_data_to_bone_matrix(bone_data, model.bone, pmx_bone);
 
 		{
 			model_data* tmp = nullptr;
 			model_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-			*tmp = model;
+
+			tmp->world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
+			bone_data_to_bone_matrix(bone_data, tmp->bone, pmx_bone);
 		}
 
 		{

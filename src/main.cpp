@@ -391,7 +391,7 @@ int main()
 		initialize_bone_data(bone_data);
 
 		// 指定されているボーンに適当な行列を設定
-		//set_bone_matrix_from_vpd(model.bone, vpd_data, pmx_bone, bone_name_to_bone_index);
+		//set_bone_data_from_vpd(bone_data, vpd_data, bone_name_to_bone_index);
 		set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる

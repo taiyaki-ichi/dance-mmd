@@ -343,6 +343,23 @@ void set_bone_matrix_from_vpd(T& bone_matrix_container, U const& vpd_data, S con
 	}
 }
 
+template<typename T, typename U, typename S>
+void set_bone_data_from_vpd(T& bone_data, U const& vpd_data, S const& bone_name_to_bone_index)
+{
+	for (auto const& vpd : vpd_data)
+	{
+		// ‘ÎÛ‚Ìƒ{[ƒ“‚ª‘¶İ‚µ‚È‚¢ê‡‚Í”ò‚Î‚·
+		if (!bone_name_to_bone_index.contains(vpd.name)) {
+			continue;
+		}
+
+		auto const index = bone_name_to_bone_index.at(vpd.name);
+
+		bone_data[index].rotation = XMLoadFloat4(&vpd.quaternion);
+		bone_data[index].transform = XMLoadFloat3(&vpd.transform);
+	}
+}
+
 template<typename T>
 std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to_bone_motion_data(T&& vmd_data)
 {

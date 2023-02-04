@@ -394,6 +394,9 @@ int main()
 		//set_bone_data_from_vpd(bone_data, vpd_data, bone_name_to_bone_index);
 		set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 
+		// デバック用
+		bone_data[bone_name_to_bone_index[L"右足ＩＫ"]].transform += XMVECTOR{ offset_x, offset_y, offset_z };
+
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
 		set_to_world_matrix(bone_data, to_children_bone_index, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), pmx_bone);
 

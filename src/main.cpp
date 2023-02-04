@@ -47,10 +47,12 @@ int main()
 	// TODO: 
 	//const wchar_t* file_path = L"E:素材/原神/パイモン/派蒙.pmx";
 	//const wchar_t* directory_path = L"E:素材/原神/パイモン/";
+	const wchar_t* file_path = L"E:素材/原神/アンバー/安柏.pmx";
+	const wchar_t* directory_path = L"E:素材/原神/アンバー/";
 	//const wchar_t* file_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
 	//const wchar_t* directory_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/";
-	const wchar_t* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
-	const wchar_t* directory_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/";
+	//const wchar_t* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
+	//const wchar_t* directory_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/";
 	//const wchar_t* file_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/PMX/Laplus_220516_1.pmx";
 	//const wchar_t* directory_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/sourceimages/";
 
@@ -312,7 +314,7 @@ int main()
 	// その他設定
 	//
 
-	XMFLOAT3 eye{ 0.f,10.f,-15.f };
+	XMFLOAT3 eye{ 0.f,14.f,-16.f };
 	XMFLOAT3 target{ 0.f,10.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
 	float asspect = static_cast<float>(WINDOW_WIDTH) / static_cast<float>(WINDOW_HEIGHT);
@@ -323,12 +325,9 @@ int main()
 	XMFLOAT3 direction_light_color{ 0.4f,0.4f,0.4f };
 	XMFLOAT3 direction_light_dir{ 0.5f,0.5f,-0.5f };
 
-	model_data model{};
-	model.world = XMMatrixIdentity();
 	float model_rotation_x = 0.f;
 	float model_rotation_y = 0.f;
 	float model_rotation_z = 0.f;
-	std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
 
 	// 子ボーンのインデックスを取得するための配列を取得
 	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
@@ -358,6 +357,8 @@ int main()
 	auto prev_frame_time = std::chrono::system_clock::now();
 	double elapsed = 0.0;
 
+	std::vector<bone_data> bone_data(MAX_BONE_NUM);
+
 	while (dx12w::update_window())
 	{
 
@@ -374,8 +375,6 @@ int main()
 			camera_far_z
 		);
 
-		model.world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
-
 		camera.view = view;
 		camera.viewInv = XMMatrixInverse(nullptr, camera.view);
 		camera.proj = proj;
@@ -388,24 +387,33 @@ int main()
 		camera.screenHeight = WINDOW_HEIGHT;
 		camera.eyePos = eye;
 
-		// ボーンを初期化
-		std::fill(std::begin(model.bone), std::end(model.bone), XMMatrixIdentity());
+		// ボーンのデータをを初期化
+		initialize_bone_data(bone_data);
 
 		// 指定されているボーンに適当な行列を設定
-		set_bone_matrix_from_vmd(model.bone, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+		//set_bone_data_from_vpd(bone_data, vpd_data, bone_name_to_bone_index);
+		set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+
+		// デバック用
+		bone_data[bone_name_to_bone_index[L"右足ＩＫ"]].transform += XMVECTOR{ offset_x, offset_y, offset_z };
 
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		recursive_aplly_parent_matrix(model.bone, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), to_children_bone_index);
+		set_to_world_matrix(bone_data, to_children_bone_index, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), pmx_bone);
 
 		// IK
 		int ik_rotation_counter = 0;
-		recursive_aplly_ik(model.bone, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
+		recursive_aplly_ik(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
+
+		// 付与の解決
+		recursive_aplly_grant(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone);
 
 
 		{
 			model_data* tmp = nullptr;
 			model_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-			*tmp = model;
+
+			tmp->world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
+			bone_data_to_bone_matrix(bone_data, tmp->bone, pmx_bone);
 		}
 
 		{

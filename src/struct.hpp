@@ -77,3 +77,19 @@ struct bone_motion_data
 
 	// 参考: http://atupdate.web.fc2.com/vmd_format.htm
 };
+
+// ボーンを計算する時に使う
+struct bone_data
+{
+	// 回転を表すクオータニオン
+	XMVECTOR rotation;
+
+	// 並行移動を表すベクタ
+	XMVECTOR transform;
+
+	float _pad0;
+
+	// ローカルの座標をワールドに変換する
+	// 親ボーンの回転、並行移動の情報
+	XMMATRIX to_world;
+};

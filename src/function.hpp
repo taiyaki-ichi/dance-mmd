@@ -935,3 +935,62 @@ void recursive_aplly_ik(std::vector<bone_data>& bone, std::size_t current_index,
 		recursive_aplly_ik(bone, children_index, to_children_bone_index, pmx_bone, debug_ik_rotation_num, debug_ik_rotation_counter, debug_check_ideal_rotation);
 	}
 }
+
+// ‰ñ“]•t—^AˆÚ“®•t—^‚Ìˆ—
+template<typename T,typename U,typename S>
+void solve_grant(T& bone_data,U const& pmx_data,std::size_t index,S const& to_children_index)
+{
+	// ‘ÎÛ‚Ìƒ{[ƒ“‚ª‰ñ“]•t—^‚Ìê‡
+	if (pmx_data[index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::rotation_grant)])
+	{
+		// ³‚Ì•ûŒü‚Ì‰ñ“]
+		if (pmx_data[index].grant_rate >= 0.f)
+		{
+			// ’Ç‰Á•ª‚Ì‰ñ“]‚ğŒvZ
+			auto const additional_rotation = XMQuaternionSlerp(XMQuaternionIdentity(), bone_data[pmx_data[index].grant_index].rotation, pmx_data[index].grant_rate);
+
+			// ”½‰f
+			bone_data[index].rotation = XMQuaternionMultiply(bone_data[index].rotation, additional_rotation);
+			set_to_world_matrix(bone_data, to_children_index, index, bone_data[index].to_world, pmx_data);
+		}
+		// •‰‚Ì•ûŒü‚Ì‰ñ“]
+		else
+		{
+			// Š„‡‚ğ³‚É‚·‚é
+			auto const modified_rate = -pmx_data[index].grant_rate;
+			// ‰ñ“]•ûŒü‚àC³‚·‚é
+			auto const rotation_inv = XMQuaternionInverse(bone_data[pmx_data[index].grant_index].rotation);
+
+			// ’Ç‰Á•ª‚Ì‰ñ“]‚ğŒvZ
+			auto const additional_rotation = XMQuaternionSlerp(XMQuaternionIdentity(), rotation_inv, modified_rate);
+
+			// ”½‰f
+			bone_data[index].rotation = XMQuaternionMultiply(bone_data[index].rotation, additional_rotation);
+			set_to_world_matrix(bone_data, to_children_index, index, bone_data[index].to_world, pmx_data);
+		}
+	}
+
+	// ‘ÎÛ‚Ìƒ{[ƒ“‚ªˆÚ“®•t—^‚Ìê‡
+	if (pmx_data[index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::move_grant)])
+	{
+		// ’Ç‰Á•ª‚ÌˆÚ“®
+		auto const additional_transform = XMVectorScale(bone_data[pmx_data[index].grant_index].transform, pmx_data[index].grant_rate);
+
+		// ”½‰f
+		bone_data[index].transform += additional_transform;
+		set_to_world_matrix(bone_data, to_children_index, index, bone_data[index].to_world, pmx_data);
+	}
+}
+
+// ‰ñ“]•t—^AˆÚ“®•t—^‚Ìˆ—‚ğÄ‹A“I‚É‚â‚Á‚Ä‚­
+template<typename T,typename U,typename S>
+void recursive_aplly_grant(T& bone, std::size_t current_index, U const& to_children_bone_index, S const& pmx_bone)
+{
+	solve_grant(bone, pmx_bone, current_index, to_children_bone_index);
+
+	// Ä‹A“I‚Éqƒ{[ƒ“‚ğ‚½‚Ç‚Á‚Ä‚¢‚­
+	for (auto children_index : to_children_bone_index[current_index])
+	{
+		recursive_aplly_grant(bone, children_index, to_children_bone_index, pmx_bone);
+	}
+}

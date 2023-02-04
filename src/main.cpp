@@ -47,12 +47,12 @@ int main()
 	// TODO: 
 	//const wchar_t* file_path = L"E:素材/原神/パイモン/派蒙.pmx";
 	//const wchar_t* directory_path = L"E:素材/原神/パイモン/";
-	//const wchar_t* file_path = L"E:素材/原神/スクロース/砂糖.pmx";
-	//const wchar_t* directory_path = L"E:素材/原神/スクロース/";
+	const wchar_t* file_path = L"E:素材/原神/アンバー/安柏.pmx";
+	const wchar_t* directory_path = L"E:素材/原神/アンバー/";
 	//const wchar_t* file_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
 	//const wchar_t* directory_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/";
-	const wchar_t* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
-	const wchar_t* directory_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/";
+	//const wchar_t* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
+	//const wchar_t* directory_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/";
 	//const wchar_t* file_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/PMX/Laplus_220516_1.pmx";
 	//const wchar_t* directory_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/sourceimages/";
 
@@ -412,6 +412,9 @@ int main()
 		int ik_rotation_counter = 0;
 		//recursive_aplly_ik(model.bone, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
 		recursive_aplly_ik(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
+
+		// 付与の解決
+		recursive_aplly_grant(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone);
 
 		// 
 		bone_data_to_bone_matrix(bone_data, model.bone, pmx_bone);

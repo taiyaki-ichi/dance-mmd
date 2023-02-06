@@ -19,7 +19,6 @@
 
 using namespace DirectX;
 
-// extern宣言
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LRESULT CALLBACK wnd_proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -44,38 +43,48 @@ int main()
 	auto swap_chain = dx12w::create_swap_chain(command_manager.get_queue(), hwnd, FRAME_BUFFER_FORMAT, FRAME_BUFFER_NUM);
 
 
-	// TODO: 
-	//const wchar_t* file_path = L"E:素材/原神/パイモン/派蒙.pmx";
-	//const wchar_t* directory_path = L"E:素材/原神/パイモン/";
-	const wchar_t* file_path = L"E:素材/原神/アンバー/安柏.pmx";
-	const wchar_t* directory_path = L"E:素材/原神/アンバー/";
-	//const wchar_t* file_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
-	//const wchar_t* directory_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/";
-	//const wchar_t* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
-	//const wchar_t* directory_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/";
-	//const wchar_t* file_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/PMX/Laplus_220516_1.pmx";
-	//const wchar_t* directory_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/sourceimages/";
+	//
+	// pmxの読み込み
+	//
 
+	// file_nameはpmxファイルへのパス
+	// directory_pathはファイルのフォルダへのパス
+	//wchar_t const* file_path = L"E:素材/原神/パイモン/派蒙.pmx";
+	//wchar_t const* directory_path = L"E:素材/原神/パイモン/";
+	wchar_t const* file_path = L"E:素材/原神/アンバー/安柏.pmx";
+	wchar_t const* directory_path = L"E:素材/原神/アンバー/";
+	//wchar_t const* file_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
+	//wchar_t const* directory_path = L"E:素材/キズナアイ/KizunaAI_ver1.01/kizunaai/";
+	//wchar_t const* file_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/ときのそら.pmx";
+	//wchar_t const* directory_path = L"E:素材/ホロライブ/ときのそら公式mmd_ver2.1/";
+	//wchar_t const* file_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/PMX/Laplus_220516_1.pmx";
+	//wchar_t const* directory_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/sourceimages/";
 
 	std::ifstream file{ file_path ,std::ios::binary };
-	auto pmx_header = mmdl::load_header<>(file);
-	auto pmx_info = mmdl::load_info<std::wstring>(file, pmx_header.encode);
-	auto pmx_vertex = mmdl::load_vertex<std::vector, XMFLOAT2, XMFLOAT3, XMFLOAT4>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
-	auto pmx_surface = mmdl::load_surface<std::vector>(file, pmx_header.vertex_index_size);
-	auto pmx_texture_path = mmdl::load_texture_path<std::vector, std::wstring>(file, pmx_header.encode);
-	auto pmx_material = mmdl::load_material<std::vector, std::wstring, XMFLOAT3, XMFLOAT4>(file, pmx_header.encode, pmx_header.texture_index_size);
-	auto pmx_bone = mmdl::load_bone<std::vector, std::wstring, XMFLOAT3, std::vector>(file, pmx_header.encode, pmx_header.bone_index_size);
+	auto const pmx_header = mmdl::load_header<>(file);
+	auto const pmx_info = mmdl::load_info<std::wstring>(file, pmx_header.encode);
+	auto const pmx_vertex = mmdl::load_vertex<std::vector, XMFLOAT2, XMFLOAT3, XMFLOAT4>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
+	auto const pmx_surface = mmdl::load_surface<std::vector>(file, pmx_header.vertex_index_size);
+	auto const pmx_texture_path = mmdl::load_texture_path<std::vector, std::wstring>(file, pmx_header.encode);
+	auto const pmx_material = mmdl::load_material<std::vector, std::wstring, XMFLOAT3, XMFLOAT4>(file, pmx_header.encode, pmx_header.texture_index_size);
+	auto const pmx_bone = mmdl::load_bone<std::vector, std::wstring, XMFLOAT3, std::vector>(file, pmx_header.encode, pmx_header.bone_index_size);
+	file.close();
 
 
-	//const wchar_t* pose_file_path = L"../../../3dmodel/ポーズ25/4.vpd";
-	const wchar_t* pose_file_path = L"../../../3dmodel/Pose Pack 6 - Snorlaxin/9.vpd";
+	//
+	// vpdの読み込み
+	//
+
+	//wchar_t const* pose_file_path = L"../../../3dmodel/ポーズ25/4.vpd";
+	wchar_t const* pose_file_path = L"../../../3dmodel/Pose Pack 6 - Snorlaxin/9.vpd";
 	std::ifstream pose_file{ pose_file_path };
-
-	// ポーズのデータ
 	auto vpd_data = get_utf16_vpd_data(pose_file);
+	pose_file.close();
 
-	// ボーンの名前から対応するボーンのインデックスを取得する際に使用する
-	auto bone_name_to_bone_index = get_bone_name_to_bone_index(pmx_bone);
+
+	//
+	// vmdの読み込み
+	//
 
 	//const wchar_t* motion_file_path = L"../../../3dmodel/スイマジ/sweetmagic-right.vmd";
 	const wchar_t* motion_file_path = L"../../../3dmodel/サラマンダー モーション(short)/サラマンダー モーション(short).vmd";
@@ -83,9 +92,15 @@ int main()
 
 	auto vmd_header = mmdl::load_vmd_header(motion_file);
 	auto vmd_frame_data = mmdl::load_vmd_frame_data<std::vector, XMFLOAT3, XMFLOAT4>(motion_file, vmd_header.frame_data_num);
+	motion_file.close();
+
+	//
+	// クリアバリュー
+	// リソースの生成時に必要
+	//
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
-	.Format = FRAME_BUFFER_FORMAT,
+		.Format = FRAME_BUFFER_FORMAT,
 		.Color = { 0.5f,0.5f,0.5f,1.f },
 	};
 
@@ -94,42 +109,36 @@ int main()
 		.DepthStencil{.Depth = 1.f}
 	};
 
-	D3D12_VIEWPORT viewport{
-	.TopLeftX = 0.f,
-	.TopLeftY = 0.f,
-	.Width = static_cast<float>(WINDOW_WIDTH),
-	.Height = static_cast<float>(WINDOW_HEIGHT),
-	.MinDepth = 0.f,
-	.MaxDepth = 1.f,
-	};
-
-	D3D12_RECT scissor_rect{
-		.left = 0,
-		.top = 0,
-		.right = static_cast<LONG>(WINDOW_WIDTH),
-		.bottom = static_cast<LONG>(WINDOW_HEIGHT),
-	};
-
 
 	//
 	// リソース
 	//
 
-	std::array<dx12w::resource_and_state, FRAME_BUFFER_NUM> frame_buffer_resource{};
-	for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
-	{
-		ID3D12Resource* tmp = nullptr;
-		swap_chain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&tmp));
-		frame_buffer_resource[i] = std::make_pair(dx12w::release_unique_ptr<ID3D12Resource>{tmp}, D3D12_RESOURCE_STATE_COMMON);
-	}
+	// FRAME_BUFFER_NUMの数のフレームバッファ
+	auto frame_buffer_resource = [&swap_chain]() {
+		std::array<dx12w::resource_and_state, FRAME_BUFFER_NUM> result{};
 
+		// スワップチェーンからフレームバッファを取得
+		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
+		{
+			ID3D12Resource* tmp = nullptr;
+			swap_chain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&tmp));
+			result[i] = std::make_pair(dx12w::release_unique_ptr<ID3D12Resource>{tmp}, D3D12_RESOURCE_STATE_COMMON);
+		}
+
+		return result;
+	}();
+
+	// デプスバッファ
 	auto depth_buffer = dx12w::create_commited_texture_resource(device.get(), DEPTH_BUFFER_FORMAT, WINDOW_WIDTH, WINDOW_HEIGHT,
 		2, 1, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, &depth_clear_value);
 
-	auto pmx_vertex_buffer_resource = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(vertex) * pmx_vertex.size());
-	{
+	// pmxの頂点バッファ
+	auto pmx_vertex_buffer_resource = [&device, &pmx_vertex]() {
+		auto result = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(vertex) * pmx_vertex.size());
+
 		vertex* tmp = nullptr;
-		pmx_vertex_buffer_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+		result.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 		for (std::size_t i = 0; i < pmx_vertex.size(); i++)
 		{
 			tmp[i].position = pmx_vertex[i].position;
@@ -137,37 +146,51 @@ int main()
 			tmp[i].uv = pmx_vertex[i].uv;
 			for (std::size_t j = 0; j < 4; j++)
 				tmp[i].bone_index[j] = pmx_vertex[i].bone[j];
+			// 重みの合計が1になるように補正
 			auto weight_sum = std::accumulate(pmx_vertex[i].weight.begin(), pmx_vertex[i].weight.end(), 0.f);
 			for (std::size_t j = 0; j < 4; j++)
 				tmp[i].bone_weight[j] = pmx_vertex[i].weight[j] / weight_sum;
 		}
-		pmx_vertex_buffer_resource.first->Unmap(0, nullptr);
-	}
+		result.first->Unmap(0, nullptr);
 
-	auto pmx_index_buffer_resource = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(index) * pmx_surface.size());
-	{
+		return result;
+	}();
+
+	// pmxのインデックスのバッファ
+	auto pmx_index_buffer_resource = [&device, &pmx_surface]() {
+		auto result = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(index) * pmx_surface.size());
+
 		index* tmp = nullptr;
-		pmx_index_buffer_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+		result.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 		for (std::size_t i = 0; i < pmx_surface.size(); i++)
 		{
 			tmp[i] = pmx_surface[i];
 		}
-		pmx_index_buffer_resource.first->Unmap(0, nullptr);
-	}
+		result.first->Unmap(0, nullptr);
 
+		return result;
+	}();
+
+	// model_dataをマップするリソース
 	auto model_data_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
 
+	// camera_dataをマップするリソース
 	auto camera_data_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
 
+	// direction_light_dataをマップする用のリソース
 	auto direction_light_data_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(direction_light_data), 256));
 
-	std::ifstream pmx_vertex_shader_cso{ L"shader/VertexShader.cso",std::ios::binary };
-	auto pmx_vertex_shader = dx12w::load_blob(pmx_vertex_shader_cso);
-	pmx_vertex_shader_cso.close();
+	// pmxを描画する頂点シェーダ
+	auto pmx_vertex_shader = []() {
+		std::ifstream shader_file{ L"shader/VertexShader.cso",std::ios::binary };
+		return dx12w::load_blob(shader_file);
+	}();
 
-	std::ifstream pmx_index_shader_cso{ L"shader/PixelShader.cso",std::ios::binary };
-	auto pmx_index_shader = dx12w::load_blob(pmx_index_shader_cso);
-	pmx_index_shader_cso.close();
+	// pmxを描画するピクセルシェーダ
+	auto pmx_index_shader = []() {
+		std::ifstream shader_file{ L"shader/PixelShader.cso",std::ios::binary };
+		return dx12w::load_blob(shader_file);
+	}();
 
 	// 4x4の白いテクスチャ
 	auto white_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 255);
@@ -181,84 +204,121 @@ int main()
 	// マテリアルのリソース
 	auto pmx_material_resource = get_pmx_material_resource(device, pmx_material);
 
+
 	//
 	// ディスクリプタヒープとビュー
 	//
 
-	dx12w::descriptor_heap frame_buffer_descriptor_heap_RTV{};
-	{
-		frame_buffer_descriptor_heap_RTV.initialize(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, FRAME_BUFFER_NUM);
+	// フレームバッファに描画する時のレンダーターゲットを指定する用のデスクリプタヒープ
+	auto frame_buffer_descriptor_heap_RTV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, FRAME_BUFFER_NUM);
+	// FRAME_BUFFER_NUMの数のビューを作成
+	for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
+		dx12w::create_texture2D_RTV(device.get(), frame_buffer_descriptor_heap_RTV.get_CPU_handle(i), frame_buffer_resource[i].first.get(), FRAME_BUFFER_FORMAT, 0, 0);
 
-		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
-			dx12w::create_texture2D_RTV(device.get(), frame_buffer_descriptor_heap_RTV.get_CPU_handle(i), frame_buffer_resource[i].first.get(), FRAME_BUFFER_FORMAT, 0, 0);
-	}
-
+	// フレームバッファに描画する時のデプスバッファを指定する用のデスクリプタヒープ
 	auto depth_buffer_descriptor_heap_DSV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
 	dx12w::create_texture2D_DSV(device.get(), depth_buffer_descriptor_heap_DSV.get_CPU_handle(0), depth_buffer.first.get(), DEPTH_BUFFER_FORMAT, 0);
 
-	// マテリアルごとのビューの数
-	// テクスチャ、material_data、乗算スフィアマップ、加算スフィアマップ、トゥーン
-	constexpr UINT material_view_num = 5;
-	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 3 + material_view_num * pmx_material.size());
+	// pmxのディスクリプタテーブル
+	// ルートシグネチャ生成時に使用するが、デスクリプタの大きさを決定する事にも利用する
+	std::vector<std::vector<dx12w::descriptor_range_type>> const pmx_descriptor_table{
+
+		// 1つめのディスクリプタテーブル
+		// マテリアルに依存しない共通のビュー
+		{
+			// モデルのデータ、カメラのデータ、ライトのデータの3つの定数バッファ
+			{D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}
+		},
+
+		// 2つめのディスクリプタテーブル
+		// マテリアルに依存したそれぞれのビュー
+		{
+			// マテリアルのテクスチャ
+			{D3D12_DESCRIPTOR_RANGE_TYPE_SRV},
+			// ディフーズなどの情報
+			{D3D12_DESCRIPTOR_RANGE_TYPE_CBV},
+			// 乗算スフィアマップ、加算スフィアマップ、トゥーンの3つのシェーダリソースビュー
+			{D3D12_DESCRIPTOR_RANGE_TYPE_SRV,3}
+		}
+	};
+
+	// pmxを描画する時の共通のビューの数とマテリアルごとにことなるビューの数
+	UINT const pmx_common_view_num = dx12w::calc_descriptor_num(pmx_descriptor_table[0]);
+	UINT const pmx_material_view_num = dx12w::calc_descriptor_num(pmx_descriptor_table[1]);
+
+	// pmxを描画する用のデスクリプタヒープ
+	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+		pmx_common_view_num + pmx_material_view_num * pmx_material.size());
+	// 1.mode_dataのビュー
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(0), model_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
+	// 2.カメラのデータのビュー
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(1), camera_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
+	// 3.ライトのデータのビュー
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(2), direction_light_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(direction_light_data), 256));
+	// マテリアルごとに異なるビューを作成してく
 	for (std::size_t i = 0; i < pmx_material.size(); i++)
 	{
-		dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 0),
+		// 4.テクスチャのビュー
+		dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 0),
 			pmx_texture_resrouce[pmx_material[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
-		dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 1),
+		// 5.ディフューズカラーなどの情報があるmaterial_dataのビュー
+		dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 1),
 			pmx_material_resource[i].first.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
 
+		// 6.乗算スフィアマップのビュー
 		// 乗算スフィアマップを使用する場合
 		if (pmx_material[i].sphere_mode_value == mmdl::sphere_mode::sph)
 		{
-			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 2),
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 2),
 				pmx_texture_resrouce[pmx_material[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 		// しない場合は白色のテクスチャ
 		else
 		{
-			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 2),
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 2),
 				white_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 
+		// 7.加算スフィアマップのビュー
 		// 加算スフィアマップを使用する場合
 		if (pmx_material[i].sphere_mode_value == mmdl::sphere_mode::spa)
 		{
-			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 3),
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 3),
 				pmx_texture_resrouce[pmx_material[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 		// しない場合は黒色のテクスチャ
 		else {
-			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 3),
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 3),
 				black_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 
-		// サブテクスチャのスフィアマップはとりあえず無視
-
+		// 8.トゥーンテクスチャのビュー
 		// 非共有のトゥーン
-		// インデックスにmaxが入っている場合があるのではじく
+		// インデックスに無効な値が入っている場合があるので無視する
 		if (pmx_material[i].toon_type_value == mmdl::toon_type::unshared && pmx_material[i].toon_texture < pmx_texture_path.size())
 		{
-			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 4),
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 4),
 				pmx_texture_resrouce[pmx_material[i].toon_texture].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 		// それ以外は白色のテクスチャ
 		// 共有のトゥーンについては「PmxEditor/_data/toon」に画像があったけど、とりあえずは無視
 		else
 		{
-			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + material_view_num * i + 4),
+			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 4),
 				white_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
+
+		// pmxにはサブテクスチャのスフィアマップの情報もあるが、とりあえずは無視
 	}
 
+	// pmxxの頂点バッファのビュー
 	D3D12_VERTEX_BUFFER_VIEW pmx_vertex_buffer_view{
 		.BufferLocation = pmx_vertex_buffer_resource.first->GetGPUVirtualAddress(),
 		.SizeInBytes = static_cast<UINT>(sizeof(vertex) * pmx_vertex.size()),
 		.StrideInBytes = static_cast<UINT>(sizeof(vertex)),
 	};
 
+	// pmxのインデックスバッファのビュー
 	D3D12_INDEX_BUFFER_VIEW pmx_index_buffer_view{
 		.BufferLocation = pmx_index_buffer_resource.first->GetGPUVirtualAddress(),
 		.SizeInBytes = static_cast<UINT>(sizeof(index) * pmx_surface.size()),
@@ -267,25 +327,26 @@ int main()
 
 
 	// imgui用のディスクリプタヒープ
-	dx12w::descriptor_heap imgui_descriptor_heap{};
-	imgui_descriptor_heap.initialize(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
+	// 大きさは1でいいっぽい?
+	auto imgui_descriptor_heap = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 
 
 	//
 	// ルートシグネチャとグラフィクスパイプライン
 	//
 
-	auto pmx_root_signature = dx12w::create_root_signature(device.get(),
-		{ {{/*model_data, camera_data, direction_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}},
-		{{/*texture*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV},{/*material_data*/D3D12_DESCRIPTOR_RANGE_TYPE_CBV},{/*乗算スフィアマップ、加算スフィアマップ、トゥーン*/D3D12_DESCRIPTOR_RANGE_TYPE_SRV,3}} },
-		{ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER},
+	// pmxのフレームバッファに描画する際のルートシグネチャ
+	auto pmx_root_signature = dx12w::create_root_signature(device.get(), pmx_descriptor_table,
+		{/*通常のテクスチャのサンプラ*/ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER},
 		/*トゥーン用サンプラ*/{D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_COMPARISON_FUNC_NEVER} });
 
+	// pmxをフレームバッファに描画する際のグラフィクスパイプライン
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
 		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT },
 		{ "BONEINDEX",DXGI_FORMAT_R32G32B32A32_UINT },{ "BONEWEIGHT",DXGI_FORMAT_R32G32B32A32_FLOAT } },
 		{ FRAME_BUFFER_FORMAT }, { {pmx_vertex_shader.data(),pmx_vertex_shader.size()},{pmx_index_shader.data(),pmx_index_shader.size()} },
 		true, true, D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE);
+
 
 	//
 	// Imguiの設定
@@ -314,6 +375,22 @@ int main()
 	// その他設定
 	//
 
+	D3D12_VIEWPORT viewport{
+		.TopLeftX = 0.f,
+		.TopLeftY = 0.f,
+		.Width = static_cast<float>(WINDOW_WIDTH),
+		.Height = static_cast<float>(WINDOW_HEIGHT),
+		.MinDepth = 0.f,
+		.MaxDepth = 1.f,
+	};
+
+	D3D12_RECT scissor_rect{
+		.left = 0,
+		.top = 0,
+		.right = static_cast<LONG>(WINDOW_WIDTH),
+		.bottom = static_cast<LONG>(WINDOW_HEIGHT),
+	};
+
 	XMFLOAT3 eye{ 0.f,14.f,-16.f };
 	XMFLOAT3 target{ 0.f,10.f,0.f };
 	XMFLOAT3 up{ 0,1,0 };
@@ -330,18 +407,22 @@ int main()
 	float model_rotation_z = 0.f;
 
 	// 子ボーンのインデックスを取得するための配列を取得
-	auto to_children_bone_index = get_to_children_bone_index(pmx_bone);
+	auto const to_children_bone_index = get_to_children_bone_index(pmx_bone);
 
-	auto bone_name_to_bone_motion_data = get_bone_name_to_bone_motion_data(vmd_frame_data);
+	// ボーンの名前から対応するボーンのインデックスを取得する際に使用する
+	auto const bone_name_to_bone_index = get_bone_name_to_bone_index(pmx_bone);
 
-	camera_data camera{};
+	// ボーンの名前から対応するボーンのアニメーションを取得する際に使用する
+	auto const bone_name_to_bone_motion_data = get_bone_name_to_bone_motion_data(vmd_frame_data);
 
-	direction_light_data direction_light{};
-	direction_light.color = direction_light_color;
-	direction_light.dir = direction_light_dir;
+	direction_light_data direction_light{
+		.dir = direction_light_dir,
+		.color = direction_light_color,
+	};
 
 	int frame_num = 0;
 	bool auto_animation = true;
+	bool use_vpd = false;
 
 	// IKの処理でボーンを回転させる数
 	int ik_rotation_num = -1;
@@ -366,47 +447,50 @@ int main()
 
 		command_manager.reset_list(0);
 
-		auto view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+		//
+		// データの更新
+		//
 
-		auto proj = DirectX::XMMatrixPerspectiveFovLH(
+		auto const view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+		auto const proj = DirectX::XMMatrixPerspectiveFovLH(
 			view_angle,
 			asspect,
 			camera_near_z,
 			camera_far_z
 		);
 
-		camera.view = view;
-		camera.viewInv = XMMatrixInverse(nullptr, camera.view);
-		camera.proj = proj;
-		camera.projInv = XMMatrixInverse(nullptr, camera.proj);
-		camera.viewProj = view * proj;
-		camera.viewProjInv = XMMatrixInverse(nullptr, camera.viewProj);
-		camera.cameraNear = camera_near_z;
-		camera.cameraFar = camera_far_z;
-		camera.screenWidth = WINDOW_WIDTH;
-		camera.screenHeight = WINDOW_HEIGHT;
-		camera.eyePos = eye;
-
 		// ボーンのデータをを初期化
 		initialize_bone_data(bone_data);
 
 		// 指定されているボーンに適当な行列を設定
-		//set_bone_data_from_vpd(bone_data, vpd_data, bone_name_to_bone_index);
-		set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
+		if (use_vpd)
+			set_bone_data_from_vpd(bone_data, vpd_data, bone_name_to_bone_index);
+		else
+			set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 
-		// デバック用
-		bone_data[bone_name_to_bone_index[L"右足ＩＫ"]].transform += XMVECTOR{ offset_x, offset_y, offset_z };
+		// IKデバック用
+		{
+			auto iter = bone_name_to_bone_index.find(L"右足ＩＫ");
+			if (iter != bone_name_to_bone_index.end())
+				bone_data[iter->second].transform += XMVECTOR{ offset_x, offset_y, offset_z };
+		}
+
+		auto const root_index = bone_name_to_bone_index.contains(L"全ての親") ? bone_name_to_bone_index.at(L"全ての親") : 0;
 
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		set_to_world_matrix(bone_data, to_children_bone_index, bone_name_to_bone_index[L"全ての親"], XMMatrixIdentity(), pmx_bone);
+		set_to_world_matrix(bone_data, to_children_bone_index, root_index, XMMatrixIdentity(), pmx_bone);
 
 		// IK
 		int ik_rotation_counter = 0;
-		recursive_aplly_ik(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
+		recursive_aplly_ik(bone_data, root_index, to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
 
 		// 付与の解決
-		recursive_aplly_grant(bone_data, bone_name_to_bone_index[L"全ての親"], to_children_bone_index, pmx_bone);
+		recursive_aplly_grant(bone_data, root_index, to_children_bone_index, pmx_bone);
 
+
+		//
+		// マップする
+		//
 
 		{
 			model_data* tmp = nullptr;
@@ -419,7 +503,18 @@ int main()
 		{
 			camera_data* tmp = nullptr;
 			camera_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-			*tmp = camera;
+
+			tmp->view = view;
+			tmp->viewInv = XMMatrixInverse(nullptr, view);
+			tmp->proj = proj;
+			tmp->projInv = XMMatrixInverse(nullptr, proj);
+			tmp->viewProj = view * proj;
+			tmp->viewProjInv = XMMatrixInverse(nullptr, tmp->viewProj);
+			tmp->cameraNear = camera_near_z;
+			tmp->cameraFar = camera_far_z;
+			tmp->screenWidth = WINDOW_WIDTH;
+			tmp->screenHeight = WINDOW_HEIGHT;
+			tmp->eyePos = eye;
 		}
 
 		{
@@ -427,6 +522,7 @@ int main()
 			direction_light_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 			*tmp = direction_light;
 		}
+
 
 		//
 		// Imguiの準備
@@ -455,13 +551,15 @@ int main()
 		ImGui::SliderFloat("offset y", &offset_y, -10.f, 10.f);
 		ImGui::SliderFloat("offset z", &offset_z, -10.f, 10.f);
 
+		ImGui::Checkbox("use vpd", &use_vpd);
+
 		ImGui::End();
 
-		// Rendering
 		ImGui::Render();
 
+
 		//
-		//
+		// pmxの描画のコマンドを積む
 		//
 
 		command_manager.get_list()->RSSetViewports(1, &viewport);
@@ -482,24 +580,33 @@ int main()
 			auto tmp = pmx_descriptor_heap_CBV_SRV_UAV.get();
 			command_manager.get_list()->SetDescriptorHeaps(1, &tmp);
 		}
-		command_manager.get_list()->SetGraphicsRootDescriptorTable(0, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(0));
 		command_manager.get_list()->SetPipelineState(pmx_graphics_pipeline_state.get());
-		command_manager.get_list()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 		command_manager.get_list()->IASetVertexBuffers(0, 1, &pmx_vertex_buffer_view);
 		command_manager.get_list()->IASetIndexBuffer(&pmx_index_buffer_view);
+		command_manager.get_list()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		// 共通のビューの設定
+		command_manager.get_list()->SetGraphicsRootDescriptorTable(0, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(0));
 
 		UINT index_offset = 0;
 		for (std::size_t i = 0; i < pmx_material.size(); i++)
 		{
-			command_manager.get_list()->SetGraphicsRootDescriptorTable(1, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(3 + material_view_num * i));
+			// マテリアルごとのビューの設定
+			// 共通のビューについてはすでに設定してあるので必要なし
+			command_manager.get_list()->SetGraphicsRootDescriptorTable(1, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(pmx_common_view_num + pmx_material_view_num * i));
+
+			// マテリアルの頂点のオフセットを指定し描画
 			command_manager.get_list()->DrawIndexedInstanced(pmx_material[i].vertex_number, 1, index_offset, 0, 0);
+
+			// オフセットの更新
 			index_offset += pmx_material[i].vertex_number;
 		}
 
 
+		//
+		// Imguiの描画のコマンドを積む
+		//
 
-		// Imguiの描画
 		auto imgui_descriptor_heap_ptr = imgui_descriptor_heap.get();
 		command_manager.get_list()->SetDescriptorHeaps(1, &imgui_descriptor_heap_ptr);
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_manager.get_list());
@@ -508,6 +615,11 @@ int main()
 		dx12w::resource_barrior(command_manager.get_list(), frame_buffer_resource[back_buffer_index], D3D12_RESOURCE_STATE_COMMON);
 		dx12w::resource_barrior(command_manager.get_list(), depth_buffer, D3D12_RESOURCE_STATE_COMMON);
 
+
+		//
+		// コマンド発行
+		//
+
 		command_manager.get_list()->Close();
 		command_manager.excute();
 		command_manager.signal();
@@ -515,6 +627,11 @@ int main()
 		command_manager.wait(0);
 
 		swap_chain->Present(1, 0);
+
+
+		//
+		// その他
+		//
 
 		if (auto_animation)
 		{

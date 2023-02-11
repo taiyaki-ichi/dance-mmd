@@ -61,13 +61,13 @@ int main()
 	//wchar_t const* directory_path = L"E:ëfçﬁ/ÉzÉçÉâÉCÉu/Laplus_220516_1/Laplus/sourceimages/";
 
 	std::ifstream file{ file_path ,std::ios::binary };
-	auto const pmx_header = mmdl::load_header<>(file);
-	auto const pmx_info = mmdl::load_info<std::wstring>(file, pmx_header.encode);
-	auto const pmx_vertex = mmdl::load_vertex<std::vector, XMFLOAT2, XMFLOAT3, XMFLOAT4>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
-	auto const pmx_surface = mmdl::load_surface<std::vector>(file, pmx_header.vertex_index_size);
-	auto const pmx_texture_path = mmdl::load_texture_path<std::vector, std::wstring>(file, pmx_header.encode);
-	auto const pmx_material = mmdl::load_material<std::vector, std::wstring, XMFLOAT3, XMFLOAT4>(file, pmx_header.encode, pmx_header.texture_index_size);
-	auto const pmx_bone = mmdl::load_bone<std::vector, std::wstring, XMFLOAT3, std::vector>(file, pmx_header.encode, pmx_header.bone_index_size);
+	auto const pmx_header = mmdl::load_header<mmdl::pmx_header<>>(file);
+	auto const pmx_info = mmdl::load_info<mmdl::pmx_info<std::wstring>>(file);
+	auto const pmx_vertex = mmdl::load_vertex<std::vector<mmdl::pmx_vertex<XMFLOAT2, XMFLOAT3, XMFLOAT4>>>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
+	auto const pmx_surface = mmdl::load_surface<std::vector<mmdl::pmx_surface<>>>(file, pmx_header.vertex_index_size);
+	auto const pmx_texture_path = mmdl::load_texture_path<std::vector<std::wstring>>(file);
+	auto const pmx_material = mmdl::load_material<std::vector<mmdl::pmx_material<std::wstring, XMFLOAT3, XMFLOAT4>>>(file, pmx_header.texture_index_size);
+	auto const pmx_bone = mmdl::load_bone<std::vector<mmdl::pmx_bone<std::wstring, XMFLOAT3, std::vector>>>(file,pmx_header.bone_index_size);
 	file.close();
 
 

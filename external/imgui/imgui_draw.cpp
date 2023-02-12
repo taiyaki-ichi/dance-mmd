@@ -1885,13 +1885,13 @@ void ImGui::ShadeVertsLinearUV(ImDrawList* draw_list, int vert_start_idx, int ve
     {
         const ImVec2 min = ImMin(uv_a, uv_b);
         const ImVec2 max = ImMax(uv_a, uv_b);
-        for (ImDrawVert* vertex = vert_start; vertex < vert_end; ++vertex)
-            vertex->uv = ImClamp(uv_a + ImMul(ImVec2(vertex->pos.x, vertex->pos.y) - a, scale), min, max);
+        for (ImDrawVert* model_vertex_data = vert_start; model_vertex_data < vert_end; ++model_vertex_data)
+            model_vertex_data->uv = ImClamp(uv_a + ImMul(ImVec2(model_vertex_data->pos.x, model_vertex_data->pos.y) - a, scale), min, max);
     }
     else
     {
-        for (ImDrawVert* vertex = vert_start; vertex < vert_end; ++vertex)
-            vertex->uv = uv_a + ImMul(ImVec2(vertex->pos.x, vertex->pos.y) - a, scale);
+        for (ImDrawVert* model_vertex_data = vert_start; model_vertex_data < vert_end; ++model_vertex_data)
+            model_vertex_data->uv = uv_a + ImMul(ImVec2(model_vertex_data->pos.x, model_vertex_data->pos.y) - a, scale);
     }
 }
 

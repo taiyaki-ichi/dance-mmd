@@ -431,7 +431,7 @@ void set_to_world_matrix(T& bone_data, U const& to_children_index, std::size_t c
 	}
 }
 
-void solve_CCDIK(std::vector<bone_data>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
+void solve_CCDIK(std::vector<bone_data>& bone, std::size_t root_index, auto const& pmx_bone, XMFLOAT3& target_position,
 	std::vector<std::vector<std::size_t>> const& to_children_bone_index, int debug_ik_rotation_num, int* debug_ik_rotation_counter, bool debug_check_ideal_rotation)
 {
 	auto target_index = pmx_bone[root_index].ik_target_bone;

@@ -61,13 +61,13 @@ int main()
 	//wchar_t const* directory_path = L"E:素材/ホロライブ/Laplus_220516_1/Laplus/sourceimages/";
 
 	std::ifstream file{ file_path ,std::ios::binary };
-	auto const pmx_header = mmdl::load_header<mmdl::pmx_header<>>(file);
-	auto const pmx_info = mmdl::load_info<mmdl::pmx_info<std::wstring>>(file);
-	auto const pmx_vertex = mmdl::load_vertex<std::vector<mmdl::pmx_vertex<XMFLOAT2, XMFLOAT3, XMFLOAT4>>>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
-	auto const pmx_surface = mmdl::load_surface<std::vector<mmdl::pmx_surface<>>>(file, pmx_header.vertex_index_size);
+	auto const pmx_header = mmdl::load_header<model_header_data>(file);
+	auto const pmx_info = mmdl::load_info<model_info_data>(file);
+	auto const pmx_vertex = mmdl::load_vertex<std::vector<model_vertex_data>>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
+	auto const pmx_surface = mmdl::load_surface<std::vector<index>>(file, pmx_header.vertex_index_size);
 	auto const pmx_texture_path = mmdl::load_texture_path<std::vector<std::wstring>>(file);
-	auto const pmx_material = mmdl::load_material<std::vector<mmdl::pmx_material<std::wstring, XMFLOAT3, XMFLOAT4>>>(file, pmx_header.texture_index_size);
-	auto const pmx_bone = mmdl::load_bone<std::vector<mmdl::pmx_bone<std::wstring, XMFLOAT3, std::vector>>>(file,pmx_header.bone_index_size);
+	auto const [pmx_material, pmx_material_2] = mmdl::load_material<std::pair<std::vector<material_data>, std::vector<material_data_2>>>(file, pmx_header.texture_index_size);
+	auto const pmx_bone = mmdl::load_bone<std::vector<model_bone_data>>(file, pmx_header.bone_index_size);
 	file.close();
 
 
@@ -135,22 +135,11 @@ int main()
 
 	// pmxの頂点バッファ
 	auto pmx_vertex_buffer_resource = [&device, &pmx_vertex]() {
-		auto result = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(vertex) * pmx_vertex.size());
+		auto result = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(model_vertex_data) * pmx_vertex.size());
 
-		vertex* tmp = nullptr;
+		model_vertex_data* tmp = nullptr;
 		result.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-		for (std::size_t i = 0; i < pmx_vertex.size(); i++)
-		{
-			tmp[i].position = pmx_vertex[i].position;
-			tmp[i].normal = pmx_vertex[i].normal;
-			tmp[i].uv = pmx_vertex[i].uv;
-			for (std::size_t j = 0; j < 4; j++)
-				tmp[i].bone_index[j] = pmx_vertex[i].bone[j];
-			// 重みの合計が1になるように補正
-			auto weight_sum = std::accumulate(pmx_vertex[i].weight.begin(), pmx_vertex[i].weight.end(), 0.f);
-			for (std::size_t j = 0; j < 4; j++)
-				tmp[i].bone_weight[j] = pmx_vertex[i].weight[j] / weight_sum;
-		}
+		std::copy(pmx_vertex.begin(), pmx_vertex.end(), tmp);
 		result.first->Unmap(0, nullptr);
 
 		return result;
@@ -162,10 +151,7 @@ int main()
 
 		index* tmp = nullptr;
 		result.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
-		for (std::size_t i = 0; i < pmx_surface.size(); i++)
-		{
-			tmp[i] = pmx_surface[i];
-		}
+		std::copy(pmx_surface.begin(), pmx_surface.end(), tmp);
 		result.first->Unmap(0, nullptr);
 
 		return result;
@@ -260,17 +246,17 @@ int main()
 	{
 		// 4.テクスチャのビュー
 		dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 0),
-			pmx_texture_resrouce[pmx_material[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+			pmx_texture_resrouce[pmx_material_2[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		// 5.ディフューズカラーなどの情報があるmaterial_dataのビュー
 		dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 1),
 			pmx_material_resource[i].first.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
 
 		// 6.乗算スフィアマップのビュー
 		// 乗算スフィアマップを使用する場合
-		if (pmx_material[i].sphere_mode_value == mmdl::sphere_mode::sph)
+		if (pmx_material_2[i].sphere_mode == sphere_mode::sph)
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 2),
-				pmx_texture_resrouce[pmx_material[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+				pmx_texture_resrouce[pmx_material_2[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 		// しない場合は白色のテクスチャ
 		else
@@ -281,10 +267,10 @@ int main()
 
 		// 7.加算スフィアマップのビュー
 		// 加算スフィアマップを使用する場合
-		if (pmx_material[i].sphere_mode_value == mmdl::sphere_mode::spa)
+		if (pmx_material_2[i].sphere_mode == sphere_mode::spa)
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 3),
-				pmx_texture_resrouce[pmx_material[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+				pmx_texture_resrouce[pmx_material_2[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 		// しない場合は黒色のテクスチャ
 		else {
@@ -295,10 +281,10 @@ int main()
 		// 8.トゥーンテクスチャのビュー
 		// 非共有のトゥーン
 		// インデックスに無効な値が入っている場合があるので無視する
-		if (pmx_material[i].toon_type_value == mmdl::toon_type::unshared && pmx_material[i].toon_texture < pmx_texture_path.size())
+		if (pmx_material_2[i].toon_type == toon_type::unshared && pmx_material_2[i].toon_texture < pmx_texture_path.size())
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 4),
-				pmx_texture_resrouce[pmx_material[i].toon_texture].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
+				pmx_texture_resrouce[pmx_material_2[i].toon_texture].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 		// それ以外は白色のテクスチャ
 		// 共有のトゥーンについては「PmxEditor/_data/toon」に画像があったけど、とりあえずは無視
@@ -314,8 +300,8 @@ int main()
 	// pmxxの頂点バッファのビュー
 	D3D12_VERTEX_BUFFER_VIEW pmx_vertex_buffer_view{
 		.BufferLocation = pmx_vertex_buffer_resource.first->GetGPUVirtualAddress(),
-		.SizeInBytes = static_cast<UINT>(sizeof(vertex) * pmx_vertex.size()),
-		.StrideInBytes = static_cast<UINT>(sizeof(vertex)),
+		.SizeInBytes = static_cast<UINT>(sizeof(model_vertex_data) * pmx_vertex.size()),
+		.StrideInBytes = static_cast<UINT>(sizeof(model_vertex_data)),
 	};
 
 	// pmxのインデックスバッファのビュー
@@ -596,10 +582,10 @@ int main()
 			command_manager.get_list()->SetGraphicsRootDescriptorTable(1, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(pmx_common_view_num + pmx_material_view_num * i));
 
 			// マテリアルの頂点のオフセットを指定し描画
-			command_manager.get_list()->DrawIndexedInstanced(pmx_material[i].vertex_number, 1, index_offset, 0, 0);
+			command_manager.get_list()->DrawIndexedInstanced(pmx_material_2[i].vertex_number, 1, index_offset, 0, 0);
 
 			// オフセットの更新
-			index_offset += pmx_material[i].vertex_number;
+			index_offset += pmx_material_2[i].vertex_number;
 		}
 
 

@@ -13,7 +13,7 @@ VSOutput main(float4 pos : POSITION, float4 normal : NORMAL, float2 uv : TEXCOOR
 	VSOutput output;
 	output.pos = mul(cameraData.viewProj, mul(modelData.world, pos));
 	normal.w = 0.f;
-	output.normal = mul(modelData.world, normal);
+	output.normal = mul(mul(boneMatrix, modelData.world), normal);
 	output.vnormal = mul(cameraData.view, output.normal);
 	output.uv = uv;
 	output.ray = normalize(mul(modelData.world, pos) - cameraData.eyePos);

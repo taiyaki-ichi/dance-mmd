@@ -464,7 +464,43 @@ struct mmdl::vmd_frame_data_traits<std::vector<vmd_frame_data>>
 	}
 };
 
+struct vpd_data
+{
+	std::wstring name{};
+	XMFLOAT3 transform{};
+	XMFLOAT4 quaternion{};
+};
 
+
+template<>
+struct mmdl::vpd_data_traits<std::vector<vpd_data>>
+{
+	static std::vector<vpd_data> construct(std::size_t size) {
+		std::vector<vpd_data> result{};
+		result.reserve(size);
+		return result;
+	}
+
+	static void emplace_back(std::vector<vpd_data>& vpd_data, vpd_buffer const& buffer)
+	{
+		// 返還後の大きさの取得
+		auto dst_size = MultiByteToWideChar(CP_ACP, 0, buffer.name.data(), -1, nullptr, 0);
+
+		// 終点文字を追加しない
+		dst_size--;
+
+		// サイズの変更
+		std::wstring name{};
+		name.resize(dst_size);
+
+		// 変換
+		MultiByteToWideChar(CP_ACP, 0, buffer.name.data(), -1, name.data(), dst_size);
+
+		// 要素を追加
+		vpd_data.emplace_back(std::move(name), XMFLOAT3{ buffer.transform[0],buffer.transform[1] ,buffer.transform[2] },
+			XMFLOAT4{ buffer.quaternion[0],buffer.quaternion[1] ,buffer.quaternion[2] ,buffer.quaternion[3] });
+	}
+};
 
 struct model_data
 {

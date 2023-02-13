@@ -78,7 +78,7 @@ int main()
 	//wchar_t const* pose_file_path = L"../../../3dmodel/É|Å[ÉY25/4.vpd";
 	wchar_t const* pose_file_path = L"../../../3dmodel/Pose Pack 6 - Snorlaxin/9.vpd";
 	std::ifstream pose_file{ pose_file_path };
-	auto vpd_data = get_utf16_vpd_data(pose_file);
+	auto vpd_data = mmdl::load_vpd_data<std::vector<::vpd_data>>(pose_file);
 	pose_file.close();
 
 

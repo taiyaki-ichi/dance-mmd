@@ -97,9 +97,6 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\utility.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_data.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
@@ -119,6 +116,12 @@
       <Filter>mmdl</Filter>
     </ClInclude>
     <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader_traits.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader_traits.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_buffer.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
   </ItemGroup>

@@ -181,8 +181,9 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\vmd_buffer.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader_traits.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_data.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_buffer.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader_traits.hpp" />
     <ClInclude Include="..\external\stb\stb_image.h" />
     <ClInclude Include="function.hpp" />
     <ClInclude Include="parameter.hpp" />

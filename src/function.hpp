@@ -47,9 +47,6 @@ std::vector<std::vector<std::size_t>> get_to_children_bone_index(T const& pmx_bo
 // vpd、vmd
 //
 
-// vpdのポーズのデータの読み込み、名前をutf16に変換して返す
-inline std::vector<mmdl::vpd_data<std::wstring, XMFLOAT3, XMFLOAT4>> get_utf16_vpd_data(std::istream& in);
-
 // vpdのデータをボーンに反映させる
 template<typename T, typename U, typename S>
 void set_bone_data_from_vpd(T& bone_data, U const& vpd_data, S const& bone_name_to_bone_index);
@@ -274,25 +271,6 @@ std::vector<std::vector<std::size_t>> get_to_children_bone_index(T const& pmx_bo
 		{
 			result[pmx_bone[i].parent_index].push_back(i);
 		}
-	}
-
-	return result;
-}
-
-inline std::vector<mmdl::vpd_data<std::wstring, XMFLOAT3, XMFLOAT4>> get_utf16_vpd_data(std::istream& in)
-{
-	std::vector<mmdl::vpd_data<std::wstring, XMFLOAT3, XMFLOAT4>> result{};
-
-	auto tmp_container = mmdl::load_vpd_data<std::vector, std::string, XMFLOAT3, XMFLOAT4>(in);
-	result.reserve(tmp_container.size());
-
-	for (auto&& tmp : std::move(tmp_container))
-	{
-		result.emplace_back(
-			mmdl::ansi_to_utf16<std::wstring, std::string>(std::move(tmp.name)),
-			std::move(tmp.transform),
-			std::move(tmp.quaternion)
-		);
 	}
 
 	return result;

@@ -175,8 +175,8 @@
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
     <ClInclude Include="..\external\mmd-loader\mmdl\generics_type.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\pmx_buffer.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_data.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader_traits.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\utility.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\vmd_data.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader.hpp" />

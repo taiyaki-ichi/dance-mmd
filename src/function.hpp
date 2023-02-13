@@ -75,7 +75,7 @@ template<typename T, typename U, typename S>
 void set_to_world_matrix(T& bone_data, U const& to_children_index, std::size_t current_index, XMMATRIX const& parent_matrix, S const& pmx_bone);
 
 // ccdikする
-void solve_CCDIK(std::vector<bone_data>& bone, std::size_t root_index, std::vector<mmdl::pmx_bone< std::wstring, XMFLOAT3, std::vector>> const& pmx_bone, XMFLOAT3& target_position,
+void solve_CCDIK(std::vector<bone_data>& bone, std::size_t root_index, auto const& pmx_bone, XMFLOAT3& target_position,
 	std::vector<std::vector<std::size_t>> const& to_children_bone_index, int debug_ik_rotation_num, int* debug_ik_rotation_counter, bool debug_check_ideal_rotation);
 
 // 再帰的にボーンをたどっていきikの処理を行う
@@ -561,7 +561,7 @@ template<typename T, typename U, typename S>
 void recursive_aplly_ik(T& bone, std::size_t current_index, U const& to_children_bone_index, S const& pmx_bone, int debug_ik_rotation_num, int* debug_ik_rotation_counter, bool debug_check_ideal_rotation)
 {
 	// 現在の対象のボーンがikの場合
-	if (pmx_bone[current_index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::ik)])
+	if (pmx_bone[current_index].bone_flag_bits[static_cast<std::size_t>(bone_flag::ik)])
 	{
 		auto const target_bone_index = pmx_bone[current_index].ik_target_bone;
 		auto const target_position = XMVector3Transform(XMLoadFloat3(&pmx_bone[target_bone_index].position),
@@ -591,7 +591,7 @@ template<typename T, typename U, typename S>
 void solve_grant(T& bone_data, U const& pmx_data, std::size_t index, S const& to_children_index)
 {
 	// 対象のボーンが回転付与の場合
-	if (pmx_data[index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::rotation_grant)])
+	if (pmx_data[index].bone_flag_bits[static_cast<std::size_t>(bone_flag::rotation_grant)])
 	{
 		// 正の方向の回転
 		if (pmx_data[index].grant_rate >= 0.f)
@@ -621,7 +621,7 @@ void solve_grant(T& bone_data, U const& pmx_data, std::size_t index, S const& to
 	}
 
 	// 対象のボーンが移動付与の場合
-	if (pmx_data[index].bone_flag_bits[static_cast<std::size_t>(mmdl::bone_flag::move_grant)])
+	if (pmx_data[index].bone_flag_bits[static_cast<std::size_t>(bone_flag::move_grant)])
 	{
 		// 追加分の移動
 		auto const additional_transform = XMVectorScale(bone_data[pmx_data[index].grant_index].transform, pmx_data[index].grant_rate);

@@ -3,6 +3,8 @@
 #include<DirectXMath.h>
 #include"parameter.hpp"
 #include"../external/mmd-loader/mmdl/generics_type.hpp"
+#include<optional>
+#include<bitset>
 
 using namespace DirectX;
 
@@ -274,6 +276,28 @@ struct mmdl::pmx_surface_traits<std::vector<index>>
 };
 
 template<>
+struct mmdl::pmx_texture_path_traits<std::vector<std::wstring>>
+{
+	using char_type = wchar_t;
+
+	// サイズを指定して構築
+	static std::vector<std::wstring> construct(std::size_t size)
+	{
+		std::vector<std::wstring> result{};
+		result.reserve(size);
+
+		return result;
+	}
+
+	// 要素を追加
+	template<std::size_t CharBufferSize>
+	static void emplace_back(std::vector<std::wstring>& texture_path, std::size_t size, std::array<char_type, CharBufferSize> const& str)
+	{
+		texture_path.emplace_back(&str[0], size);
+	}
+};
+
+template<>
 struct mmdl::pmx_material_traits<std::pair<std::vector<material_data>, std::vector<material_data_2>>>
 {
 	using char_type = wchar_t;
@@ -299,14 +323,14 @@ struct mmdl::pmx_material_traits<std::pair<std::vector<material_data>, std::vect
 		auto sm = [&buffer]() {
 			switch (buffer.sphere_mode) {
 			case 1:
-				return ::sphere_mode::sph;
+				return sphere_mode::sph;
 			case 2:
-				return ::sphere_mode::spa;
+				return sphere_mode::spa;
 			case 3:
-				return ::sphere_mode::subtexture;
+				return sphere_mode::subtexture;
 			}
 
-			return ::sphere_mode::none;
+			return sphere_mode::none;
 		}();
 
 		material_data m{
@@ -320,7 +344,7 @@ struct mmdl::pmx_material_traits<std::pair<std::vector<material_data>, std::vect
 			.texture_index = buffer.texture_index,
 			.sphere_mode = sm,
 			.sphere_texture_index = buffer.sphere_texture_index,
-			.toon_type = buffer.toon_flag == 0 ? ::toon_type::unshared : ::toon_type::shared,
+			.toon_type = buffer.toon_flag == 0 ? toon_type::unshared : toon_type::shared,
 			.toon_texture = buffer.toon_index,
 			.vertex_number = static_cast<std::size_t>(buffer.vertex_num)
 		};

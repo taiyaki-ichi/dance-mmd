@@ -91,9 +91,6 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\generics_type.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_data.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
     <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
@@ -116,6 +113,9 @@
       <Filter>mmdl</Filter>
     </ClInclude>
     <ClInclude Include="..\external\mmd-loader\mmdl\pmx_buffer.hpp">
+      <Filter>mmdl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader_traits.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include<string>
 #include<algorithm>
 #include"../external/mmd-loader/mmdl/vpd_loader.hpp"
+#include"../external/directx12-wrapper/dx12w/dx12w.hpp"
 #include"struct.hpp"
 #include<tuple>
 
@@ -102,7 +103,8 @@ inline float calc_bezier_curve(float x, float p1_x, float p1_y, float p2_x, floa
 // クォータニオンのクランプ
 inline bool clamp_quaternion(XMVECTOR& q, float x_min, float x_max, float y_min, float y_max, float z_min, float z_max);
 
-
+// ansiからUTF16に変換
+inline std::wstring ansi_to_utf16(std::string_view const& src);
 
 
 //
@@ -719,4 +721,23 @@ inline bool clamp_quaternion(XMVECTOR& q, float x_min, float x_max, float y_min,
 
 	return is_clamped;
 }
+
+inline std::wstring ansi_to_utf16(std::string_view const& src)
+{
+	// 返還後の大きさの取得
+	auto dst_size = MultiByteToWideChar(CP_ACP, 0, src.data(), -1, nullptr, 0);
+
+	// 終点文字を追加しない
+	dst_size--;
+
+	// サイズの変更
+	std::wstring result;
+	result.resize(dst_size);
+
+	// 変換
+	MultiByteToWideChar(CP_ACP, 0, src.data(), -1, result.data(), dst_size);
+
+	return result;
+}
+
 

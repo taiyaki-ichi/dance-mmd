@@ -88,9 +88,6 @@
     <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_window.hpp">
       <Filter>directx12_wrapper</Filter>
     </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\generics_type.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
     <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
@@ -124,6 +121,7 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_buffer.hpp">
       <Filter>mmdl</Filter>
     </ClInclude>
+    <ClInclude Include="loader_traits.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

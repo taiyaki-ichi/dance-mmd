@@ -90,8 +90,8 @@ int main()
 	const wchar_t* motion_file_path = L"../../../3dmodel/サラマンダー モーション(short)/サラマンダー モーション(short).vmd";
 	std::ifstream motion_file{ motion_file_path,std::ios::binary };
 
-	auto vmd_header = mmdl::load_vmd_header(motion_file);
-	auto vmd_frame_data = mmdl::load_vmd_frame_data<std::vector, XMFLOAT3, XMFLOAT4>(motion_file, vmd_header.frame_data_num);
+	auto vmd_header = mmdl::load_vmd_header<::vmd_header>(motion_file);
+	auto vmd_frame_data = mmdl::load_vmd_frame_data<std::vector<::vmd_frame_data>>(motion_file, vmd_header.frame_data_num);
 	motion_file.close();
 
 	//

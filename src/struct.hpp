@@ -5,6 +5,7 @@
 #include"../external/mmd-loader/mmdl/generics_type.hpp"
 #include<optional>
 #include<bitset>
+#include<Windows.h>
 
 using namespace DirectX;
 
@@ -390,7 +391,7 @@ struct mmdl::pmx_bone_traits<std::vector<model_bone_data>>
 		{
 			::ik_link il{};
 			auto const& [bone, is_limit, bottom, top] = buffer.ik_link[i];
-			
+
 			il.bone = bone;
 			if (is_limit)
 			{
@@ -401,6 +402,65 @@ struct mmdl::pmx_bone_traits<std::vector<model_bone_data>>
 		}
 
 		bone.push_back(b);
+	}
+};
+
+
+struct vmd_header
+{
+	std::size_t frame_data_num{};
+};
+
+struct vmd_frame_data
+{
+	std::wstring name{};
+	std::size_t frame_num{};
+	XMFLOAT3 transform{};
+	XMFLOAT4 quaternion{};
+	std::array<char, 64> complement_parameter{};
+};
+
+
+template<>
+struct mmdl::vmd_header_traits<vmd_header>
+{
+	static vmd_header construct(vmd_header_buffer const& buffer) {
+		return { buffer.frame_data_num };
+	}
+};
+
+template<>
+struct mmdl::vmd_frame_data_traits<std::vector<vmd_frame_data>>
+{
+	static std::vector<vmd_frame_data> construct(std::size_t size) {
+		std::vector<vmd_frame_data> result{};
+		result.reserve(size);
+		return result;
+	}
+
+	static void emplace_back(std::vector<vmd_frame_data>& frame_data, vmd_frame_data_buffer const& buffer)
+	{
+		// 返還後の大きさの取得
+		auto dst_size = MultiByteToWideChar(CP_ACP, 0, buffer.name.data(), -1, nullptr, 0);
+
+		// 終点文字を追加しない
+		dst_size--;
+
+		// サイズの変更
+		std::wstring name{};
+		name.resize(dst_size);
+
+		// 変換
+		MultiByteToWideChar(CP_ACP, 0, buffer.name.data(), -1, name.data(), dst_size);
+
+		// 追加
+		frame_data.emplace_back(
+			std::move(name),
+			buffer.frame_num,
+			XMFLOAT3{ buffer.transform[0],buffer.transform[1] ,buffer.transform[2] },
+			XMFLOAT4{ buffer.quaternion[0],buffer.quaternion[1] ,buffer.quaternion[2] ,buffer.quaternion[3] },
+			buffer.complement_parameter
+		);
 	}
 };
 

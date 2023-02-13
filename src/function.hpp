@@ -322,10 +322,7 @@ std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to
 
 	for (auto&& vmd : std::forward<T>(vmd_data))
 	{
-		// ‚¿‚á‚ñ‚Æ‚â‚é
-		auto name = mmdl::ansi_to_utf16<std::wstring, std::string>(std::string{ vmd.name });
-
-		result[name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion,
+		result[vmd.name].emplace_back(static_cast<int>(vmd.frame_num), vmd.transform, vmd.quaternion,
 			std::array<char, 2>{vmd.complement_parameter[3], vmd.complement_parameter[7] }, std::array<char, 2>{vmd.complement_parameter[11], vmd.complement_parameter[15]},
 			std::array<char, 2>{ vmd.complement_parameter[0], vmd.complement_parameter[4] }, std::array<char, 2>{ vmd.complement_parameter[8], vmd.complement_parameter[12] },
 			std::array<char, 2>{ vmd.complement_parameter[1], vmd.complement_parameter[5] }, std::array<char, 2>{ vmd.complement_parameter[9], vmd.complement_parameter[13] },

@@ -326,7 +326,7 @@ struct mmdl::pmx_morph_traits<std::vector<vertex_morph>>
 		for (std::size_t i = 0; i < static_cast<std::size_t>(buffer.morph_data_num); i++)
 		{
 			auto const& v = std::get< pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum>::VERTEX_MORPH_INDEX>(buffer.morph_data[i]);
-			vm.offset.push_back(std::make_pair(static_cast<std::size_t>(v.index), XMFLOAT3{ v.offset[0],v.offset[1] ,v.offset[2] }));
+			vm.data.push_back(vertex_morph_data{ XMFLOAT3{ v.offset[0],v.offset[1] ,v.offset[2] } ,static_cast<std::int32_t>(v.index) });
 		}
 
 		result.push_back(vm);

@@ -260,10 +260,16 @@ struct bone_data
 	XMMATRIX to_world;
 };
 
+struct vertex_morph_data
+{
+	XMFLOAT3 offset{};
+	std::int32_t index{};
+};
+
 struct vertex_morph
 {
 	std::wstring name{};
 	std::wstring english_name{};
 
-	std::vector<std::pair<std::size_t, XMFLOAT3>> offset{};
+	std::vector<vertex_morph_data> data{};
 };

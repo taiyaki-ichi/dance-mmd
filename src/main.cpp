@@ -428,6 +428,8 @@ int main()
 
 	std::vector<bone_data> bone_data(MAX_BONE_NUM);
 
+	int morph_index = -1;
+
 	while (dx12w::update_window())
 	{
 
@@ -479,6 +481,27 @@ int main()
 		//
 		// マップする
 		//
+
+		// 頂点
+		{
+			model_vertex_data* tmp = nullptr;
+			pmx_vertex_buffer_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
+			std::copy(pmx_vertex.begin(), pmx_vertex.end(), tmp);
+
+			// 頂点モーフ
+			if (0 <= morph_index && morph_index < pmx_vertex_morph.size())
+			{
+				for (auto const& m : pmx_vertex_morph[morph_index].data)
+				{
+					tmp[m.index].position.x += m.offset.x;
+					tmp[m.index].position.y += m.offset.y;
+					tmp[m.index].position.z += m.offset.z;
+				}
+			}
+
+			pmx_vertex_buffer_resource.first->Unmap(0, nullptr);
+		}
+
 
 		{
 			model_data* tmp = nullptr;
@@ -540,6 +563,8 @@ int main()
 		ImGui::SliderFloat("offset z", &offset_z, -10.f, 10.f);
 
 		ImGui::Checkbox("use vpd", &use_vpd);
+
+		ImGui::InputInt("morph index", &morph_index);
 
 		ImGui::End();
 

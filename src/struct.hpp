@@ -259,3 +259,11 @@ struct bone_data
 	// 親ボーンの回転、並行移動の情報
 	XMMATRIX to_world;
 };
+
+struct vertex_morph
+{
+	std::wstring name{};
+	std::wstring english_name{};
+
+	std::vector<std::pair<std::size_t, XMFLOAT3>> offset{};
+};

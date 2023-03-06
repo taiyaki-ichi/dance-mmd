@@ -69,6 +69,7 @@ int main()
 	auto const pmx_texture_path = mmdl::load_texture_path<std::vector<std::wstring>>(file);
 	auto const [pmx_material, pmx_material_2] = mmdl::load_material<std::pair<std::vector<material_data>, std::vector<material_data_2>>>(file, pmx_header.texture_index_size);
 	auto const pmx_bone = mmdl::load_bone<std::vector<model_bone_data>>(file, pmx_header.bone_index_size);
+	auto const pmx_vertex_morph = mmdl::load_morph<std::vector<vertex_morph>>(file, pmx_header.vertex_index_size, pmx_header.bone_index_size, pmx_header.material_index_size, pmx_header.morph_index_size);
 	file.close();
 
 

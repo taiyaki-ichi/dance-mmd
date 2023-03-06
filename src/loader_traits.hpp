@@ -296,3 +296,39 @@ struct mmdl::vpd_data_traits<std::vector<vpd_data>>
 			XMFLOAT4{ buffer.quaternion[0],buffer.quaternion[1] ,buffer.quaternion[2] ,buffer.quaternion[3] });
 	}
 };
+
+template<>
+struct mmdl::pmx_morph_traits<std::vector<vertex_morph>>
+{
+	using char_type = wchar_t;
+
+	// サイズを指定して構築
+	static std::vector<vertex_morph> construct(std::size_t size)
+	{
+		std::vector<vertex_morph> result{};
+		result.reserve(size);
+
+		return result;
+	}
+
+	// モーフを追加
+	template<std::size_t CharBufferNum, std::size_t MorphDataNum>
+	static void emplace_back(std::vector<vertex_morph>& result, pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum> const& buffer)
+	{
+		// 頂点以外は無視
+		if (buffer.morph_type != 1)
+			return;
+
+		vertex_morph vm{};
+		vm.name = std::wstring(&buffer.name[0], buffer.name_size);
+		vm.english_name = std::wstring(&buffer.english_name[0], buffer.english_name_size);
+
+		for (std::size_t i = 0; i < static_cast<std::size_t>(buffer.morph_data_num); i++)
+		{
+			auto const& v = std::get< pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum>::VERTEX_MORPH_INDEX>(buffer.morph_data[i]);
+			vm.offset.push_back(std::make_pair(static_cast<std::size_t>(v.index), XMFLOAT3{ v.offset[0],v.offset[1] ,v.offset[2] }));
+		}
+
+		result.push_back(vm);
+	}
+};

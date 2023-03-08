@@ -94,6 +94,7 @@ int main()
 
 	auto vmd_header = mmdl::load_vmd_header<::vmd_header>(motion_file);
 	auto vmd_frame_data = mmdl::load_vmd_frame_data<std::vector<::vmd_frame_data>>(motion_file, vmd_header.frame_data_num);
+	auto vmd_morph_data = mmdl::load_vmd_morph_data<std::vector<::vmd_morph_data>>(motion_file);
 	motion_file.close();
 
 	//
@@ -403,6 +404,12 @@ int main()
 	// ボーンの名前から対応するボーンのアニメーションを取得する際に使用する
 	auto const bone_name_to_bone_motion_data = get_bone_name_to_bone_motion_data(vmd_frame_data);
 
+	// モーフの名前かった対応するモーフのインデックスるを取得する際に使用する
+	auto const morph_name_to_morph_index = get_morph_name_to_morph_index(pmx_vertex_morph);
+
+	// モーフの名前から対応するモーフのアニメーションを取得する際に使用する
+	auto const morph_name_to_morph_motion_data = get_morph_name_to_morph_motion_data(vmd_morph_data);
+
 	direction_light_data direction_light{
 		.dir = direction_light_dir,
 		.color = direction_light_color,
@@ -489,6 +496,7 @@ int main()
 			std::copy(pmx_vertex.begin(), pmx_vertex.end(), tmp);
 
 			// 頂点モーフ
+			/*
 			if (0 <= morph_index && morph_index < pmx_vertex_morph.size())
 			{
 				for (auto const& m : pmx_vertex_morph[morph_index].data)
@@ -497,6 +505,19 @@ int main()
 					tmp[m.index].position.y += m.offset.y;
 					tmp[m.index].position.z += m.offset.z;
 				}
+			}
+			*/
+
+			for (auto const& morph : pmx_vertex_morph)
+			{
+				auto weight = get_morph_motion_weight(morph_name_to_morph_motion_data, morph.name, frame_num);
+				for (auto const& m : morph.data)
+				{
+					tmp[m.index].position.x += m.offset.x * weight;
+					tmp[m.index].position.y += m.offset.y * weight;
+					tmp[m.index].position.z += m.offset.z * weight;
+				}
+
 			}
 
 			pmx_vertex_buffer_resource.first->Unmap(0, nullptr);

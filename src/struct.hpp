@@ -183,6 +183,13 @@ struct vmd_frame_data
 	std::array<char, 64> complement_parameter{};
 };
 
+struct vmd_morph_data
+{
+	std::wstring name{};
+	std::size_t frame_num{};
+	float weight{};
+};
+
 struct vpd_data
 {
 	std::wstring name{};
@@ -242,6 +249,12 @@ struct bone_motion_data
 
 
 	// 参考: http://atupdate.web.fc2.com/vmd_format.htm
+};
+
+struct morph_motion_data
+{
+	int frame_num{};
+	float weight{};
 };
 
 // ボーンを計算する時に使う

@@ -332,3 +332,22 @@ struct mmdl::pmx_morph_traits<std::vector<vertex_morph>>
 		result.push_back(vm);
 	}
 };
+
+template<>
+struct mmdl::vmd_morph_data_traits<std::vector<::vmd_morph_data>>
+{
+	static std::vector<::vmd_morph_data> construct(std::size_t size)
+	{
+		std::vector<::vmd_morph_data> result{};
+		result.reserve(size);
+		
+		return result;
+	}
+
+	static void emplace_back(std::vector<::vmd_morph_data>& result, vmd_morph_data_buffer& buffer)
+	{
+		auto name = ansi_to_utf16(buffer.name.data());
+
+		result.emplace_back(std::move(name), buffer.frame_num, buffer.weight);
+	}
+};

@@ -56,6 +56,7 @@ void set_bone_data_from_vpd(T& bone_data, U const& vpd_data, S const& bone_name_
 template<typename T>
 std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to_bone_motion_data(T&& vmd_data);
 
+
 // vmdのデータをボーンに反映させる
 template<typename T, typename U, typename S, typename R>
 void set_bone_data_from_vmd(T& bone_data, U const& bone_name_to_bone_motion_data, S const& pmx_bone, R const& bone_name_to_bone_index, std::size_t frame_num);
@@ -263,6 +264,21 @@ std::unordered_map<std::wstring_view, std::size_t> get_bone_name_to_bone_index(T
 }
 
 template<typename T>
+std::unordered_map<std::wstring_view, std::size_t> get_morph_name_to_morph_index(T const& pmx_morph)
+{
+	std::unordered_map<std::wstring_view, std::size_t> result{};
+
+	result.reserve(pmx_morph.size());
+
+	for (std::size_t i = 0; i < pmx_morph.size(); i++)
+	{
+		result.emplace(pmx_morph[i].name, i);
+	}
+
+	return result;
+}
+
+template<typename T>
 std::vector<std::vector<std::size_t>> get_to_children_bone_index(T const& pmx_bone)
 {
 	std::vector<std::vector<std::size_t>> result(pmx_bone.size());
@@ -311,6 +327,25 @@ std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to
 	}
 
 	// 後で検索できるようにそれぞれのモーションをフレーム番号順にソート
+	for (auto& motion : result)
+	{
+		std::sort(motion.second.begin(), motion.second.end(), [](auto const& a, auto const& b) {return a.frame_num < b.frame_num; });
+	}
+
+	return result;
+}
+
+template<typename T>
+std::unordered_map<std::wstring, std::vector<morph_motion_data>> get_morph_name_to_morph_motion_data(T&& vmd_data)
+{
+	std::unordered_map<std::wstring, std::vector<morph_motion_data>> result{};
+
+	for (auto&& vmd : std::forward<T>(vmd_data))
+	{
+		result[vmd.name].emplace_back(static_cast<int>(vmd.frame_num), vmd.weight);
+	}
+
+	// 後で検索しやすいようにソート
 	for (auto& motion : result)
 	{
 		std::sort(motion.second.begin(), motion.second.end(), [](auto const& a, auto const& b) {return a.frame_num < b.frame_num; });
@@ -379,6 +414,40 @@ void set_bone_data_from_vmd(T& bone_data, U const& bone_name_to_bone_motion_data
 		bone_data[bone_name_and_index->second].transform = transform;
 	}
 }
+
+// そのフレームのモーフのウェイトを線形補完し返す
+template<typename T>
+float get_morph_motion_weight(T const& morph_data, std::wstring const& morph_name, std::size_t frame_num)
+{
+	auto const iter = morph_data.find(morph_name);
+
+	// 対象のモーフのアニメーションのデータがない場合
+	if (iter == morph_data.end())
+		return 0.f;
+
+	auto const& motion_data = iter->second;
+
+	// 配列の末尾から検索しフレーム数より大きく、かつフレーム数に一番近いモーションデータを検索する
+	auto const curr_motion_riter = std::find_if(motion_data.rbegin(), motion_data.rend(), [frame_num](auto const& m) {return m.frame_num < frame_num; });
+
+	// 対象のモーションデータが存在しない場合
+	if (curr_motion_riter == motion_data.crend()) 
+		return 0.f;
+
+	// 一つ手前のボーンのモーションデータを参照
+	auto const prev_motion_iter = curr_motion_riter.base();
+
+	// 手前のモーションデータが存在しない場合
+	if (prev_motion_iter == motion_data.end())
+		return 0.f;
+
+	auto const t = static_cast<float>(frame_num - curr_motion_riter->frame_num) / static_cast<float>(prev_motion_iter->frame_num - curr_motion_riter->frame_num);
+
+	// 線形保管して重みを返す
+	return prev_motion_iter->weight * t;
+
+}
+
 
 template<typename T>
 void initialize_bone_data(T& bone_data)

@@ -69,7 +69,7 @@ int main()
 	auto const pmx_texture_path = mmdl::load_texture_path<std::vector<std::wstring>>(file);
 	auto const [pmx_material, pmx_material_2] = mmdl::load_material<std::pair<std::vector<material_data>, std::vector<material_data_2>>>(file, pmx_header.texture_index_size);
 	auto const pmx_bone = mmdl::load_bone<std::vector<model_bone_data>>(file, pmx_header.bone_index_size);
-	auto const pmx_vertex_morph = mmdl::load_morph<std::vector<vertex_morph>>(file, pmx_header.vertex_index_size, pmx_header.bone_index_size, pmx_header.material_index_size, pmx_header.morph_index_size);
+	auto const [pmx_vertex_morph, pmx_group_morph] = mmdl::load_morph<std::pair<std::vector<vertex_morph>, std::vector<group_morph>>>(file, pmx_header.vertex_index_size, pmx_header.bone_index_size, pmx_header.material_index_size, pmx_header.morph_index_size);
 	file.close();
 
 
@@ -405,7 +405,7 @@ int main()
 	auto const bone_name_to_bone_motion_data = get_bone_name_to_bone_motion_data(vmd_frame_data);
 
 	// モーフの名前かった対応するモーフのインデックスるを取得する際に使用する
-	auto const morph_name_to_morph_index = get_morph_name_to_morph_index(pmx_vertex_morph);
+	auto const morph_index_to_morph_vertex_index = get_morph_index_to_morph_vertex_index(pmx_vertex_morph);
 
 	// モーフの名前から対応するモーフのアニメーションを取得する際に使用する
 	auto const morph_name_to_morph_motion_data = get_morph_name_to_morph_motion_data(vmd_morph_data);
@@ -508,6 +508,7 @@ int main()
 			}
 			*/
 
+			// 頂点モーフ
 			for (auto const& morph : pmx_vertex_morph)
 			{
 				auto weight = get_morph_motion_weight(morph_name_to_morph_motion_data, morph.name, frame_num);
@@ -517,7 +518,29 @@ int main()
 					tmp[m.index].position.y += m.offset.y * weight;
 					tmp[m.index].position.z += m.offset.z * weight;
 				}
+			}
+			
 
+			// グループモーフ
+			for (auto const& morph : pmx_group_morph)
+			{
+				auto weight = get_morph_motion_weight(morph_name_to_morph_motion_data, morph.name, frame_num);
+
+				// グループに含まれる頂点モーフを走査
+				for (auto const& gm : morph.data)
+				{
+					auto iter = morph_index_to_morph_vertex_index.find(gm.index);
+					if (iter != morph_index_to_morph_vertex_index.end())
+					{
+						// 頂点モーフに含まれる頂点を走査
+						for (auto const& m : pmx_vertex_morph[iter->second].data)
+						{
+							tmp[m.index].position.x += m.offset.x * weight * gm.morph_factor;
+							tmp[m.index].position.y += m.offset.y * weight * gm.morph_factor;
+							tmp[m.index].position.z += m.offset.z * weight * gm.morph_factor;
+						}
+					}
+				}
 			}
 
 			pmx_vertex_buffer_resource.first->Unmap(0, nullptr);

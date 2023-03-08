@@ -298,38 +298,54 @@ struct mmdl::vpd_data_traits<std::vector<vpd_data>>
 };
 
 template<>
-struct mmdl::pmx_morph_traits<std::vector<vertex_morph>>
+struct mmdl::pmx_morph_traits<std::pair<std::vector<vertex_morph>,std::vector<group_morph>>>
 {
 	using char_type = wchar_t;
 
 	// サイズを指定して構築
-	static std::vector<vertex_morph> construct(std::size_t size)
+	static std::pair<std::vector<vertex_morph>, std::vector<group_morph>> construct(std::size_t size)
 	{
-		std::vector<vertex_morph> result{};
-		result.reserve(size);
-
-		return result;
+		return {};
 	}
 
 	// モーフを追加
 	template<std::size_t CharBufferNum, std::size_t MorphDataNum>
-	static void emplace_back(std::vector<vertex_morph>& result, pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum> const& buffer)
+	static void emplace_back(std::pair<std::vector<vertex_morph>, std::vector<group_morph>>& result, pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum> const& buffer)
 	{
-		// 頂点以外は無視
-		if (buffer.morph_type != 1)
-			return;
+		auto index = result.first.size() + result.second.size();
 
-		vertex_morph vm{};
-		vm.name = std::wstring(&buffer.name[0], buffer.name_size);
-		vm.english_name = std::wstring(&buffer.english_name[0], buffer.english_name_size);
-
-		for (std::size_t i = 0; i < static_cast<std::size_t>(buffer.morph_data_num); i++)
+		// 頂点モーフの場合
+		if (buffer.morph_type == 1)
 		{
-			auto const& v = std::get< pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum>::VERTEX_MORPH_INDEX>(buffer.morph_data[i]);
-			vm.data.push_back(vertex_morph_data{ XMFLOAT3{ v.offset[0],v.offset[1] ,v.offset[2] } ,static_cast<std::int32_t>(v.index) });
-		}
+			vertex_morph vm{};
+			vm.morph_index = index;
+			vm.name = std::wstring(&buffer.name[0], buffer.name_size);
+			vm.english_name = std::wstring(&buffer.english_name[0], buffer.english_name_size);
 
-		result.push_back(vm);
+			for (std::size_t i = 0; i < static_cast<std::size_t>(buffer.morph_data_num); i++)
+			{
+				auto const& v = std::get< pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum>::VERTEX_MORPH_INDEX>(buffer.morph_data[i]);
+				vm.data.push_back(vertex_morph_data{XMFLOAT3{ v.offset[0],v.offset[1] ,v.offset[2] } ,static_cast<std::int32_t>(v.index) });
+			}
+
+			result.first.push_back(vm);
+		}
+		// グループモーフの場合
+		else if (buffer.morph_type == 0)
+		{
+			group_morph gm{};
+			gm.morph_index = index;
+			gm.name = std::wstring(&buffer.name[0], buffer.name_size);
+			gm.english_name = std::wstring(&buffer.english_name[0], buffer.english_name_size);
+
+			for (std::size_t i = 0; i < static_cast<std::size_t>(buffer.morph_data_num); i++)
+			{
+				auto g = std::get<pmx_morph_buffer<char_type, CharBufferNum, MorphDataNum>::GROUP_MORPH_INDEX>(buffer.morph_data[i]);
+				gm.data.emplace_back(g.index, g.morph_factor);
+			}
+
+			result.second.push_back(gm);
+		}
 	}
 };
 

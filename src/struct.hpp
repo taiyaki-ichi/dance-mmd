@@ -281,8 +281,26 @@ struct vertex_morph_data
 
 struct vertex_morph
 {
+	std::size_t morph_index{};
+
 	std::wstring name{};
 	std::wstring english_name{};
 
 	std::vector<vertex_morph_data> data{};
+};
+
+struct group_morph_data
+{
+	std::size_t index{};
+	float morph_factor{};
+};
+
+struct group_morph
+{
+	std::size_t morph_index{};
+
+	std::wstring name{};
+	std::wstring english_name{};
+
+	std::vector<group_morph_data> data{};
 };

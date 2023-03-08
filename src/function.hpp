@@ -264,15 +264,15 @@ std::unordered_map<std::wstring_view, std::size_t> get_bone_name_to_bone_index(T
 }
 
 template<typename T>
-std::unordered_map<std::wstring_view, std::size_t> get_morph_name_to_morph_index(T const& pmx_morph)
+std::unordered_map<std::size_t,std::size_t> get_morph_index_to_morph_vertex_index(T const& pmx_morph)
 {
-	std::unordered_map<std::wstring_view, std::size_t> result{};
+	std::unordered_map<std::size_t, std::size_t> result{};
 
 	result.reserve(pmx_morph.size());
 
 	for (std::size_t i = 0; i < pmx_morph.size(); i++)
 	{
-		result.emplace(pmx_morph[i].name, i);
+		result.emplace(pmx_morph[i].morph_index, i);
 	}
 
 	return result;
@@ -444,7 +444,7 @@ float get_morph_motion_weight(T const& morph_data, std::wstring const& morph_nam
 	auto const t = static_cast<float>(frame_num - curr_motion_riter->frame_num) / static_cast<float>(prev_motion_iter->frame_num - curr_motion_riter->frame_num);
 
 	// üŒ`•ÛŠÇ‚µ‚Äd‚Ý‚ð•Ô‚·
-	return prev_motion_iter->weight * t;
+	return std::lerp(curr_motion_riter->weight, prev_motion_iter->weight, t);
 
 }
 

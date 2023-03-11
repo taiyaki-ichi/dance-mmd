@@ -39,6 +39,10 @@ std::vector<dx12w::resource_and_state> get_pmx_material_resource(T& device, U co
 template<typename T>
 std::unordered_map<std::wstring_view, std::size_t> get_bone_name_to_bone_index(T const& pmx_bone);
 
+// モーフのpmxのインデックスからモーフが格納されている配列のインデックスを返すunordered_mapの生成
+template<typename T>
+std::unordered_map<std::size_t, std::size_t> get_morph_index_to_morph_vertex_index(T const& pmx_morph);
+
 // 子ボーンへのインデックスのリストを作成
 template<typename T>
 std::vector<std::vector<std::size_t>> get_to_children_bone_index(T const& pmx_bone);
@@ -56,10 +60,17 @@ void set_bone_data_from_vpd(T& bone_data, U const& vpd_data, S const& bone_name_
 template<typename T>
 std::unordered_map<std::wstring, std::vector<bone_motion_data>> get_bone_name_to_bone_motion_data(T&& vmd_data);
 
+// vmdのモーフのデータを使いやすいように変換
+template<typename T>
+std::unordered_map<std::wstring, std::vector<morph_motion_data>> get_morph_name_to_morph_motion_data(T&& vmd_data);
 
 // vmdのデータをボーンに反映させる
 template<typename T, typename U, typename S, typename R>
 void set_bone_data_from_vmd(T& bone_data, U const& bone_name_to_bone_motion_data, S const& pmx_bone, R const& bone_name_to_bone_index, std::size_t frame_num);
+
+// そのフレームのモーフのウェイトを線形補完し返す
+template<typename T>
+float get_morph_motion_weight(T const& morph_data, std::wstring const& morph_name, std::size_t frame_num);
 
 //
 // bone_data
@@ -354,7 +365,6 @@ std::unordered_map<std::wstring, std::vector<morph_motion_data>> get_morph_name_
 	return result;
 }
 
-// pmdのデータをボーンに反映させる
 template<typename T, typename U, typename S, typename R>
 void set_bone_data_from_vmd(T& bone_data, U const& bone_name_to_bone_motion_data, S const& pmx_bone, R const& bone_name_to_bone_index, std::size_t frame_num)
 {
@@ -415,7 +425,6 @@ void set_bone_data_from_vmd(T& bone_data, U const& bone_name_to_bone_motion_data
 	}
 }
 
-// そのフレームのモーフのウェイトを線形補完し返す
 template<typename T>
 float get_morph_motion_weight(T const& morph_data, std::wstring const& morph_name, std::size_t frame_num)
 {
@@ -447,7 +456,6 @@ float get_morph_motion_weight(T const& morph_data, std::wstring const& morph_nam
 	return std::lerp(curr_motion_riter->weight, prev_motion_iter->weight, t);
 
 }
-
 
 template<typename T>
 void initialize_bone_data(T& bone_data)

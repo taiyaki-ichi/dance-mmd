@@ -495,8 +495,8 @@ int main()
 			pmx_vertex_buffer_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 			std::copy(pmx_vertex.begin(), pmx_vertex.end(), tmp);
 
-			// 頂点モーフ
-			/*
+			
+			// imguiからモーフがせんたくされている場合
 			if (0 <= morph_index && morph_index < pmx_vertex_morph.size())
 			{
 				for (auto const& m : pmx_vertex_morph[morph_index].data)
@@ -506,17 +506,18 @@ int main()
 					tmp[m.index].position.z += m.offset.z;
 				}
 			}
-			*/
-
-			// 頂点モーフ
-			for (auto const& morph : pmx_vertex_morph)
+			else
 			{
-				auto weight = get_morph_motion_weight(morph_name_to_morph_motion_data, morph.name, frame_num);
-				for (auto const& m : morph.data)
+				// アニメーションからモーフをしていする場合
+				for (auto const& morph : pmx_vertex_morph)
 				{
-					tmp[m.index].position.x += m.offset.x * weight;
-					tmp[m.index].position.y += m.offset.y * weight;
-					tmp[m.index].position.z += m.offset.z * weight;
+					auto weight = get_morph_motion_weight(morph_name_to_morph_motion_data, morph.name, frame_num);
+					for (auto const& m : morph.data)
+					{
+						tmp[m.index].position.x += m.offset.x * weight;
+						tmp[m.index].position.y += m.offset.y * weight;
+						tmp[m.index].position.z += m.offset.z * weight;
+					}
 				}
 			}
 			

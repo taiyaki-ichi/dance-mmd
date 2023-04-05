@@ -304,3 +304,40 @@ struct group_morph
 
 	std::vector<group_morph_data> data{};
 };
+
+struct rigidbody
+{
+	std::size_t bone_index{};
+
+	// グループ
+	std::uint8_t group{};
+	// 非衝突グループフラグ
+	std::uint16_t non_collision_group{};
+
+	// 形状
+	// 0:球 1:箱 2:カプセル
+	std::uint8_t shape{};
+	// サイズ
+	// (x,y,z)？？？？
+	XMFLOAT3 size{};
+
+	// 位置
+	XMFLOAT3 position{};
+	// 回転（ラジアン角）
+	XMFLOAT3 rotation{};
+
+	// 質量
+	float mass{};
+	// 移動減衰
+	float liner_damping{};
+	// 回転減衰
+	float angular_damping{};
+	// 反発力
+	float restitution{};
+	// 摩擦力
+	float friction{};
+
+	// 剛体の物理演算
+	// 0:ボーン追従(static) 1:物理演算(dynamic) 2:物理演算 + Bone位置合わせ
+	std::uint8_t rigidbody_type{};
+};

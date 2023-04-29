@@ -372,10 +372,11 @@ int main()
 
 	bullet_world bullet_world{};
 
-	std::vector<bullet_rigidbody> bullet_rigidbody{};
-	bullet_rigidbody.reserve(pmx_rigidbody.size());
-	for (auto const& r : pmx_rigidbody)
-		bullet_rigidbody.push_back(create_shape_bullet_rigidbody(r));
+	std::vector<bullet_rigidbody> bullet_rigidbody(pmx_rigidbody.size());
+	for (std::size_t i = 0; i < bullet_rigidbody.size(); i++) {
+		bullet_rigidbody[i] = create_shape_bullet_rigidbody(pmx_rigidbody[i]);
+		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get());
+	}
 	
 
 	//

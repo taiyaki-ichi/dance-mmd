@@ -2,7 +2,7 @@
 #include"../external/bullet3/src/btBulletCollisionCommon.h"
 #include"../external/bullet3/src/btBulletDynamicsCommon.h"
 
-class bullet_world
+struct bullet_world
 {
 	btDefaultCollisionConfiguration collision_configuration;
 	btCollisionDispatcher dispatcher;
@@ -10,7 +10,6 @@ class bullet_world
 	btSequentialImpulseConstraintSolver solver;
 	btDiscreteDynamicsWorld dynamics_world;
 
-public:
 	bullet_world()
 		:collision_configuration()
 		, dispatcher(&collision_configuration)

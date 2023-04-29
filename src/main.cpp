@@ -2,6 +2,8 @@
 #include"../external/imgui/imgui.h"
 #include"../external/imgui/imgui_impl_dx12.h"
 #include"../external/imgui/imgui_impl_win32.h"
+#include"../external/bullet3/src/btBulletCollisionCommon.h"
+#include"../external/bullet3/src/btBulletDynamicsCommon.h"
 #include"../external/mmd-loader/mmdl/pmx_loader.hpp"
 #include"../external/mmd-loader/mmdl/vpd_loader.hpp"
 #include"../external/mmd-loader/mmdl/vmd_loader.hpp"

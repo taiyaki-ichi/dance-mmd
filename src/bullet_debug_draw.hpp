@@ -130,7 +130,7 @@ inline shape_resource::shape_resource(ID3D12Device* device, char const* fileName
 
 	// 定数バッファ
 	{
-		shapeDataConstantBuffer = dx12w::create_commited_upload_buffer_resource(device, dx12w::alignment<UINT64>(sizeof(shape_data), 256));
+		shapeDataConstantBuffer = dx12w::create_commited_upload_buffer_resource(device, dx12w::alignment<UINT64>(sizeof(shape_data) * MAX_SHAPE_NUM, 256));
 	}
 
 	// ディスクリプタヒープ
@@ -138,7 +138,7 @@ inline shape_resource::shape_resource(ID3D12Device* device, char const* fileName
 		descriptorHeapCBVSRVUAV.initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 2);
 
 		dx12w::create_CBV(device, descriptorHeapCBVSRVUAV.get_CPU_handle(0), cameraDataResource, dx12w::alignment<UINT64>(sizeof(camera_data), 256));
-		dx12w::create_CBV(device, descriptorHeapCBVSRVUAV.get_CPU_handle(1), shapeDataConstantBuffer.first.get(), dx12w::alignment<UINT64>(sizeof(shape_data), 256));
+		dx12w::create_CBV(device, descriptorHeapCBVSRVUAV.get_CPU_handle(1), shapeDataConstantBuffer.first.get(), dx12w::alignment<UINT64>(sizeof(shape_data) * MAX_SHAPE_NUM, 256));
 	}
 }
 
@@ -271,22 +271,26 @@ inline void debug_draw::drawBox(const btVector3& bbMin, const btVector3& bbMax, 
 
 inline void debug_draw::drawCapsule(btScalar radius, btScalar halfHeight, int upAxis, const btTransform& transform, const btVector3& color)
 {
-	auto axis = XMMatrixIdentity();
+	auto scale = XMMatrixIdentity();
 	// x軸が上
 	if (upAxis == 0) {
-		axis = XMMatrixRotationZ(XM_PIDIV2);
+		scale = XMMatrixScaling((radius + halfHeight) / 2.f, radius / 2.f, radius / 2.f);
+	}
+	// y軸が上
+	else if (upAxis == 1)
+	{
+		scale = XMMatrixScaling(radius, (radius + halfHeight) / 2.f, radius);
 	}
 	// z軸が上
 	else if (upAxis == 2)
 	{
-		axis = XMMatrixRotationX(XM_PIDIV2);
+		scale = XMMatrixScaling(radius, radius, (radius + halfHeight) / 2.f);
 	}
 
 	XMVECTOR q{ transform.getRotation().x(),transform.getRotation().y(), transform.getRotation().z(), transform.getRotation().w() };
 
 	capsuleData.emplace_back(
-		XMMatrixScaling(radius, (1.f + halfHeight) / 2.f, radius) * axis *
-		XMMatrixRotationQuaternion(q) * XMMatrixTranslation(transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z()),
+		scale * XMMatrixRotationQuaternion(q) * XMMatrixTranslation(transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z()),
 		std::array<float, 3>{ static_cast<float>(color.x()), static_cast<float>(color.y()), static_cast<float>(color.z()) }
 	);
 }

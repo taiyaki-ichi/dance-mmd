@@ -455,7 +455,7 @@ int main()
 	};
 
 	int frame_num = 0;
-	bool auto_animation = true;
+	bool auto_animation = false;
 	bool use_vpd = false;
 
 	// IKの処理でボーンを回転させる数
@@ -471,6 +471,9 @@ int main()
 
 	auto prev_frame_time = std::chrono::system_clock::now();
 	double elapsed = 0.0;
+
+	// 物理演算用
+	auto pysics_prev_time = std::chrono::system_clock::now();
 
 	std::vector<bone_data> bone_data(MAX_BONE_NUM);
 
@@ -527,8 +530,12 @@ int main()
 		// 物理エンジンのシュミレーション
 		//
 
-		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - prev_frame_time).count();
-		//bullet_world.dynamics_world.stepSimulation(delta_time, 10);
+		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - pysics_prev_time).count();
+		if (delta_time >= 1.f / 60.f * 1000.f)
+		{
+			//bullet_world.dynamics_world.stepSimulation(delta_time, 10);
+			pysics_prev_time = std::chrono::system_clock::now();
+		}
 
 		//
 		// 物理エンジンの結果を描画するために準備

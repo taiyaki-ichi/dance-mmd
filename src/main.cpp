@@ -526,6 +526,41 @@ int main()
 		// 付与の解決
 		recursive_aplly_grant(bone_data, root_index, to_children_bone_index, pmx_bone);
 
+		std::array<XMMATRIX, 512> tmp_bone{};
+		bone_data_to_bone_matrix(bone_data, tmp_bone, pmx_bone);
+		for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
+		{
+			// ボーン追従
+			if (pmx_rigidbody[i].rigidbody_type == 0)
+			{
+				auto bone_index = pmx_rigidbody[i].bone_index;
+				
+				btTransform transform;
+				transform.setIdentity();
+				/*
+				transform.setOrigin(btVector3(
+					pmx_rigidbody[i].position.x + tmp_bone[bone_index].r[3].m128_f32[0],
+					pmx_rigidbody[i].position.y + tmp_bone[bone_index].r[3].m128_f32[1],
+					pmx_rigidbody[i].position.z + tmp_bone[bone_index].r[3].m128_f32[2]));
+					*/
+
+				auto p = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_index].position), tmp_bone[bone_index]);
+				transform.setOrigin(btVector3(
+					pmx_rigidbody[i].position.x + p.m128_f32[0] - pmx_bone[bone_index].position.x,
+					pmx_rigidbody[i].position.y + p.m128_f32[1] - pmx_bone[bone_index].position.y,
+					pmx_rigidbody[i].position.z + p.m128_f32[2] - pmx_bone[bone_index].position.z));
+
+				auto q = XMQuaternionRotationMatrix(tmp_bone[bone_index]);
+				btQuaternion qq{};
+				qq.setEuler(pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.z);
+				btQuaternion qqq{};
+				qqq.setEuler(model_rotation_y, model_rotation_x, model_rotation_z);
+				transform.setRotation(qqq * qq * btQuaternion(q.m128_f32[0], q.m128_f32[1], q.m128_f32[2], q.m128_f32[3]));
+				
+				bullet_rigidbody[i].rigidbody->setWorldTransform(transform);
+			}
+		}
+
 		//
 		// 物理エンジンのシュミレーション
 		//

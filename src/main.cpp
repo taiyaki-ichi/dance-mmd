@@ -385,10 +385,13 @@ int main()
 
 	auto debug_shape_pipeline = std::make_unique<shape_pipeline>(device.get(), FRAME_BUFFER_FORMAT);
 
-	debug_draw debugDraw{};
-	debugDraw.setDebugMode(btIDebugDraw::DBG_DrawWireframe
+	debug_draw debug_draw{};
+	debug_draw.setDebugMode(btIDebugDraw::DBG_DrawWireframe
 		| btIDebugDraw::DBG_DrawContactPoints
 		| btIDebugDraw::DBG_DrawConstraints);
+
+	// デバック用のインスタンス割当て
+	bullet_world.dynamics_world.setDebugDrawer(&debug_draw);
 
 	//
 	// その他設定
@@ -513,6 +516,27 @@ int main()
 
 		// 付与の解決
 		recursive_aplly_grant(bone_data, root_index, to_children_bone_index, pmx_bone);
+
+		//
+		// 物理エンジンのシュミレーション
+		//
+
+		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - prev_frame_time).count();
+		//bullet_world.dynamics_world.stepSimulation(delta_time, 10);
+
+		//
+		// 物理エンジンの結果を描画するために準備
+		//
+
+		debug_draw.sphereData.clear();
+		debug_draw.boxData.clear();
+		debug_draw.capsuleData.clear();
+
+		bullet_world.dynamics_world.debugDrawWorld();
+
+		debug_sphere_resoruce->setShapeData(debug_draw.sphereData.begin(), debug_draw.sphereData.end());
+		debug_box_resource->setShapeData(debug_draw.boxData.begin(), debug_draw.boxData.end());
+		debug_capsule_resrouce->setShapeData(debug_draw.capsuleData.begin(), debug_draw.capsuleData.end());
 
 
 		//
@@ -689,6 +713,22 @@ int main()
 			// オフセットの更新
 			index_offset += pmx_material_2[i].vertex_number;
 		}
+
+		//
+		// 剛体のDebug用の描画
+		//
+
+		command_manager.get_list()->RSSetViewports(1, &viewport);
+		command_manager.get_list()->RSSetScissorRects(1, &scissor_rect);
+
+		// デプスバッファはいったんクリアしておく
+		command_manager.get_list()->ClearDepthStencilView(depth_buffer_descriptor_heap_DSV.get_CPU_handle(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+
+		command_manager.get_list()->OMSetRenderTargets(1, &frame_buffer_cpu_handle, false, &depth_buffer_cpu_handle);
+
+		debug_shape_pipeline->draw(command_manager.get_list(), *debug_box_resource);
+		debug_shape_pipeline->draw(command_manager.get_list(), *debug_sphere_resoruce);
+		debug_shape_pipeline->draw(command_manager.get_list(), *debug_capsule_resrouce);
 
 
 		//

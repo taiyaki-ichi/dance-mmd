@@ -122,6 +122,7 @@
       <Filter>mmdl</Filter>
     </ClInclude>
     <ClInclude Include="loader_traits.hpp" />
+    <ClInclude Include="bullet_world.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

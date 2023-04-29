@@ -12,6 +12,7 @@
 #include"../external/stb/stb_image.h"
 #include"function.hpp"
 #include"loader_traits.hpp"
+#include"bullet_world.hpp"
 #include<fstream>
 #include<algorithm>
 #include<numeric>
@@ -363,6 +364,12 @@ int main()
 		DXGI_FORMAT_R8G8B8A8_UNORM, imgui_descriptor_heap.get(),
 		imgui_descriptor_heap.get_CPU_handle(),
 		imgui_descriptor_heap.get_GPU_handle());
+
+	//
+	// bullet
+	//
+
+	bullet_world bullet_world{};
 
 
 	//

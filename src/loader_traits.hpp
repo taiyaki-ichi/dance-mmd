@@ -401,3 +401,38 @@ struct mmdl::pmx_rigidbody_traits<std::vector<rigidbody>>
 		result.push_back(r);
 	}
 };
+
+template<>
+struct mmdl::pmx_joint_traits<std::vector<joint>>
+{
+	using char_type = wchar_t;
+
+	// サイズを指定して構築
+	static std::vector<joint> construct(std::size_t size)
+	{
+		return {};
+	}
+
+	// 剛体を追加
+	template<std::size_t CharBufferNum>
+	static void emplace_back(std::vector<joint>& result, pmx_joint_buffer<char_type, CharBufferNum> const& buffer)
+	{
+		joint j{};
+
+		j.rigidbody_a = buffer.rigidbody_a;
+		j.rigidbody_b = buffer.rigidbody_b;
+
+		j.position = { buffer.position[0],buffer.position[1] ,buffer.position[2] };
+		j.rotation = { buffer.rotation[0],buffer.rotation[1] ,buffer.rotation[2] };
+
+		j.move_lower_limit = { buffer.move_lower_limit[0],buffer.move_lower_limit[1] ,buffer.move_lower_limit[2] };
+		j.move_upper_limit = { buffer.move_upper_limit[0],buffer.move_upper_limit[1] ,buffer.move_upper_limit[2] };
+		j.rotation_lower_limit = { buffer.rotation_lower_limit[0],buffer.rotation_lower_limit[1] ,buffer.rotation_lower_limit[2] };
+		j.rotation_upper_limit = { buffer.rotation_upper_limit[0],buffer.rotation_upper_limit[1] ,buffer.rotation_upper_limit[2] };
+
+		j.move_spring_constant = { buffer.move_spring_constant[0],buffer.move_spring_constant[1] ,buffer.move_spring_constant[2] };
+		j.rotation_spring_constant = { buffer.move_spring_constant[0],buffer.move_spring_constant[1] ,buffer.move_spring_constant[2] };
+
+		result.push_back(j);
+	}
+};

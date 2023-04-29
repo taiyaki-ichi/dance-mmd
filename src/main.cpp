@@ -72,6 +72,7 @@ int main()
 	auto const [pmx_vertex_morph, pmx_group_morph] = mmdl::load_morph<std::pair<std::vector<vertex_morph>, std::vector<group_morph>>>(file, pmx_header.vertex_index_size, pmx_header.bone_index_size, pmx_header.material_index_size, pmx_header.morph_index_size);
 	mmdl::load_display_frame(file, pmx_header.bone_index_size, pmx_header.morph_index_size);
 	auto const pmx_rigidbody = mmdl::load_rigidbody<std::vector<rigidbody>>(file, pmx_header.bone_index_size);
+	auto const pmx_joint = mmdl::load_joint<std::vector<joint>>(file, pmx_header.rigid_body_index_size);
 	file.close();
 
 

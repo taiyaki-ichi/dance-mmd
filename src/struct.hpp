@@ -341,3 +341,29 @@ struct rigidbody
 	// 0:ボーン追従(static) 1:物理演算(dynamic) 2:物理演算 + Bone位置合わせ
 	std::uint8_t rigidbody_type{};
 };
+
+struct joint
+{
+	std::int32_t rigidbody_a{};
+	std::int32_t rigidbody_b{};
+
+	// 位置
+	XMFLOAT3 position{};
+	// 回転（ラジアン角）
+	XMFLOAT3 rotation{};
+
+	// 移動制限：下限
+	XMFLOAT3 move_lower_limit{};
+	// 移動制限：上限
+	XMFLOAT3 move_upper_limit{};
+	// 回転制限（ラジアン角）：下限
+	XMFLOAT3 rotation_lower_limit{};
+	// 回転制限（ラジアン角）：上限
+	XMFLOAT3 rotation_upper_limit{};
+
+	// ばね定数：移動
+	XMFLOAT3 move_spring_constant{};
+	// ばね定数：回転
+	XMFLOAT3 rotation_spring_constant{};
+
+};

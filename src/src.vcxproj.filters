@@ -123,6 +123,7 @@
     </ClInclude>
     <ClInclude Include="loader_traits.hpp" />
     <ClInclude Include="bullet_world.hpp" />
+    <ClInclude Include="bullet_shape.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

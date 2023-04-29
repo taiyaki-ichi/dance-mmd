@@ -13,6 +13,7 @@
 #include"function.hpp"
 #include"loader_traits.hpp"
 #include"bullet_world.hpp"
+#include"bullet_shape.hpp"
 #include<fstream>
 #include<algorithm>
 #include<numeric>
@@ -371,6 +372,11 @@ int main()
 
 	bullet_world bullet_world{};
 
+	std::vector<bullet_rigidbody> bullet_rigidbody{};
+	bullet_rigidbody.reserve(pmx_rigidbody.size());
+	for (auto const& r : pmx_rigidbody)
+		bullet_rigidbody.push_back(create_shape_bullet_rigidbody(r));
+	
 
 	//
 	// ÇªÇÃëºê›íË

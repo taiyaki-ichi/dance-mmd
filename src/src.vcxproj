@@ -196,6 +196,7 @@
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp" />
     <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader_traits.hpp" />
     <ClInclude Include="..\external\stb\stb_image.h" />
+    <ClInclude Include="bullet_shape.hpp" />
     <ClInclude Include="bullet_world.hpp" />
     <ClInclude Include="function.hpp" />
     <ClInclude Include="loader_traits.hpp" />

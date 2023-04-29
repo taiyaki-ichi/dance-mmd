@@ -371,11 +371,16 @@ int main()
 	// bullet
 	//
 
-	bullet_world bullet_world{};
-
+	// こいつがbullet_worldより先（後？）に消えるとエラーはくので注意
+	// TODO: bullet_worldとの解放の順についてやる!
 	std::vector<bullet_rigidbody> bullet_rigidbody(pmx_rigidbody.size());
 	for (std::size_t i = 0; i < bullet_rigidbody.size(); i++) {
 		bullet_rigidbody[i] = create_shape_bullet_rigidbody(pmx_rigidbody[i]);
+	}
+
+	bullet_world bullet_world{};
+	
+	for (std::size_t i = 0; i < bullet_rigidbody.size(); i++) {
 		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get());
 	}
 	
@@ -392,6 +397,7 @@ int main()
 
 	// デバック用のインスタンス割当て
 	bullet_world.dynamics_world.setDebugDrawer(&debug_draw);
+	
 
 	//
 	// その他設定

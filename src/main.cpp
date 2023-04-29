@@ -385,7 +385,7 @@ int main()
 
 	auto debug_shape_pipeline = std::make_unique<shape_pipeline>(device.get(), FRAME_BUFFER_FORMAT);
 
-	DebugDraw debugDraw{};
+	debug_draw debugDraw{};
 	debugDraw.setDebugMode(btIDebugDraw::DBG_DrawWireframe
 		| btIDebugDraw::DBG_DrawContactPoints
 		| btIDebugDraw::DBG_DrawConstraints);

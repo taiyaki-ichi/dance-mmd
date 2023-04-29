@@ -71,7 +71,7 @@ public:
 };
 
 // デバック用の描画をする際にbulletに渡す構造体
-struct DebugDraw : public btIDebugDraw
+struct debug_draw : public btIDebugDraw
 {
 	std::vector<shape_data> sphereData{};
 	std::vector<shape_data> boxData{};
@@ -218,7 +218,7 @@ inline void shape_pipeline::draw(ID3D12GraphicsCommandList* list, shape_resource
 	list->DrawInstanced(shapeResource.getVertexNum(), shapeResource.getShapeNum(), 0, 0);
 }
 
-inline void DebugDraw::drawSphere(btScalar radius, const btTransform& transform, const btVector3& color)
+inline void debug_draw::drawSphere(btScalar radius, const btTransform& transform, const btVector3& color)
 {
 	sphereData.emplace_back(
 		XMMatrixScaling(radius, radius, radius) * XMMatrixTranslation(transform.getOrigin().x(), transform.getOrigin().y(), transform.getOrigin().z()),
@@ -226,7 +226,7 @@ inline void DebugDraw::drawSphere(btScalar radius, const btTransform& transform,
 	);
 }
 
-inline void DebugDraw::drawSphere(const btVector3& p, btScalar radius, const btVector3& color)
+inline void debug_draw::drawSphere(const btVector3& p, btScalar radius, const btVector3& color)
 {
 	sphereData.emplace_back(
 		XMMatrixScaling(radius, radius, radius) * XMMatrixTranslation(p.x(), p.y(), p.z()),
@@ -234,7 +234,7 @@ inline void DebugDraw::drawSphere(const btVector3& p, btScalar radius, const btV
 	);
 }
 
-inline void DebugDraw::drawBox(const btVector3& bbMin, const btVector3& bbMax, const btVector3& color)
+inline void debug_draw::drawBox(const btVector3& bbMin, const btVector3& bbMax, const btVector3& color)
 {
 	float x = bbMax[0] - bbMin[0];
 	float y = bbMax[1] - bbMin[1];
@@ -250,7 +250,7 @@ inline void DebugDraw::drawBox(const btVector3& bbMin, const btVector3& bbMax, c
 	);
 }
 
-inline void DebugDraw::drawBox(const btVector3& bbMin, const btVector3& bbMax, const btTransform& trans, const btVector3& color)
+inline void debug_draw::drawBox(const btVector3& bbMin, const btVector3& bbMax, const btTransform& trans, const btVector3& color)
 {
 	float x = bbMax[0] - bbMin[0];
 	float y = bbMax[1] - bbMin[1];
@@ -269,7 +269,7 @@ inline void DebugDraw::drawBox(const btVector3& bbMin, const btVector3& bbMax, c
 	);
 }
 
-inline void DebugDraw::drawCapsule(btScalar radius, btScalar halfHeight, int upAxis, const btTransform& transform, const btVector3& color)
+inline void debug_draw::drawCapsule(btScalar radius, btScalar halfHeight, int upAxis, const btTransform& transform, const btVector3& color)
 {
 	auto axis = XMMatrixIdentity();
 	// x軸が上
@@ -291,12 +291,12 @@ inline void DebugDraw::drawCapsule(btScalar radius, btScalar halfHeight, int upA
 	);
 }
 
-inline void DebugDraw::setDebugMode(int debugMode)
+inline void debug_draw::setDebugMode(int debugMode)
 {
 	debug_mode = debugMode;
 }
 
-inline int DebugDraw::getDebugMode() const
+inline int debug_draw::getDebugMode() const
 {
 	return debug_mode;
 }

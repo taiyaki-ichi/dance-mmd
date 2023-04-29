@@ -123,7 +123,9 @@
     </ClInclude>
     <ClInclude Include="loader_traits.hpp" />
     <ClInclude Include="bullet_world.hpp" />
-    <ClInclude Include="bullet_shape.hpp" />
+    <ClInclude Include="bullet_rigidbody.hpp" />
+    <ClInclude Include="bullet_debug_draw.hpp" />
+    <ClInclude Include="obj_loader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -149,9 +151,18 @@
     <FxCompile Include="shader\VertexShader.hlsl">
       <Filter>shader</Filter>
     </FxCompile>
+    <FxCompile Include="shader\ShapePixelShader.hlsl">
+      <Filter>shader</Filter>
+    </FxCompile>
+    <FxCompile Include="shader\ShapeVertexShader.hlsl">
+      <Filter>shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\Header.hlsli">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\ShapeHeader.hlsli">
       <Filter>shader</Filter>
     </None>
   </ItemGroup>

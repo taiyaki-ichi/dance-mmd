@@ -13,7 +13,8 @@
 #include"function.hpp"
 #include"loader_traits.hpp"
 #include"bullet_world.hpp"
-#include"bullet_shape.hpp"
+#include"bullet_rigidbody.hpp"
+#include"bullet_debug_draw.hpp"
 #include<fstream>
 #include<algorithm>
 #include<numeric>
@@ -378,6 +379,16 @@ int main()
 		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get());
 	}
 	
+	auto debug_box_resource = std::make_unique<shape_resource>(device.get(), "data/box.obj", camera_data_resource.first.get());
+	auto debug_sphere_resoruce = std::make_unique<shape_resource>(device.get(), "data/sphere.obj", camera_data_resource.first.get());
+	auto debug_capsule_resrouce = std::make_unique<shape_resource>(device.get(), "data/capsule.obj", camera_data_resource.first.get());
+
+	auto debug_shape_pipeline = std::make_unique<shape_pipeline>(device.get(), FRAME_BUFFER_FORMAT);
+
+	DebugDraw debugDraw{};
+	debugDraw.setDebugMode(btIDebugDraw::DBG_DrawWireframe
+		| btIDebugDraw::DBG_DrawContactPoints
+		| btIDebugDraw::DBG_DrawConstraints);
 
 	//
 	// ÇªÇÃëºê›íË

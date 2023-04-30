@@ -378,10 +378,18 @@ int main()
 		bullet_rigidbody[i] = create_shape_bullet_rigidbody(pmx_rigidbody[i]);
 	}
 
+	std::vector<bullet_joint> bullet_joint(pmx_joint.size());
+	for (std::size_t i = 0; i < bullet_joint.size(); i++) {
+		bullet_joint[i] = create_bullet_joint(pmx_joint[i], bullet_rigidbody);
+	}
+
 	bullet_world bullet_world{};
 	
 	for (std::size_t i = 0; i < bullet_rigidbody.size(); i++) {
-		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get());
+		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get(), pmx_rigidbody[i].group, pmx_rigidbody[i].non_collision_group);
+	}
+	for (std::size_t i = 0; i < bullet_joint.size(); i++) {
+		bullet_world.dynamics_world.addConstraint(bullet_joint[i].spring.get(), true);
 	}
 	
 	auto debug_box_resource = std::make_unique<shape_resource>(device.get(), "data/box.obj", camera_data_resource.first.get());
@@ -569,6 +577,7 @@ int main()
 				transform.setRotation(btQuaternion(rot_sum.m128_f32[0], rot_sum.m128_f32[1], rot_sum.m128_f32[2], rot_sum.m128_f32[3]));
 				
 				bullet_rigidbody[i].rigidbody->setWorldTransform(transform);
+				bullet_rigidbody[i].rigidbody->activate(true);
 			}
 		}
 
@@ -579,7 +588,13 @@ int main()
 		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - pysics_prev_time).count();
 		if (delta_time >= 1.f / 60.f * 1000.f)
 		{
-			//bullet_world.dynamics_world.stepSimulation(delta_time, 10);
+			try {
+				bullet_world.dynamics_world.stepSimulation(delta_time, 10);
+			}
+			catch (std::exception& e)
+			{
+				std::cout << e.what() << std::endl;
+			}
 			pysics_prev_time = std::chrono::system_clock::now();
 		}
 

@@ -167,6 +167,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\bullet3\src\btBulletCollisionAll.cpp" />
+    <ClCompile Include="..\external\bullet3\src\btBulletDynamicsAll.cpp" />
+    <ClCompile Include="..\external\bullet3\src\btLinearMathAll.cpp" />
     <ClCompile Include="..\external\imgui\imgui.cpp" />
     <ClCompile Include="..\external\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\external\imgui\imgui_draw.cpp" />
@@ -177,6 +180,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\bullet3\src\btBulletCollisionCommon.h" />
+    <ClInclude Include="..\external\bullet3\src\btBulletDynamicsCommon.h" />
     <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w.hpp" />
     <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_command_manager.hpp" />
     <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_create_view.hpp" />

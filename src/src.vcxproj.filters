@@ -23,6 +23,15 @@
     <ClCompile Include="..\external\imgui\imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\external\bullet3\src\btBulletCollisionAll.cpp">
+      <Filter>bullet3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bullet3\src\btBulletDynamicsAll.cpp">
+      <Filter>bullet3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bullet3\src\btLinearMathAll.cpp">
+      <Filter>bullet3</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\imgui\imconfig.h">
@@ -126,6 +135,12 @@
     <ClInclude Include="bullet_rigidbody.hpp" />
     <ClInclude Include="bullet_debug_draw.hpp" />
     <ClInclude Include="obj_loader.hpp" />
+    <ClInclude Include="..\external\bullet3\src\btBulletCollisionCommon.h">
+      <Filter>bullet3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\bullet3\src\btBulletDynamicsCommon.h">
+      <Filter>bullet3</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -142,6 +157,9 @@
     </Filter>
     <Filter Include="mmdl">
       <UniqueIdentifier>{3f1bb054-f4ac-4ebb-a689-5f29b66e110f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bullet3">
+      <UniqueIdentifier>{34eee105-0c8d-4eee-a66c-9b05c63433eb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

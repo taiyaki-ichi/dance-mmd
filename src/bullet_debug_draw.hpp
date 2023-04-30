@@ -87,8 +87,8 @@ struct debug_draw : public btIDebugDraw
 
 	void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override {}
 	void drawLine(const btVector3& from, const btVector3& to, const btVector3& fromColor, const btVector3& toColor) override {}
-	void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) override {}
 	void reportErrorWarning(const char* warningString) override {}
+	void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) override {}
 	void draw3dText(const btVector3& location, const char* textString) override {}
 
 	int debug_mode;
@@ -294,6 +294,7 @@ inline void debug_draw::drawCapsule(btScalar radius, btScalar halfHeight, int up
 		std::array<float, 3>{ static_cast<float>(color.x()), static_cast<float>(color.y()), static_cast<float>(color.z()) }
 	);
 }
+
 
 inline void debug_draw::setDebugMode(int debugMode)
 {

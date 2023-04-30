@@ -386,7 +386,7 @@ int main()
 	bullet_world bullet_world{};
 	
 	for (std::size_t i = 0; i < bullet_rigidbody.size(); i++) {
-		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get(), pmx_rigidbody[i].group, pmx_rigidbody[i].non_collision_group);
+		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get(), 1 << pmx_rigidbody[i].group, pmx_rigidbody[i].non_collision_group);
 	}
 	for (std::size_t i = 0; i < bullet_joint.size(); i++) {
 		bullet_world.dynamics_world.addConstraint(bullet_joint[i].spring.get(), true);
@@ -577,8 +577,10 @@ int main()
 				transform.setRotation(btQuaternion(rot_sum.m128_f32[0], rot_sum.m128_f32[1], rot_sum.m128_f32[2], rot_sum.m128_f32[3]));
 				
 				bullet_rigidbody[i].rigidbody->setWorldTransform(transform);
-				bullet_rigidbody[i].rigidbody->activate(true);
 			}
+
+			// 全ての剛体をアクティブにする
+			bullet_rigidbody[i].rigidbody->activate(true);
 		}
 
 		//

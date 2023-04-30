@@ -82,7 +82,7 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 	frameInA = btTransform::getIdentity();
 	frameInA.setOrigin(a_pos);
 	btQuaternion q{};
-	q.setEuler(j.rotation.y, j.rotation.x, j.rotation.z);
+	q.setEuler(j.rotation.x, j.rotation.y, j.rotation.z);
 	frameInA.setRotation(q);
 
 	frameInB = btTransform::getIdentity();
@@ -91,16 +91,17 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 
 	auto pGen6DOFSpring = std::make_unique<btGeneric6DofSpringConstraint>(*rigidbodyA, *rigidbodyB, frameInA, frameInB, true);
 
-	
 	pGen6DOFSpring->setLinearLowerLimit(btVector3(j.move_lower_limit.x, j.move_lower_limit.y, j.move_lower_limit.z));
 	pGen6DOFSpring->setLinearUpperLimit(btVector3(j.move_upper_limit.x, j.move_upper_limit.y, j.move_upper_limit.z));
 	
-	pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.y, j.rotation_lower_limit.x, j.rotation_lower_limit.z));
-	pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.y, j.rotation_upper_limit.x, j.rotation_upper_limit.z));
+	pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.x, j.rotation_lower_limit.y, j.rotation_lower_limit.z));
+	pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.x, j.rotation_upper_limit.y, j.rotation_upper_limit.z));
 
 	pGen6DOFSpring->setDbgDrawSize(btScalar(5.f));
 
 	pGen6DOFSpring->enableSpring(0, true);
+	pGen6DOFSpring->enableSpring(1, true);
+	pGen6DOFSpring->enableSpring(2, true);
 
 	// ‚Æ‚è‚ ‚¦‚¸AStiffness‚ð‚Î‚Ë‰ñ“]ADampimg‚ð‚Î‚ËˆÚ“®‚ÅÝ’è‚µ‚Ä‚Ý‚é
 	pGen6DOFSpring->setDamping(0, j.move_spring_constant.x);

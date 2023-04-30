@@ -22,7 +22,10 @@ decltype(auto) create_bullet_rigidbody(Shape& shape, XMFLOAT3 position, XMFLOAT3
 
 	auto motion_state = std::make_unique<btDefaultMotionState>(transform);
 
-	btRigidBody::btRigidBodyConstructionInfo info(btScalar(mass), motion_state.get(), &shape);
+	btVector3 localInertia(0, 0, 0);
+	shape.calculateLocalInertia(mass, localInertia);
+
+	btRigidBody::btRigidBodyConstructionInfo info(btScalar(mass), motion_state.get(), &shape, localInertia);
 	info.m_linearDamping = liner_damping;
 	info.m_angularDamping = angular_damping;
 	info.m_restitution = restitution;
@@ -52,6 +55,7 @@ inline bullet_rigidbody create_shape_bullet_rigidbody(rigidbody r)
 	}();
 
 	// ボーン追従の場合は質量を0にし重力の計算を行わないようにする
+	// massが0だとまずい？
 	auto m = r.rigidbody_type == 0 ? 0.f : r.mass;
 
 	auto [motion_state, body] = create_bullet_rigidbody(*s, r.position, r.rotation, m, r.liner_damping, r.angular_damping, r.restitution, r.friction);
@@ -68,50 +72,83 @@ struct bullet_joint
 // とりあえずばね付き6DOF
 inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidbody> const& rs)
 {
+	// 参考：https://github.com/benikabocha/saba/blob/e64f8c9ada05a47bf89cb7fd79f05d16210a584b/src/Saba/Model/MMD/MMDPhysics.cpp#L736
+
 	auto rigidbodyA = rs[j.rigidbody_a].rigidbody.get();
 	auto rigidbodyB = rs[j.rigidbody_b].rigidbody.get();
 
-	// 相対位置を計算
-	btTransform trans{};
-	rigidbodyA->getMotionState()->getWorldTransform(trans);
-	auto a_pos = btVector3(j.position.x, j.position.y, j.position.z) - trans.getOrigin();
-	rigidbodyB->getMotionState()->getWorldTransform(trans);
-	auto b_pos = btVector3(j.position.x, j.position.y, j.position.z) - trans.getOrigin();
+	btMatrix3x3 rotMat;
+	rotMat.setEulerZYX(j.rotation.y, j.rotation.x, j.rotation.z);
 
-	btTransform frameInA, frameInB;
-	frameInA = btTransform::getIdentity();
-	frameInA.setOrigin(a_pos);
-	btQuaternion q{};
-	q.setEuler(j.rotation.x, j.rotation.y, j.rotation.z);
-	frameInA.setRotation(q);
+	btTransform transform;
+	transform.setIdentity();
+	transform.setOrigin(btVector3(
+		j.position.x,
+		j.position.y,
+		j.position.z
+	));
+	transform.setBasis(rotMat);
 
-	frameInB = btTransform::getIdentity();
-	frameInB.setOrigin(b_pos);
-	frameInB.setRotation(q);
+	btTransform invA = rigidbodyA->getWorldTransform().inverse();
+	btTransform invB = rigidbodyB->getWorldTransform().inverse();
+	invA = invA * transform;
+	invB = invB * transform;
 
-	auto pGen6DOFSpring = std::make_unique<btGeneric6DofSpringConstraint>(*rigidbodyA, *rigidbodyB, frameInA, frameInB, true);
+	auto pGen6DOFSpring = std::make_unique<btGeneric6DofSpringConstraint>(*rigidbodyA, *rigidbodyB, invA, invB, true);
 
-	pGen6DOFSpring->setLinearLowerLimit(btVector3(j.move_lower_limit.x, j.move_lower_limit.y, j.move_lower_limit.z));
-	pGen6DOFSpring->setLinearUpperLimit(btVector3(j.move_upper_limit.x, j.move_upper_limit.y, j.move_upper_limit.z));
+	//pGen6DOFSpring->setLinearLowerLimit(btVector3(j.move_lower_limit.x, j.move_lower_limit.y, j.move_lower_limit.z));
+	//pGen6DOFSpring->setLinearUpperLimit(btVector3(j.move_upper_limit.x, j.move_upper_limit.y, j.move_upper_limit.z));
+
+	//pGen6DOFSpring->setLinearLowerLimit(btVector3(-1,-1,-1));
+	//pGen6DOFSpring->setLinearUpperLimit(btVector3(1, 1, 1));
 	
-	pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.x, j.rotation_lower_limit.y, j.rotation_lower_limit.z));
-	pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.x, j.rotation_upper_limit.y, j.rotation_upper_limit.z));
+	// loweLimit>upperLimitらしい、参考：https://narumij.hatenadiary.org/entry/20110415/1302899254
+	// ↑違うっぽい
+	//pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.y, j.rotation_lower_limit.x, j.rotation_lower_limit.z));
+	//pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.y, j.rotation_upper_limit.x, j.rotation_upper_limit.z));
+
+	pGen6DOFSpring->setAngularLowerLimit(btVector3(0.f, 0.f, 0.f));
+	pGen6DOFSpring->setAngularUpperLimit(btVector3(0.1f, 0.1f, 0.1f));
 
 	pGen6DOFSpring->setDbgDrawSize(btScalar(5.f));
 
-	pGen6DOFSpring->enableSpring(0, true);
-	pGen6DOFSpring->enableSpring(1, true);
-	pGen6DOFSpring->enableSpring(2, true);
+	/*
+	if (j.move_spring_constant.x != 0.f)
+	{
+		pGen6DOFSpring->enableSpring(0, true);
+		pGen6DOFSpring->setStiffness(0, j.move_spring_constant.x);
+	}
+	if (j.move_spring_constant.y != 0.f)
+	{
+		pGen6DOFSpring->enableSpring(1, true);
+		pGen6DOFSpring->setStiffness(1, j.move_spring_constant.y);
+	}
+	if (j.move_spring_constant.z != 0.f)
+	{
+		pGen6DOFSpring->enableSpring(2, true);
+		pGen6DOFSpring->setStiffness(2, j.move_spring_constant.z);
+	}
+	*/
+	
 
-	// とりあえず、Stiffnessをばね回転、Dampimgをばね移動で設定してみる
-	pGen6DOFSpring->setDamping(0, j.move_spring_constant.x);
-	pGen6DOFSpring->setDamping(1, j.move_spring_constant.y);
-	pGen6DOFSpring->setDamping(2, j.move_spring_constant.z);
-	pGen6DOFSpring->setStiffness(0, j.rotation_spring_constant.x);
-	pGen6DOFSpring->setStiffness(1, j.rotation_spring_constant.y);
-	pGen6DOFSpring->setStiffness(2, j.rotation_spring_constant.z);
-
-	pGen6DOFSpring->setEquilibriumPoint();
+	/*
+	// 3-5が回転
+	if (j.rotation_spring_constant.y != 0.f)
+	{
+		pGen6DOFSpring->enableSpring(3, true);
+		pGen6DOFSpring->setStiffness(3, j.rotation_spring_constant.y);
+	}
+	if (j.rotation_spring_constant.x != 0.f)
+	{
+		pGen6DOFSpring->enableSpring(4, true);
+		pGen6DOFSpring->setStiffness(4, j.rotation_spring_constant.x);
+	}
+	if (j.rotation_spring_constant.z != 0.f)
+	{
+		pGen6DOFSpring->enableSpring(5, true);
+		pGen6DOFSpring->setStiffness(5, j.rotation_spring_constant.z);
+	}
+	*/
 
 	return { std::move(pGen6DOFSpring) };
 }

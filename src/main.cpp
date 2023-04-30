@@ -389,7 +389,7 @@ int main()
 		bullet_world.dynamics_world.addRigidBody(bullet_rigidbody[i].rigidbody.get(), 1 << pmx_rigidbody[i].group, pmx_rigidbody[i].non_collision_group);
 	}
 	for (std::size_t i = 0; i < bullet_joint.size(); i++) {
-		bullet_world.dynamics_world.addConstraint(bullet_joint[i].spring.get(), true);
+		bullet_world.dynamics_world.addConstraint(bullet_joint[i].spring.get());
 	}
 	
 	auto debug_box_resource = std::make_unique<shape_resource>(device.get(), "data/box.obj", camera_data_resource.first.get());

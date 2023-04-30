@@ -526,36 +526,47 @@ int main()
 		// 付与の解決
 		recursive_aplly_grant(bone_data, root_index, to_children_bone_index, pmx_bone);
 
-		std::array<XMMATRIX, 512> tmp_bone{};
-		bone_data_to_bone_matrix(bone_data, tmp_bone, pmx_bone);
 		for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
 		{
 			// ボーン追従
 			if (pmx_rigidbody[i].rigidbody_type == 0)
 			{
 				auto bone_index = pmx_rigidbody[i].bone_index;
-				
+
+				// 対象ボーンのワールド座標への変換行列
+				auto const to_world =
+					XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_index].position)) *
+					XMMatrixRotationQuaternion(bone_data[bone_index].rotation) *
+					XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_index].position)) *
+					XMMatrixTranslationFromVector(bone_data[bone_index].transform) *
+					bone_data[bone_index].to_world;
+
+				// 対象ボーンのワールド座標への変換の回転のみを表すクオータニオン
+				auto const to_world_rot = XMQuaternionRotationMatrix(to_world);
+
+				// ボーンのワールド座標
+				auto const bone_world_pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_index].position), to_world);
+
+				// ローカル座標でのボーンの座標から剛体の座標へのベクトル
+				auto const bone_to_rigidbody_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_rigidbody[i].position), XMLoadFloat3(&pmx_bone[bone_index].position));
+
+				// ワールド座標でのボーンの座標から剛体の座標へのベクトル
+				auto const bone_to_rigidbody_world_vec = XMVector3Rotate(bone_to_rigidbody_local_vec, to_world_rot);
+
+				// 回転の合計
+				auto const rot_sum = XMQuaternionMultiply(XMQuaternionMultiply(
+					XMQuaternionRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z),
+					// yとxの値が異なることに注意！！！なんでだ？？？
+					XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.z))
+					, to_world_rot);
+
 				btTransform transform;
 				transform.setIdentity();
-				/*
 				transform.setOrigin(btVector3(
-					pmx_rigidbody[i].position.x + tmp_bone[bone_index].r[3].m128_f32[0],
-					pmx_rigidbody[i].position.y + tmp_bone[bone_index].r[3].m128_f32[1],
-					pmx_rigidbody[i].position.z + tmp_bone[bone_index].r[3].m128_f32[2]));
-					*/
-
-				auto p = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_index].position), tmp_bone[bone_index]);
-				transform.setOrigin(btVector3(
-					pmx_rigidbody[i].position.x + p.m128_f32[0] - pmx_bone[bone_index].position.x,
-					pmx_rigidbody[i].position.y + p.m128_f32[1] - pmx_bone[bone_index].position.y,
-					pmx_rigidbody[i].position.z + p.m128_f32[2] - pmx_bone[bone_index].position.z));
-
-				auto q = XMQuaternionRotationMatrix(tmp_bone[bone_index]);
-				btQuaternion qq{};
-				qq.setEuler(pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.z);
-				btQuaternion qqq{};
-				qqq.setEuler(model_rotation_y, model_rotation_x, model_rotation_z);
-				transform.setRotation(qqq * qq * btQuaternion(q.m128_f32[0], q.m128_f32[1], q.m128_f32[2], q.m128_f32[3]));
+					bone_world_pos.m128_f32[0] + bone_to_rigidbody_world_vec.m128_f32[0],
+					bone_world_pos.m128_f32[1] + bone_to_rigidbody_world_vec.m128_f32[1],
+					bone_world_pos.m128_f32[2] + bone_to_rigidbody_world_vec.m128_f32[2]));
+				transform.setRotation(btQuaternion(rot_sum.m128_f32[0], rot_sum.m128_f32[1], rot_sum.m128_f32[2], rot_sum.m128_f32[3]));
 				
 				bullet_rigidbody[i].rigidbody->setWorldTransform(transform);
 			}

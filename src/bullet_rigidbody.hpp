@@ -94,25 +94,23 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 	invA = invA * transform;
 	invB = invB * transform;
 
+	// 第三引数はrigitbodyA側につくジョイントをrigidbodyAをもとに計算する用かな
+	// 第四引数も同様っぽい
+	// 今回はj.posiitonとj.rotationをもとにピッタリ1点をそれぞれが示す形だが、ある程度幅を持たすことも可能かも？
+	// ちゃんと読めば参考になりそう：https://gamedev.stackexchange.com/questions/54349/what-are-frame-a-and-frame-b-in-btgeneric6dofconstraints-constructor-for
 	auto pGen6DOFSpring = std::make_unique<btGeneric6DofSpringConstraint>(*rigidbodyA, *rigidbodyB, invA, invB, true);
 
-	//pGen6DOFSpring->setLinearLowerLimit(btVector3(j.move_lower_limit.x, j.move_lower_limit.y, j.move_lower_limit.z));
-	//pGen6DOFSpring->setLinearUpperLimit(btVector3(j.move_upper_limit.x, j.move_upper_limit.y, j.move_upper_limit.z));
+	pGen6DOFSpring->setLinearLowerLimit(btVector3(j.move_lower_limit.x, j.move_lower_limit.y, j.move_lower_limit.z));
+	pGen6DOFSpring->setLinearUpperLimit(btVector3(j.move_upper_limit.x, j.move_upper_limit.y, j.move_upper_limit.z));
 
-	//pGen6DOFSpring->setLinearLowerLimit(btVector3(-1,-1,-1));
-	//pGen6DOFSpring->setLinearUpperLimit(btVector3(1, 1, 1));
-	
-	// loweLimit>upperLimitらしい、参考：https://narumij.hatenadiary.org/entry/20110415/1302899254
-	// ↑違うっぽい
-	//pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.y, j.rotation_lower_limit.x, j.rotation_lower_limit.z));
-	//pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.y, j.rotation_upper_limit.x, j.rotation_upper_limit.z));
+	pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.y, j.rotation_lower_limit.x, j.rotation_lower_limit.z));
+	pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.y, j.rotation_upper_limit.x, j.rotation_upper_limit.z));
 
 	pGen6DOFSpring->setAngularLowerLimit(btVector3(0.f, 0.f, 0.f));
 	pGen6DOFSpring->setAngularUpperLimit(btVector3(0.1f, 0.1f, 0.1f));
 
 	pGen6DOFSpring->setDbgDrawSize(btScalar(5.f));
 
-	/*
 	if (j.move_spring_constant.x != 0.f)
 	{
 		pGen6DOFSpring->enableSpring(0, true);
@@ -128,10 +126,7 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 		pGen6DOFSpring->enableSpring(2, true);
 		pGen6DOFSpring->setStiffness(2, j.move_spring_constant.z);
 	}
-	*/
 	
-
-	/*
 	// 3-5が回転
 	if (j.rotation_spring_constant.y != 0.f)
 	{
@@ -148,7 +143,6 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 		pGen6DOFSpring->enableSpring(5, true);
 		pGen6DOFSpring->setStiffness(5, j.rotation_spring_constant.z);
 	}
-	*/
 
 	return { std::move(pGen6DOFSpring) };
 }

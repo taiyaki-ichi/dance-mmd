@@ -787,7 +787,10 @@ int main()
 					// 修正後のワールド座標でのボーンの位置
 					auto const new_world_bone_position = trans + rigidbody_to_bone_local_vec;
 
-					tmp->bone[bone_index] = XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
+					tmp->bone[bone_index] = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_index].position)) *
+						XMMatrixRotationQuaternion(XMQuaternionMultiply(rot, XMQuaternionInverse(rigidbody_rot))) *
+						XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_index].position)) *
+						XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
 				}
 			}
 		}

@@ -487,6 +487,8 @@ int main()
 
 	int morph_index = -1;
 
+	bool is_display_rigidbody = false;
+
 	while (dx12w::update_window())
 	{
 
@@ -601,6 +603,51 @@ int main()
 		}
 
 		//
+		// 物理シュミレーションの結果を反映させる
+		//
+		
+		for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
+		{
+			// 物理演算によって移動するボーン
+			if (pmx_rigidbody[i].rigidbody_type == 1)
+			{
+				auto bone_index = pmx_rigidbody[i].bone_index;
+				auto const& transform = bullet_rigidbody[i].rigidbody->getWorldTransform();
+
+				auto rot = XMVECTOR{
+					static_cast<float>(transform.getRotation().x()),
+					static_cast<float>(transform.getRotation().y()),
+					static_cast<float>(transform.getRotation().z()),
+					static_cast<float>(transform.getRotation().w())
+				};
+
+				auto trans = XMVECTOR{
+					static_cast<float>(transform.getOrigin().x()),
+					static_cast<float>(transform.getOrigin().y()),
+					static_cast<float>(transform.getOrigin().z()),
+				};
+
+				auto parent_rot= XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
+				auto parent_trans = XMVECTOR{ bone_data[bone_index].to_world.r[3].m128_f32[0],bone_data[bone_index].to_world.r[3].m128_f32[1],bone_data[bone_index].to_world.r[3].m128_f32[2] };
+				auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
+
+				bone_data[bone_index].rotation = XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot));
+				/*
+				bone_data[bone_index].transform = {
+					trans.m128_f32[0]  - pmx_bone[bone_index].position.x,
+					trans.m128_f32[1] - pmx_bone[bone_index].position.y,
+					trans.m128_f32[2]  - pmx_bone[bone_index].position.z,
+				};
+				*/
+
+				set_to_world_matrix(bone_data, to_children_bone_index, bone_index, bone_data[bone_index].to_world, pmx_bone);
+			}
+		}
+		
+		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
+		//set_to_world_matrix(bone_data, to_children_bone_index, root_index, XMMatrixIdentity(), pmx_bone);
+
+		//
 		// 物理エンジンの結果を描画するために準備
 		//
 
@@ -613,7 +660,6 @@ int main()
 		debug_sphere_resoruce->setShapeData(debug_draw.sphereData.begin(), debug_draw.sphereData.end());
 		debug_box_resource->setShapeData(debug_draw.boxData.begin(), debug_draw.boxData.end());
 		debug_capsule_resrouce->setShapeData(debug_draw.capsuleData.begin(), debug_draw.capsuleData.end());
-
 
 		//
 		// マップする
@@ -684,6 +730,47 @@ int main()
 
 			tmp->world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
 			bone_data_to_bone_matrix(bone_data, tmp->bone, pmx_bone);
+
+
+			//
+			//
+			//
+
+			/*
+			for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
+			{
+				// 物理演算によって移動するボーン
+				if (pmx_rigidbody[i].rigidbody_type == 1)
+				{
+					auto bone_index = pmx_rigidbody[i].bone_index;
+					auto const& transform = bullet_rigidbody[i].rigidbody->getWorldTransform();
+
+					std::array<std::array<double, 4>, 4> m{};
+					transform.getOpenGLMatrix(&m[0][0]);
+
+					XMMATRIX mm{};
+					mm.r[0].m128_f32[0] = m[0][0];
+					mm.r[0].m128_f32[1] = m[1][0];
+					mm.r[0].m128_f32[2] = m[2][0];
+					mm.r[0].m128_f32[3] = 0.0f;
+					mm.r[1].m128_f32[0] = m[0][1];
+					mm.r[1].m128_f32[1] = m[1][1];
+					mm.r[1].m128_f32[2] = m[2][1];
+					mm.r[1].m128_f32[3] = 0.0f;
+					mm.r[2].m128_f32[0] = m[0][2];
+					mm.r[2].m128_f32[1] = m[1][2];
+					mm.r[2].m128_f32[2] = m[2][2];
+					mm.r[2].m128_f32[3] = 0.0f;
+					mm.r[3].m128_f32[0] = m[0][3];
+					mm.r[3].m128_f32[1] = m[1][3];
+					mm.r[3].m128_f32[2] = m[2][3];
+					mm.r[3].m128_f32[3] = 1.0f;
+
+					tmp->bone[bone_index] = mm;
+				}
+			}
+			*/
+
 		}
 
 		{
@@ -741,6 +828,8 @@ int main()
 
 		ImGui::InputInt("morph index", &morph_index);
 
+		ImGui::Checkbox("is display rigidbody", &is_display_rigidbody);
+
 		ImGui::End();
 
 		ImGui::Render();
@@ -794,17 +883,20 @@ int main()
 		// 剛体のDebug用の描画
 		//
 
-		command_manager.get_list()->RSSetViewports(1, &viewport);
-		command_manager.get_list()->RSSetScissorRects(1, &scissor_rect);
+		if (is_display_rigidbody)
+		{
+			command_manager.get_list()->RSSetViewports(1, &viewport);
+			command_manager.get_list()->RSSetScissorRects(1, &scissor_rect);
 
-		// デプスバッファはいったんクリアしておく
-		command_manager.get_list()->ClearDepthStencilView(depth_buffer_descriptor_heap_DSV.get_CPU_handle(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+			// デプスバッファはいったんクリアしておく
+			command_manager.get_list()->ClearDepthStencilView(depth_buffer_descriptor_heap_DSV.get_CPU_handle(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 
-		command_manager.get_list()->OMSetRenderTargets(1, &frame_buffer_cpu_handle, false, &depth_buffer_cpu_handle);
+			command_manager.get_list()->OMSetRenderTargets(1, &frame_buffer_cpu_handle, false, &depth_buffer_cpu_handle);
 
-		debug_shape_pipeline->draw(command_manager.get_list(), *debug_box_resource);
-		debug_shape_pipeline->draw(command_manager.get_list(), *debug_sphere_resoruce);
-		debug_shape_pipeline->draw(command_manager.get_list(), *debug_capsule_resrouce);
+			debug_shape_pipeline->draw(command_manager.get_list(), *debug_box_resource);
+			debug_shape_pipeline->draw(command_manager.get_list(), *debug_sphere_resoruce);
+			debug_shape_pipeline->draw(command_manager.get_list(), *debug_capsule_resrouce);
+		}
 
 
 		//

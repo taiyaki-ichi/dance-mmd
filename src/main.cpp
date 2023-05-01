@@ -639,13 +639,11 @@ int main()
 					trans.m128_f32[2]  - pmx_bone[bone_index].position.z,
 				};
 				*/
-
-				set_to_world_matrix(bone_data, to_children_bone_index, bone_index, bone_data[bone_index].to_world, pmx_bone);
 			}
 		}
 		
 		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		//set_to_world_matrix(bone_data, to_children_bone_index, root_index, XMMatrixIdentity(), pmx_bone);
+		set_to_world_matrix(bone_data, to_children_bone_index, root_index, XMMatrixIdentity(), pmx_bone);
 
 		//
 		// 物理エンジンの結果を描画するために準備

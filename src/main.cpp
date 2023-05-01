@@ -605,6 +605,12 @@ int main()
 		//
 		// 物理シュミレーションの結果を反映させる
 		//
+
+		// TODO:
+		debug_draw.sphereData.clear();
+		debug_draw.boxData.clear();
+		debug_draw.capsuleData.clear();
+
 		
 		for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
 		{
@@ -621,22 +627,37 @@ int main()
 					static_cast<float>(transform.getRotation().w())
 				};
 
+				auto parent_rot= XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
+				auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
+
+				bone_data[bone_index].rotation = XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot));
+
+
 				auto trans = XMVECTOR{
 					static_cast<float>(transform.getOrigin().x()),
 					static_cast<float>(transform.getOrigin().y()),
 					static_cast<float>(transform.getOrigin().z()),
 				};
 
-				auto parent_rot= XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
-				auto parent_trans = XMVECTOR{ bone_data[bone_index].to_world.r[3].m128_f32[0],bone_data[bone_index].to_world.r[3].m128_f32[1],bone_data[bone_index].to_world.r[3].m128_f32[2] };
-				auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
+				// ローカル座標での剛体からボーンへのベクトル
+				auto const rigidbody_to_bone_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_bone[bone_index].position), XMLoadFloat3(&pmx_rigidbody[i].position));
 
-				bone_data[bone_index].rotation = XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot));
+				// 物理シュミレーションによって位置を修正された剛体からみた剛体からボーンへのベクトルを変換
+				auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot)));
+
+				// 修正後のワールド座標でのボーンの位置
+				auto const new_world_bone_position = trans + rigidbody_to_bone_local_vec;
+
+				debug_draw.boxData.emplace_back(XMMatrixScaling(0.2f, 0.2f, 0.2f)* XMMatrixTranslationFromVector(new_world_bone_position), std::array<float, 3>{0.f, 1.f, 1.f });
+
+				// 修正後のローカル座標でのボーンの位置
+				auto const new_local_boen_position = new_world_bone_position - XMLoadFloat3(&pmx_bone[bone_index].position);
+			
 				/*
 				bone_data[bone_index].transform = {
-					trans.m128_f32[0]  - pmx_bone[bone_index].position.x,
-					trans.m128_f32[1] - pmx_bone[bone_index].position.y,
-					trans.m128_f32[2]  - pmx_bone[bone_index].position.z,
+					new_local_boen_position.m128_f32[0],
+					new_local_boen_position.m128_f32[1],
+					new_local_boen_position.m128_f32[2],
 				};
 				*/
 			}
@@ -649,9 +670,7 @@ int main()
 		// 物理エンジンの結果を描画するために準備
 		//
 
-		debug_draw.sphereData.clear();
-		debug_draw.boxData.clear();
-		debug_draw.capsuleData.clear();
+
 
 		bullet_world.dynamics_world.debugDrawWorld();
 
@@ -733,8 +752,7 @@ int main()
 			//
 			//
 			//
-
-			/*
+			
 			for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
 			{
 				// 物理演算によって移動するボーン
@@ -743,32 +761,35 @@ int main()
 					auto bone_index = pmx_rigidbody[i].bone_index;
 					auto const& transform = bullet_rigidbody[i].rigidbody->getWorldTransform();
 
-					std::array<std::array<double, 4>, 4> m{};
-					transform.getOpenGLMatrix(&m[0][0]);
+					auto trans = XMVECTOR{
+						static_cast<float>(transform.getOrigin().x()),
+						static_cast<float>(transform.getOrigin().y()),
+						static_cast<float>(transform.getOrigin().z()),
+					};
 
-					XMMATRIX mm{};
-					mm.r[0].m128_f32[0] = m[0][0];
-					mm.r[0].m128_f32[1] = m[1][0];
-					mm.r[0].m128_f32[2] = m[2][0];
-					mm.r[0].m128_f32[3] = 0.0f;
-					mm.r[1].m128_f32[0] = m[0][1];
-					mm.r[1].m128_f32[1] = m[1][1];
-					mm.r[1].m128_f32[2] = m[2][1];
-					mm.r[1].m128_f32[3] = 0.0f;
-					mm.r[2].m128_f32[0] = m[0][2];
-					mm.r[2].m128_f32[1] = m[1][2];
-					mm.r[2].m128_f32[2] = m[2][2];
-					mm.r[2].m128_f32[3] = 0.0f;
-					mm.r[3].m128_f32[0] = m[0][3];
-					mm.r[3].m128_f32[1] = m[1][3];
-					mm.r[3].m128_f32[2] = m[2][3];
-					mm.r[3].m128_f32[3] = 1.0f;
+					auto rot = XMVECTOR{
+					static_cast<float>(transform.getRotation().x()),
+					static_cast<float>(transform.getRotation().y()),
+					static_cast<float>(transform.getRotation().z()),
+					static_cast<float>(transform.getRotation().w())
+					};
 
-					tmp->bone[bone_index] = mm;
+					auto parent_rot = XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
+					auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
+
+
+					// ローカル座標での剛体からボーンへのベクトル
+					auto const rigidbody_to_bone_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_bone[bone_index].position), XMLoadFloat3(&pmx_rigidbody[i].position));
+
+					// 物理シュミレーションによって位置を修正された剛体からみた剛体からボーンへのベクトルを変換
+					auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot)));
+
+					// 修正後のワールド座標でのボーンの位置
+					auto const new_world_bone_position = trans + rigidbody_to_bone_local_vec;
+
+					tmp->bone[bone_index] = XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
 				}
 			}
-			*/
-
 		}
 
 		{

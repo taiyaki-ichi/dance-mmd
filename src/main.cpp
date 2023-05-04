@@ -489,6 +489,11 @@ int main()
 
 	bool is_display_rigidbody = false;
 
+	float xx = 0.f;
+	float yy = 0.f;
+	float zz = 0.f;
+	float ww = 0.f;
+
 	while (dx12w::update_window())
 	{
 
@@ -609,61 +614,6 @@ int main()
 		debug_draw.boxData.clear();
 		debug_draw.capsuleData.clear();
 
-		
-		for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
-		{
-			// 物理演算によって移動するボーン
-			if (pmx_rigidbody[i].rigidbody_type == 1)
-			{
-				auto bone_index = pmx_rigidbody[i].bone_index;
-				auto const& transform = bullet_rigidbody[i].rigidbody->getWorldTransform();
-
-				auto rot = XMVECTOR{
-					static_cast<float>(transform.getRotation().x()),
-					static_cast<float>(transform.getRotation().y()),
-					static_cast<float>(transform.getRotation().z()),
-					static_cast<float>(transform.getRotation().w())
-				};
-
-				auto parent_rot= XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
-				auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
-
-				bone_data[bone_index].rotation = XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot));
-
-
-				auto trans = XMVECTOR{
-					static_cast<float>(transform.getOrigin().x()),
-					static_cast<float>(transform.getOrigin().y()),
-					static_cast<float>(transform.getOrigin().z()),
-				};
-
-				// ローカル座標での剛体からボーンへのベクトル
-				auto const rigidbody_to_bone_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_bone[bone_index].position), XMLoadFloat3(&pmx_rigidbody[i].position));
-
-				// 物理シュミレーションによって位置を修正された剛体からみた剛体からボーンへのベクトルを変換
-				auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot)));
-
-				// 修正後のワールド座標でのボーンの位置
-				auto const new_world_bone_position = trans + rigidbody_to_bone_local_vec;
-
-				debug_draw.boxData.emplace_back(XMMatrixScaling(0.2f, 0.2f, 0.2f)* XMMatrixTranslationFromVector(new_world_bone_position), std::array<float, 3>{0.f, 1.f, 1.f });
-
-				// 修正後のローカル座標でのボーンの位置
-				auto const new_local_boen_position = new_world_bone_position - XMLoadFloat3(&pmx_bone[bone_index].position);
-			
-				/*
-				bone_data[bone_index].transform = {
-					new_local_boen_position.m128_f32[0],
-					new_local_boen_position.m128_f32[1],
-					new_local_boen_position.m128_f32[2],
-				};
-				*/
-			}
-		}
-		
-		// それぞれの親のノードの回転、移動の行列を子へ伝播させる
-		set_to_world_matrix(bone_data, to_children_bone_index, root_index, XMMatrixIdentity(), pmx_bone);
-
 		//
 		// 物理エンジンの結果を描画するために準備
 		//
@@ -774,12 +724,22 @@ int main()
 					};
 
 					auto rot = XMVECTOR{
-					static_cast<float>(transform.getRotation().x()),
-					static_cast<float>(transform.getRotation().y()),
-					static_cast<float>(transform.getRotation().z()),
-					static_cast<float>(transform.getRotation().w())
+						static_cast<float>(transform.getRotation().x()),
+						static_cast<float>(transform.getRotation().y()),
+						static_cast<float>(transform.getRotation().z()),
+						static_cast<float>(transform.getRotation().w())
 					};
 
+					if (bone_index == 84)
+					{
+						auto r = XMQuaternionNormalize({ xx,yy,zz,ww });
+						rot = r;
+
+						xx = static_cast<float>(transform.getRotation().x());
+						yy = static_cast<float>(transform.getRotation().y());
+						zz = static_cast<float>(transform.getRotation().z());
+						ww = static_cast<float>(transform.getRotation().w());
+					}
 
 					auto parent_rot = XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
 					auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
@@ -858,6 +818,11 @@ int main()
 		ImGui::InputInt("morph index", &morph_index);
 
 		ImGui::Checkbox("is display rigidbody", &is_display_rigidbody);
+
+		ImGui::SliderFloat("xx", &xx, -1.f, 1.f);
+		ImGui::SliderFloat("yy", &yy, -1.f, 1.f);
+		ImGui::SliderFloat("zz", &zz, -1.f, 1.f);
+		ImGui::SliderFloat("ww", &ww, -1.f, 1.f);
 
 		ImGui::End();
 

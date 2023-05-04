@@ -564,10 +564,8 @@ int main()
 				auto const bone_to_rigidbody_world_vec = XMVector3Rotate(bone_to_rigidbody_local_vec, to_world_rot);
 
 				// 回転の合計
-				auto const rot_sum = XMQuaternionMultiply(XMQuaternionMultiply(
-					XMQuaternionRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z),
-					// yとxの値が異なることに注意！！！なんでだ？？？
-					XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.z))
+				auto const rot_sum = XMQuaternionMultiply(
+					XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z)
 					, to_world_rot);
 
 				btTransform transform;
@@ -674,6 +672,14 @@ int main()
 
 		bullet_world.dynamics_world.debugDrawWorld();
 
+		for (auto& s : debug_draw.sphereData)
+			s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
+		for (auto& s : debug_draw.boxData)
+			s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
+		for (auto& s : debug_draw.capsuleData)
+			s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
+
+
 		debug_sphere_resoruce->setShapeData(debug_draw.sphereData.begin(), debug_draw.sphereData.end());
 		debug_box_resource->setShapeData(debug_draw.boxData.begin(), debug_draw.boxData.end());
 		debug_capsule_resrouce->setShapeData(debug_draw.capsuleData.begin(), debug_draw.capsuleData.end());
@@ -773,6 +779,7 @@ int main()
 					static_cast<float>(transform.getRotation().z()),
 					static_cast<float>(transform.getRotation().w())
 					};
+
 
 					auto parent_rot = XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
 					auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);

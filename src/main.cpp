@@ -489,10 +489,9 @@ int main()
 
 	bool is_display_rigidbody = false;
 
-	float xx = 0.f;
-	float yy = 0.f;
-	float zz = 0.f;
-	float ww = 0.f;
+	float head_rotation_x = 0.f;
+	float head_rotation_y = 0.f;
+	float head_rotation_z = 0.f;
 
 	while (dx12w::update_window())
 	{
@@ -527,6 +526,11 @@ int main()
 			auto iter = bone_name_to_bone_index.find(L"右足ＩＫ");
 			if (iter != bone_name_to_bone_index.end())
 				bone_data[iter->second].transform += XMVECTOR{ offset_x, offset_y, offset_z };
+		}
+
+		// 物理演算デバッグ用
+		{
+			bone_data[15].rotation = XMQuaternionMultiply(bone_data[15].rotation, XMQuaternionRotationRollPitchYaw(head_rotation_x, head_rotation_y, head_rotation_z));
 		}
 
 		auto const root_index = bone_name_to_bone_index.contains(L"全ての親") ? bone_name_to_bone_index.at(L"全ての親") : 0;
@@ -593,7 +597,7 @@ int main()
 		//
 
 		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - pysics_prev_time).count();
-		if (delta_time >= 1.f / 60.f * 1000.f)
+		if (delta_time >= 1.f / 60.f * 100.f)
 		{
 			try {
 				bullet_world.dynamics_world.stepSimulation(delta_time, 10);
@@ -730,20 +734,8 @@ int main()
 						static_cast<float>(transform.getRotation().w())
 					};
 
-					if (bone_index == 84)
-					{
-						auto r = XMQuaternionNormalize({ xx,yy,zz,ww });
-						rot = r;
-
-						xx = static_cast<float>(transform.getRotation().x());
-						yy = static_cast<float>(transform.getRotation().y());
-						zz = static_cast<float>(transform.getRotation().z());
-						ww = static_cast<float>(transform.getRotation().w());
-					}
-
 					auto parent_rot = XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
 					auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
-
 
 					// ローカル座標での剛体からボーンへのベクトル
 					auto const rigidbody_to_bone_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_bone[bone_index].position), XMLoadFloat3(&pmx_rigidbody[i].position));
@@ -819,10 +811,9 @@ int main()
 
 		ImGui::Checkbox("is display rigidbody", &is_display_rigidbody);
 
-		ImGui::SliderFloat("xx", &xx, -1.f, 1.f);
-		ImGui::SliderFloat("yy", &yy, -1.f, 1.f);
-		ImGui::SliderFloat("zz", &zz, -1.f, 1.f);
-		ImGui::SliderFloat("ww", &ww, -1.f, 1.f);
+		ImGui::SliderFloat("head rotation x", &head_rotation_x, -XM_PI, XM_PI);
+		ImGui::SliderFloat("head rotation y", &head_rotation_y, -XM_PI, XM_PI);
+		ImGui::SliderFloat("head rotation z", &head_rotation_z, -XM_PI, XM_PI);
 
 		ImGui::End();
 

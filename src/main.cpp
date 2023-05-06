@@ -493,6 +493,14 @@ int main()
 	float head_rotation_y = 0.f;
 	float head_rotation_z = 0.f;
 
+	float bone_offset_001_x = 0.f;
+	float bone_offset_001_y = 0.f;
+	float bone_offset_001_z = 0.f;
+
+	float bone_offset_002_x = 0.f;
+	float bone_offset_002_y = 0.f;
+	float bone_offset_002_z = 0.f;
+
 	while (dx12w::update_window())
 	{
 
@@ -626,18 +634,6 @@ int main()
 
 		bullet_world.dynamics_world.debugDrawWorld();
 
-		for (auto& s : debug_draw.sphereData)
-			s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
-		for (auto& s : debug_draw.boxData)
-			s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
-		for (auto& s : debug_draw.capsuleData)
-			s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
-
-
-		debug_sphere_resoruce->setShapeData(debug_draw.sphereData.begin(), debug_draw.sphereData.end());
-		debug_box_resource->setShapeData(debug_draw.boxData.begin(), debug_draw.boxData.end());
-		debug_capsule_resrouce->setShapeData(debug_draw.capsuleData.begin(), debug_draw.capsuleData.end());
-
 		//
 		// マップする
 		//
@@ -734,22 +730,42 @@ int main()
 						static_cast<float>(transform.getRotation().w())
 					};
 
+
 					auto parent_rot = XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
 					auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
+
+					rot = XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot));
 
 					// ローカル座標での剛体からボーンへのベクトル
 					auto const rigidbody_to_bone_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_bone[bone_index].position), XMLoadFloat3(&pmx_rigidbody[i].position));
 
 					// 物理シュミレーションによって位置を修正された剛体からみた剛体からボーンへのベクトルを変換
-					auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, XMQuaternionMultiply(XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)), XMQuaternionInverse(rigidbody_rot)));
+					auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, XMQuaternionMultiply(rot, XMQuaternionInverse(parent_rot)));
 
 					// 修正後のワールド座標でのボーンの位置
-					auto const new_world_bone_position = trans + rigidbody_to_bone_local_vec;
+					auto new_world_bone_position = trans + rigidbody_to_bone_local_vec;
+
+					if (bone_index == 78) {
+						new_world_bone_position = XMVectorAdd(new_world_bone_position, { bone_offset_001_x,bone_offset_001_y ,bone_offset_001_z });
+					}
+					if (bone_index == 84) {
+						new_world_bone_position = XMVectorAdd(new_world_bone_position, { bone_offset_002_x,bone_offset_002_y ,bone_offset_002_z });
+					}
 
 					tmp->bone[bone_index] = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_index].position)) *
-						XMMatrixRotationQuaternion(XMQuaternionMultiply(rot, XMQuaternionInverse(rigidbody_rot))) *
+						XMMatrixRotationQuaternion(rot) *
 						XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_index].position)) *
 						XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
+
+					if (bone_index == 78) {
+						// std::cout << rot.m128_f32[0] << " " << rot.m128_f32[1] << " " << rot.m128_f32[2] << " " << rot.m128_f32[3] << std::endl;
+
+						//std::cout << "bone: " << pmx_rigidbody[i].rotation.x << " " << pmx_rigidbody[i].rotation.y << " " << pmx_rigidbody[i].rotation.z << std::endl;
+						//std::cout << "new: " << new_world_bone_position.m128_f32[0] << " " << new_world_bone_position.m128_f32[1] << " " << new_world_bone_position.m128_f32[2] << std::endl;
+					}
+
+					debug_draw.boxData.emplace_back(XMMatrixScaling(0.2f, 0.2f, 0.2f)* XMMatrixTranslationFromVector(new_world_bone_position), std::array<float, 3>{0.f, 1.f, 1.f });
+
 				}
 			}
 		}
@@ -777,6 +793,19 @@ int main()
 			*tmp = direction_light;
 		}
 
+		{
+			for (auto& s : debug_draw.sphereData)
+				s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
+			for (auto& s : debug_draw.boxData)
+				s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
+			for (auto& s : debug_draw.capsuleData)
+				s.transform *= XMMatrixRotationRollPitchYaw(model_rotation_x, model_rotation_y, model_rotation_z);
+
+
+			debug_sphere_resoruce->setShapeData(debug_draw.sphereData.begin(), debug_draw.sphereData.end());
+			debug_box_resource->setShapeData(debug_draw.boxData.begin(), debug_draw.boxData.end());
+			debug_capsule_resrouce->setShapeData(debug_draw.capsuleData.begin(), debug_draw.capsuleData.end());
+		}
 
 		//
 		// Imguiの準備
@@ -814,6 +843,14 @@ int main()
 		ImGui::SliderFloat("head rotation x", &head_rotation_x, -XM_PI, XM_PI);
 		ImGui::SliderFloat("head rotation y", &head_rotation_y, -XM_PI, XM_PI);
 		ImGui::SliderFloat("head rotation z", &head_rotation_z, -XM_PI, XM_PI);
+
+		ImGui::SliderFloat("bone offset 001 x", &bone_offset_001_x, -1.f, 1.f);
+		ImGui::SliderFloat("bone offset 001 y", &bone_offset_001_y, -1.f, 1.f);
+		ImGui::SliderFloat("bone offset 001 z", &bone_offset_001_z, -1.f, 1.f);
+
+		ImGui::SliderFloat("bone offset 002 x", &bone_offset_002_x, -1.f, 1.f);
+		ImGui::SliderFloat("bone offset 002 y", &bone_offset_002_y, -1.f, 1.f);
+		ImGui::SliderFloat("bone offset 002 z", &bone_offset_002_z, -1.f, 1.f);
 
 		ImGui::End();
 

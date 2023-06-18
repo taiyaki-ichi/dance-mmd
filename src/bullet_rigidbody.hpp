@@ -103,11 +103,8 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 	pGen6DOFSpring->setLinearLowerLimit(btVector3(j.move_lower_limit.x, j.move_lower_limit.y, j.move_lower_limit.z));
 	pGen6DOFSpring->setLinearUpperLimit(btVector3(j.move_upper_limit.x, j.move_upper_limit.y, j.move_upper_limit.z));
 
-	pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.y, j.rotation_lower_limit.x, j.rotation_lower_limit.z));
-	pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.y, j.rotation_upper_limit.x, j.rotation_upper_limit.z));
-
-	pGen6DOFSpring->setAngularLowerLimit(btVector3(0.f, 0.f, 0.f));
-	pGen6DOFSpring->setAngularUpperLimit(btVector3(0.1f, 0.1f, 0.1f));
+	pGen6DOFSpring->setAngularLowerLimit(btVector3(j.rotation_lower_limit.x, j.rotation_lower_limit.y, j.rotation_lower_limit.z));
+	pGen6DOFSpring->setAngularUpperLimit(btVector3(j.rotation_upper_limit.x, j.rotation_upper_limit.y, j.rotation_upper_limit.z));
 
 	pGen6DOFSpring->setDbgDrawSize(btScalar(5.f));
 
@@ -128,15 +125,15 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 	}
 	
 	// 3-5‚ª‰ñ“]
-	if (j.rotation_spring_constant.y != 0.f)
-	{
-		pGen6DOFSpring->enableSpring(3, true);
-		pGen6DOFSpring->setStiffness(3, j.rotation_spring_constant.y);
-	}
 	if (j.rotation_spring_constant.x != 0.f)
 	{
+		pGen6DOFSpring->enableSpring(3, true);
+		pGen6DOFSpring->setStiffness(3, j.rotation_spring_constant.x);
+	}
+	if (j.rotation_spring_constant.y != 0.f)
+	{
 		pGen6DOFSpring->enableSpring(4, true);
-		pGen6DOFSpring->setStiffness(4, j.rotation_spring_constant.x);
+		pGen6DOFSpring->setStiffness(4, j.rotation_spring_constant.y);
 	}
 	if (j.rotation_spring_constant.z != 0.f)
 	{

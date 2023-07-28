@@ -78,7 +78,7 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 	auto rigidbodyB = rs[j.rigidbody_b].rigidbody.get();
 
 	btMatrix3x3 rotMat;
-	rotMat.setEulerZYX(j.rotation.y, j.rotation.x, -j.rotation.z);
+	rotMat.setEulerZYX(j.rotation.x, j.rotation.y, j.rotation.z);
 
 	btTransform transform;
 	transform.setIdentity();

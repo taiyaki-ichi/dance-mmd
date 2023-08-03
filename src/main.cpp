@@ -493,14 +493,6 @@ int main()
 	float head_rotation_y = 0.f;
 	float head_rotation_z = 0.f;
 
-	float bone_offset_001_x = 0.f;
-	float bone_offset_001_y = 0.f;
-	float bone_offset_001_z = 0.f;
-
-	float bone_offset_002_x = 0.f;
-	float bone_offset_002_y = 0.f;
-	float bone_offset_002_z = 0.f;
-
 	while (dx12w::update_window())
 	{
 
@@ -701,12 +693,14 @@ int main()
 			model_data* tmp = nullptr;
 			model_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 
+			// モデルのワールド行列
 			tmp->world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
+			// モデルのボーンの行列
 			bone_data_to_bone_matrix(bone_data, tmp->bone, pmx_bone);
 
 
 			//
-			//
+			// 物理演算の結果をボーンの行列に反映させる
 			//
 			
 			for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
@@ -714,45 +708,41 @@ int main()
 				// 物理演算によって移動するボーン
 				if (pmx_rigidbody[i].rigidbody_type == 1)
 				{
-					auto bone_index = pmx_rigidbody[i].bone_index;
+					auto const bone_index = pmx_rigidbody[i].bone_index;
 					auto const& transform = bullet_rigidbody[i].rigidbody->getWorldTransform();
 
-					auto trans = XMVECTOR{
+					// 物理演算後の位置
+					auto const trans = XMVECTOR{
 						static_cast<float>(transform.getOrigin().x()),
 						static_cast<float>(transform.getOrigin().y()),
 						static_cast<float>(transform.getOrigin().z()),
 					};
 
-					auto rot = XMVECTOR{
+					// 物理演算後の姿勢
+					auto const rot = XMVECTOR{
 						static_cast<float>(transform.getRotation().x()),
 						static_cast<float>(transform.getRotation().y()),
 						static_cast<float>(transform.getRotation().z()),
 						static_cast<float>(transform.getRotation().w())
 					};
 
-					// auto parent_rot = XMQuaternionRotationMatrix(bone_data[bone_index].to_world);
-					auto parent_rot = XMQuaternionRotationMatrix(tmp->bone[pmx_bone[bone_index].parent_index]);
-					auto parent_rot_inv = XMQuaternionInverse(parent_rot);
-					auto rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
+					// 剛体のもともとの回転
+					auto const rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
 
-					//
-					auto rinv = XMQuaternionInverse(rigidbody_rot);
-
-					auto local_rot = XMQuaternionMultiply(XMQuaternionInverse(rigidbody_rot), rot);
-
-					//local_rot = { -local_rot.m128_f32[1],local_rot.m128_f32[0] ,local_rot.m128_f32[2] ,local_rot.m128_f32[3] };
+					// 物理演算によって回転した量
+					auto const local_rigidbody_rot = XMQuaternionMultiply(XMQuaternionInverse(rigidbody_rot), rot);
 
 					// ローカル座標での剛体からボーンへのベクトル
 					auto const rigidbody_to_bone_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_bone[bone_index].position), XMLoadFloat3(&pmx_rigidbody[i].position));
 
-					// 物理シュミレーションによって位置を修正された剛体からみた剛体からボーンへのベクトルを変換
-					auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, local_rot);
+					// 物理演算後の剛体からみたベクトルに変換
+					auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, local_rigidbody_rot);
 
 					// 修正後のワールド座標でのボーンの位置
 					auto new_world_bone_position = trans + rigidbody_to_bone_world_vec;
 
 					tmp->bone[bone_index] = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_index].position)) *
-						XMMatrixRotationQuaternion(local_rot) *
+						XMMatrixRotationQuaternion(local_rigidbody_rot) *
 						XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_index].position)) *
 						XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
 
@@ -834,14 +824,6 @@ int main()
 		ImGui::SliderFloat("head rotation x", &head_rotation_x, -XM_PI, XM_PI);
 		ImGui::SliderFloat("head rotation y", &head_rotation_y, -XM_PI, XM_PI);
 		ImGui::SliderFloat("head rotation z", &head_rotation_z, -XM_PI, XM_PI);
-
-		ImGui::SliderFloat("bone offset 001 x", &bone_offset_001_x, -1.f, 1.f);
-		ImGui::SliderFloat("bone offset 001 y", &bone_offset_001_y, -1.f, 1.f);
-		ImGui::SliderFloat("bone offset 001 z", &bone_offset_001_z, -1.f, 1.f);
-
-		ImGui::SliderFloat("bone offset 002 x", &bone_offset_002_x, -1.f, 1.f);
-		ImGui::SliderFloat("bone offset 002 y", &bone_offset_002_y, -1.f, 1.f);
-		ImGui::SliderFloat("bone offset 002 z", &bone_offset_002_z, -1.f, 1.f);
 
 		ImGui::End();
 

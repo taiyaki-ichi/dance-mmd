@@ -55,7 +55,6 @@ inline bullet_rigidbody create_shape_bullet_rigidbody(rigidbody r)
 	}();
 
 	// ボーン追従の場合は質量を0にし重力の計算を行わないようにする
-	// massが0だとまずい？
 	auto m = r.rigidbody_type == 0 ? 0.f : r.mass;
 
 	auto [motion_state, body] = create_bullet_rigidbody(*s, r.position, r.rotation, m, r.liner_damping, r.angular_damping, r.restitution, r.friction);
@@ -65,11 +64,12 @@ inline bullet_rigidbody create_shape_bullet_rigidbody(rigidbody r)
 
 struct bullet_joint
 {
-	// とりあえずばね付き6dof
+	// たいていのJointがばね付き6dofを使用している
+	// 他のJointに対応する場合は処理を追加する必要あり
 	std::unique_ptr<btGeneric6DofSpringConstraint> spring;
 };
 
-// とりあえずばね付き6DOF
+// ばね付き6DOFの生成
 inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidbody> const& rs)
 {
 	// 参考：https://github.com/benikabocha/saba/blob/e64f8c9ada05a47bf89cb7fd79f05d16210a584b/src/Saba/Model/MMD/MMDPhysics.cpp#L736
@@ -94,10 +94,6 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 	invA = invA * transform;
 	invB = invB * transform;
 
-	// 第三引数はrigitbodyA側につくジョイントをrigidbodyAをもとに計算する用かな
-	// 第四引数も同様っぽい
-	// 今回はj.posiitonとj.rotationをもとにピッタリ1点をそれぞれが示す形だが、ある程度幅を持たすことも可能かも？
-	// ちゃんと読めば参考になりそう：https://gamedev.stackexchange.com/questions/54349/what-are-frame-a-and-frame-b-in-btgeneric6dofconstraints-constructor-for
 	auto pGen6DOFSpring = std::make_unique<btGeneric6DofSpringConstraint>(*rigidbodyA, *rigidbodyB, invA, invB, true);
 
 	pGen6DOFSpring->setLinearLowerLimit(btVector3(j.move_lower_limit.x, j.move_lower_limit.y, j.move_lower_limit.z));
@@ -108,6 +104,7 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 
 	pGen6DOFSpring->setDbgDrawSize(btScalar(5.f));
 
+	// 0-2が移動の制限
 	if (j.move_spring_constant.x != 0.f)
 	{
 		pGen6DOFSpring->enableSpring(0, true);
@@ -124,7 +121,7 @@ inline bullet_joint create_bullet_joint(joint const& j,std::vector<bullet_rigidb
 		pGen6DOFSpring->setStiffness(2, j.move_spring_constant.z);
 	}
 	
-	// 3-5が回転
+	// 3-5が回転が回転の制限
 	if (j.rotation_spring_constant.x != 0.f)
 	{
 		pGen6DOFSpring->enableSpring(3, true);

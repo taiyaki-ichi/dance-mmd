@@ -18,7 +18,7 @@ struct shape_data
 	std::array<float, 3> color{};
 };
 
-// 剛体のリソースなど
+// 剛体の形を描画する際のリソース
 class shape_resource
 {
 	dx12w::resource_and_state vertexResource{};
@@ -48,7 +48,7 @@ public:
 	UINT getShapeNum() const noexcept;
 };
 
-// 剛体を描画する際に使用するパイプラインなど
+// 剛体の形を描画する際に使用するパイプライン
 class shape_pipeline
 {
 	std::vector<std::uint8_t> vertexShader{};
@@ -112,19 +112,23 @@ inline shape_resource::shape_resource(ID3D12Device* device, char const* fileName
 		std::ifstream file{ fileName };
 		auto vertexData = load_obj(file);
 
+		// 頂点バッファの領域の確保
 		vertexResource = dx12w::create_commited_upload_buffer_resource(device, sizeof(decltype(vertexData)::value_type) * vertexData.size());
 
+		// 頂点のデータをマップ
 		float* tmp = nullptr;
 		vertexResource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 		std::copy(&vertexData[0][0], &vertexData[0][0] + vertexData.size() * 6, tmp);
 		vertexResource.first->Unmap(0, nullptr);
 
+		// ビューの作成
 		vertexBufferView = {
 			.BufferLocation = vertexResource.first->GetGPUVirtualAddress(),
 			.SizeInBytes = static_cast<UINT>(sizeof(decltype(vertexData)::value_type) * vertexData.size()),
 			.StrideInBytes = static_cast<UINT>(sizeof(decltype(vertexData)::value_type)),
 		};
 
+		// 描画する際に必要
 		vertexNum = vertexData.size();
 	}
 
@@ -145,10 +149,12 @@ inline shape_resource::shape_resource(ID3D12Device* device, char const* fileName
 template<typename Iter>
 inline void shape_resource::setShapeData(Iter first, Iter last)
 {
+	// データのマップ
 	shape_data* shapeDataPtr = nullptr;
 	shapeDataConstantBuffer.first->Map(0, nullptr, reinterpret_cast<void**>(&shapeDataPtr));
-
 	std::copy(first, last, shapeDataPtr);
+
+	// 描画する際に必要
 	shapeNum = std::distance(first, last);
 }
 

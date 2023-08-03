@@ -585,7 +585,7 @@ int main()
 					bone_world_pos.m128_f32[2] + bone_to_rigidbody_world_vec.m128_f32[2]));
 				transform.setRotation(btQuaternion(rot_sum.m128_f32[0], rot_sum.m128_f32[1], rot_sum.m128_f32[2], rot_sum.m128_f32[3]));
 				
-				bullet_rigidbody[i].rigidbody->setWorldTransform(transform);
+				bullet_rigidbody[i].motion_state->setWorldTransform(transform);
 			}
 
 			// 全ての剛体をアクティブにする
@@ -709,7 +709,8 @@ int main()
 				if (pmx_rigidbody[i].rigidbody_type == 1)
 				{
 					auto const bone_index = pmx_rigidbody[i].bone_index;
-					auto const& transform = bullet_rigidbody[i].rigidbody->getWorldTransform();
+					btTransform transform{};
+					bullet_rigidbody[i].motion_state->getWorldTransform(transform);
 
 					// 物理演算後の位置
 					auto const trans = XMVECTOR{

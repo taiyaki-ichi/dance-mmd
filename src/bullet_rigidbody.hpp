@@ -58,6 +58,15 @@ inline bullet_rigidbody create_shape_bullet_rigidbody(rigidbody r)
 	auto m = r.rigidbody_type == 0 ? 0.f : r.mass;
 
 	auto [motion_state, body] = create_bullet_rigidbody(*s, r.position, r.rotation, m, r.liner_damping, r.angular_damping, r.restitution, r.friction);
+
+	// ボーン追従の場合、静的な剛体を動かす必要があるので適切なフラグを立てる
+	// 参考: http://bulletjpn.web.fc2.com/07_RigidBodyDynamics.html
+	if (r.rigidbody_type == 0)
+	{
+		body->setCollisionFlags(body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		body->setActivationState(DISABLE_DEACTIVATION);
+	}
+
 	return { std::move(s),std::move(motion_state),std::move(body) };
 }
 

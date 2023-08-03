@@ -490,7 +490,7 @@ int main()
 	bool is_display_rigidbody = false;
 
 	float head_rotation_x = 0.f;
-	float head_rotation_y = 1.5f;
+	float head_rotation_y = 0.f;
 	float head_rotation_z = 0.f;
 
 	float bone_offset_001_x = 0.f;
@@ -538,8 +538,7 @@ int main()
 
 		// 物理演算デバッグ用
 		{
-			// bone_data[15].rotation = XMQuaternionMultiply(bone_data[15].rotation, XMQuaternionRotationRollPitchYaw(head_rotation_x, head_rotation_y, head_rotation_z));
-			bone_data[37].rotation = XMQuaternionMultiply(bone_data[37].rotation, XMQuaternionRotationRollPitchYaw(head_rotation_x, head_rotation_y, head_rotation_z));
+			bone_data[15].rotation = XMQuaternionMultiply(bone_data[15].rotation, XMQuaternionRotationRollPitchYaw(head_rotation_x, head_rotation_y, head_rotation_z));
 		}
 
 		auto const root_index = bone_name_to_bone_index.contains(L"全ての親") ? bone_name_to_bone_index.at(L"全ての親") : 0;
@@ -595,36 +594,6 @@ int main()
 				transform.setRotation(btQuaternion(rot_sum.m128_f32[0], rot_sum.m128_f32[1], rot_sum.m128_f32[2], rot_sum.m128_f32[3]));
 				
 				bullet_rigidbody[i].rigidbody->setWorldTransform(transform);
-
-				if (i == 6)
-				//if (false)
-				{
-					std::cout << "bone_data_rot:  " 
-						<< bone_data[bone_index].rotation.m128_f32[0] << "  " 
-						<< bone_data[bone_index].rotation.m128_f32[1] << "  " 
-						<< bone_data[bone_index].rotation.m128_f32[2] << "  "
-						<< bone_data[bone_index].rotation.m128_f32[3] << std::endl << std::endl;
-
-					std::cout << "rot_sum:  "
-						<< rot_sum.m128_f32[0] << "  "
-						<< rot_sum.m128_f32[1] << "  "
-						<< rot_sum.m128_f32[2] << "  "
-						<< rot_sum.m128_f32[3] << std::endl << std::endl;
-
-					auto in_rot = bullet_rigidbody[6].rigidbody->getWorldTransform().getRotation();
-					std::cout << "in_rot:  " 
-						<< in_rot.x() << "  " 
-						<< in_rot.y() << "  " 
-						<< in_rot.z() << "  " 
-						<< in_rot.w() << std::endl << std::endl;
-
-					std::cout << "to_world_rot:  "
-						<< to_world_rot.m128_f32[0] << "  "
-						<< to_world_rot.m128_f32[1] << "  "
-						<< to_world_rot.m128_f32[2] << "  "
-						<< to_world_rot.m128_f32[3] << std::endl << std::endl;
-					
-				}
 			}
 
 			// 全ての剛体をアクティブにする
@@ -743,9 +712,7 @@ int main()
 			for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
 			{
 				// 物理演算によって移動するボーン
-				//if (pmx_rigidbody[i].rigidbody_type == 1)
-				//if(i==6)
-				//if(false)
+				if (pmx_rigidbody[i].rigidbody_type == 1)
 				{
 					auto bone_index = pmx_rigidbody[i].bone_index;
 					auto const& transform = bullet_rigidbody[i].rigidbody->getWorldTransform();
@@ -790,30 +757,6 @@ int main()
 						XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
 
 					debug_draw.boxData.emplace_back(XMMatrixScaling(0.2f, 0.2f, 0.2f)* XMMatrixTranslationFromVector(new_world_bone_position), std::array<float, 3>{0.f, 1.f, 1.f });
-
-					if (i == 6)
-					//if(false)
-					{
-						std::cout << "rot:  " << rot.m128_f32[0] << "  " << rot.m128_f32[1] << "  " << rot.m128_f32[2] << "  " << rot.m128_f32[3] << std::endl << std::endl;
-						std::cout << "rigid_rot:  " << rigidbody_rot.m128_f32[0] << "  " << rigidbody_rot.m128_f32[1] << "  " << rigidbody_rot.m128_f32[2] << "  " << rigidbody_rot.m128_f32[3] << std::endl << std::endl;
-						std::cout << "rigid_rot_inv:  " << rinv.m128_f32[0] << "  " << rinv.m128_f32[1] << "  " << rinv.m128_f32[2] << "  " << rinv.m128_f32[3] << std::endl << std::endl;
-						//std::cout << "parent_rot:  " << parent_rot.m128_f32[0] << "  " << parent_rot.m128_f32[1] << "  " << parent_rot.m128_f32[2] << "  " << parent_rot.m128_f32[3] << std::endl << std::endl;
-						//std::cout << "parent_rot_inv:  " << parent_rot_inv.m128_f32[0] << "  " << parent_rot_inv.m128_f32[1] << "  " << parent_rot_inv.m128_f32[2] << "  " << parent_rot_inv.m128_f32[3] << std::endl << std::endl;
-						std::cout << "local_rot:  " << local_rot.m128_f32[0] << "  " << local_rot.m128_f32[1] << "  " << local_rot.m128_f32[2] << "  " << local_rot.m128_f32[3] << std::endl << std::endl;
-
-						std::cout << std::endl << std::endl;
-					}
-
-					auto a = XMVECTOR{ 0 , 0.681639,  0,  0.731689, };
-					auto b = XMVECTOR{ -0.00544711, - 0.00257378,  0.427173,  0.90415, };
-					auto ab = XMQuaternionMultiply(a, b);
-					ab.m128_f32[0] = -ab.m128_f32[0];
-					auto b_inv = XMQuaternionInverse(b);
-					auto aa = XMQuaternionMultiply(b_inv, ab);
-					auto aaa = XMQuaternionNormalize(aa);
-
-					int hogeee=0;
-
 				}
 			}
 		}

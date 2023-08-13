@@ -7,5 +7,5 @@ float4 main(VSOutput input) : SV_TARGET
 	float diffuseBias = saturate(dot(lightDir, input.normal.xyz));
 	float3 diffuse = shapeData[input.instanceId].color * 0.8f * diffuseBias;
 	float3 ambient = shapeData[input.instanceId].color * 0.2f;
-	return float4(ambient + diffuse, 0.7f);
+	return float4(ambient + diffuse, 0.5f);
 }

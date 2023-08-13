@@ -367,3 +367,72 @@ struct mmdl::vmd_morph_data_traits<std::vector<::vmd_morph_data>>
 		result.emplace_back(std::move(name), buffer.frame_num, buffer.weight);
 	}
 };
+
+template<>
+struct mmdl::pmx_rigidbody_traits<std::vector<rigidbody>>
+{
+	using char_type = wchar_t;
+
+	// サイズを指定して構築
+	static std::vector<rigidbody> construct(std::size_t size)
+	{
+		return {};
+	}
+
+	// 剛体を追加
+	template<std::size_t CharBufferNum>
+	static void emplace_back(std::vector<rigidbody>& result, pmx_rigidbody_buffer<char_type, CharBufferNum> const& buffer)
+	{
+		rigidbody r{};
+		r.bone_index = buffer.bone_index;
+		r.group = buffer.group;
+		r.non_collision_group = buffer.non_collision_group;
+		r.shape = buffer.shape;
+		r.size = { buffer.size[0],buffer.size[1],buffer.size[2] };
+		r.position = { buffer.position[0],buffer.position[1] ,buffer.position[2] };
+		r.rotation = { buffer.rotation[0],buffer.rotation[1] ,buffer.rotation[2] };
+		r.mass = buffer.mass;
+		r.liner_damping = buffer.liner_damping;
+		r.angular_damping = buffer.angular_damping;
+		r.restitution = buffer.restitution;
+		r.friction = buffer.friction;
+		r.rigidbody_type = buffer.rigidbody_type;
+
+		result.push_back(r);
+	}
+};
+
+template<>
+struct mmdl::pmx_joint_traits<std::vector<joint>>
+{
+	using char_type = wchar_t;
+
+	// サイズを指定して構築
+	static std::vector<joint> construct(std::size_t size)
+	{
+		return {};
+	}
+
+	// 剛体を追加
+	template<std::size_t CharBufferNum>
+	static void emplace_back(std::vector<joint>& result, pmx_joint_buffer<char_type, CharBufferNum> const& buffer)
+	{
+		joint j{};
+
+		j.rigidbody_a = buffer.rigidbody_a;
+		j.rigidbody_b = buffer.rigidbody_b;
+
+		j.position = { buffer.position[0],buffer.position[1] ,buffer.position[2] };
+		j.rotation = { buffer.rotation[0],buffer.rotation[1] ,buffer.rotation[2] };
+
+		j.move_lower_limit = { buffer.move_lower_limit[0],buffer.move_lower_limit[1] ,buffer.move_lower_limit[2] };
+		j.move_upper_limit = { buffer.move_upper_limit[0],buffer.move_upper_limit[1] ,buffer.move_upper_limit[2] };
+		j.rotation_lower_limit = { buffer.rotation_lower_limit[0],buffer.rotation_lower_limit[1] ,buffer.rotation_lower_limit[2] };
+		j.rotation_upper_limit = { buffer.rotation_upper_limit[0],buffer.rotation_upper_limit[1] ,buffer.rotation_upper_limit[2] };
+
+		j.move_spring_constant = { buffer.move_spring_constant[0],buffer.move_spring_constant[1] ,buffer.move_spring_constant[2] };
+		j.rotation_spring_constant = { buffer.move_spring_constant[0],buffer.move_spring_constant[1] ,buffer.move_spring_constant[2] };
+
+		result.push_back(j);
+	}
+};

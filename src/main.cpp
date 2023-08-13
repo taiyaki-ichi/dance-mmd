@@ -550,7 +550,7 @@ int main()
 			// ボーン追従
 			if (pmx_rigidbody[i].rigidbody_type == 0)
 			{
-				auto bone_index = pmx_rigidbody[i].bone_index;
+				auto const bone_index = pmx_rigidbody[i].bone_index;
 
 				// 対象ボーンのワールド座標への変換行列
 				auto const to_world =
@@ -577,6 +577,7 @@ int main()
 					XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z)
 					, to_world_rot);
 
+				// bulletのクラスに情報を反映
 				btTransform transform;
 				transform.setIdentity();
 				transform.setOrigin(btVector3(
@@ -585,6 +586,7 @@ int main()
 					bone_world_pos.m128_f32[2] + bone_to_rigidbody_world_vec.m128_f32[2]));
 				transform.setRotation(btQuaternion(rot_sum.m128_f32[0], rot_sum.m128_f32[1], rot_sum.m128_f32[2], rot_sum.m128_f32[3]));
 				
+				// 剛体に反映
 				bullet_rigidbody[i].motion_state->setWorldTransform(transform);
 			}
 
@@ -609,21 +611,17 @@ int main()
 			pysics_prev_time = std::chrono::system_clock::now();
 		}
 
-		//
-		// 物理シュミレーションの結果を反映させる
-		//
-
-		// TODO:
-		debug_draw.sphereData.clear();
-		debug_draw.boxData.clear();
-		debug_draw.capsuleData.clear();
 
 		//
 		// 物理エンジンの結果を描画するために準備
 		//
 
+		// デバッグ用の描画情報をリセット
+		debug_draw.sphereData.clear();
+		debug_draw.boxData.clear();
+		debug_draw.capsuleData.clear();
 
-
+		// デバッグ情報を処理
 		bullet_world.dynamics_world.debugDrawWorld();
 
 		//
@@ -742,11 +740,13 @@ int main()
 					// 修正後のワールド座標でのボーンの位置
 					auto new_world_bone_position = trans + rigidbody_to_bone_world_vec;
 
+					// ボーン行列に反映
 					tmp->bone[bone_index] = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_index].position)) *
 						XMMatrixRotationQuaternion(local_rigidbody_rot) *
 						XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_index].position)) *
 						XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
 
+					// ボーンの位置をデバッグのために描画する
 					debug_draw.boxData.emplace_back(XMMatrixScaling(0.2f, 0.2f, 0.2f)* XMMatrixTranslationFromVector(new_world_bone_position), std::array<float, 3>{0.f, 1.f, 1.f });
 				}
 			}

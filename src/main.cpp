@@ -1,4 +1,4 @@
-#include"../external/directx12-wrapper/dx12w/dx12w.hpp"
+ï»¿#include"../external/directx12-wrapper/dx12w/dx12w.hpp"
 #include"../external/imgui/imgui.h"
 #include"../external/imgui/imgui_impl_dx12.h"
 #include"../external/imgui/imgui_impl_win32.h"
@@ -29,7 +29,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 LRESULT CALLBACK wnd_proc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	// Imgui—p‚Ìˆ—
+	// Imguiç”¨ã®å‡¦ç†
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 		return true;
 
@@ -50,21 +50,25 @@ int main()
 
 
 	//
-	// pmx‚Ì“Ç‚İ‚İ
+	// pmxã®èª­ã¿è¾¼ã¿
 	//
 
-	// file_name‚Ípmxƒtƒ@ƒCƒ‹‚Ö‚ÌƒpƒX
-	// directory_path‚Íƒtƒ@ƒCƒ‹‚ÌƒtƒHƒ‹ƒ_‚Ö‚ÌƒpƒX
-	//wchar_t const* file_path = L"E:‘fŞ/Œ´_/ƒpƒCƒ‚ƒ“/”h–Ö.pmx";
-	//wchar_t const* directory_path = L"E:‘fŞ/Œ´_/ƒpƒCƒ‚ƒ“/";
-	wchar_t const* file_path = L"E:‘fŞ/Œ´_/ƒAƒ“ƒo[/ˆÀ”.pmx";
-	wchar_t const* directory_path = L"E:‘fŞ/Œ´_/ƒAƒ“ƒo[/";
-	//wchar_t const* file_path = L"E:‘fŞ/ƒLƒYƒiƒAƒC/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
-	//wchar_t const* directory_path = L"E:‘fŞ/ƒLƒYƒiƒAƒC/KizunaAI_ver1.01/kizunaai/";
-	//wchar_t const* file_path = L"E:‘fŞ/ƒzƒƒ‰ƒCƒu/‚Æ‚«‚Ì‚»‚çŒö®mmd_ver2.1/‚Æ‚«‚Ì‚»‚ç.pmx";
-	//wchar_t const* directory_path = L"E:‘fŞ/ƒzƒƒ‰ƒCƒu/‚Æ‚«‚Ì‚»‚çŒö®mmd_ver2.1/";
-	//wchar_t const* file_path = L"E:‘fŞ/ƒzƒƒ‰ƒCƒu/Laplus_220516_1/Laplus/PMX/Laplus_220516_1.pmx";
-	//wchar_t const* directory_path = L"E:‘fŞ/ƒzƒƒ‰ƒCƒu/Laplus_220516_1/Laplus/sourceimages/";
+	// file_nameã¯pmxãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®ãƒ‘ã‚¹
+	// directory_pathã¯ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ•ã‚©ãƒ«ãƒ€ã¸ã®ãƒ‘ã‚¹
+	//wchar_t const* file_path = L"E:ç´ æ/åŸç¥/ãƒ‘ã‚¤ãƒ¢ãƒ³/æ´¾è’™.pmx";
+	//wchar_t const* directory_path = L"E:ç´ æ/åŸç¥/ãƒ‘ã‚¤ãƒ¢ãƒ³/";
+	wchar_t const* file_path = L"E:ç´ æ/åŸç¥/ã‚¢ãƒ³ãƒãƒ¼/å®‰æŸ.pmx";
+	wchar_t const* directory_path = L"E:ç´ æ/åŸç¥/ã‚¢ãƒ³ãƒãƒ¼/";
+	//wchar_t const* file_path = L"E:ç´ æ/åŸç¥/ã‚¯ãƒ¬ãƒ¼/å¯è‰2.0.pmx";
+	//wchar_t const* directory_path = L"E:ç´ æ/åŸç¥/ã‚¯ãƒ¬ãƒ¼/";
+	//wchar_t const* file_path = L"E:ç´ æ/ã‚­ã‚ºãƒŠã‚¢ã‚¤/KizunaAI_ver1.01/kizunaai/kizunaai.pmx";
+	//wchar_t const* directory_path = L"E:ç´ æ/ã‚­ã‚ºãƒŠã‚¢ã‚¤/KizunaAI_ver1.01/kizunaai/";
+	//wchar_t const* file_path = L"E:ç´ æ/ãƒ›ãƒ­ãƒ©ã‚¤ãƒ–/ã¨ãã®ãã‚‰å…¬å¼mmd_ver2.1/ã¨ãã®ãã‚‰.pmx";
+	//wchar_t const* directory_path = L"E:ç´ æ/ãƒ›ãƒ­ãƒ©ã‚¤ãƒ–/ã¨ãã®ãã‚‰å…¬å¼mmd_ver2.1/";
+	//wchar_t const* file_path = L"E:ç´ æ/ãƒ›ãƒ­ãƒ©ã‚¤ãƒ–/Laplus_220516_1/Laplus/PMX/Laplus_220516_1.pmx";
+	//wchar_t const* directory_path = L"E:ç´ æ/ãƒ›ãƒ­ãƒ©ã‚¤ãƒ–/Laplus_220516_1/Laplus/sourceimages/";
+	//wchar_t const* file_path = L"E:/ç´ æ/Tdaå¼åˆéŸ³ãƒŸã‚¯V4X_Ver1.00/Tdaå¼åˆéŸ³ãƒŸã‚¯V4X_Ver1.00.pmx";
+	//wchar_t const* directory_path = L"E:/ç´ æ/Tdaå¼åˆéŸ³ãƒŸã‚¯V4X_Ver1.00/";
 
 	std::ifstream file{ file_path ,std::ios::binary };
 	auto const pmx_header = mmdl::load_header<model_header_data>(file);
@@ -82,10 +86,10 @@ int main()
 
 
 	//
-	// vpd‚Ì“Ç‚İ‚İ
+	// vpdã®èª­ã¿è¾¼ã¿
 	//
 
-	//wchar_t const* pose_file_path = L"../../../3dmodel/ƒ|[ƒY25/4.vpd";
+	//wchar_t const* pose_file_path = L"../../../3dmodel/ãƒãƒ¼ã‚º25/4.vpd";
 	wchar_t const* pose_file_path = L"../../../3dmodel/Pose Pack 6 - Snorlaxin/9.vpd";
 	std::ifstream pose_file{ pose_file_path };
 	auto vpd_data = mmdl::load_vpd_data<std::vector<::vpd_data>>(pose_file);
@@ -93,11 +97,15 @@ int main()
 
 
 	//
-	// vmd‚Ì“Ç‚İ‚İ
+	// vmdã®èª­ã¿è¾¼ã¿
 	//
 
-	//const wchar_t* motion_file_path = L"../../../3dmodel/ƒXƒCƒ}ƒW/sweetmagic-right.vmd";
-	const wchar_t* motion_file_path = L"../../../3dmodel/ƒTƒ‰ƒ}ƒ“ƒ_[ ƒ‚[ƒVƒ‡ƒ“(short)/ƒTƒ‰ƒ}ƒ“ƒ_[ ƒ‚[ƒVƒ‡ƒ“(short).vmd";
+	//const wchar_t* motion_file_path = L"../../../3dmodel/ã‚¹ã‚¤ãƒã‚¸/sweetmagic-right.vmd";
+	//const wchar_t* motion_file_path = L"../../../3dmodel/å…¨è¦ªã§ã®ç§»å‹•ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³/æ­©ããƒ¢ãƒ¼ã‚·ãƒ§ãƒ³/18_ã‚¹ã‚­ãƒƒãƒ—ï¼ˆå¥³å­ã£ã½ã„ï¼‰ã€-45ã€‘.vmd";
+	// const wchar_t* motion_file_path = L"../../../3dmodel/ã‚µãƒ©ãƒãƒ³ãƒ€ãƒ¼ ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³(short)/ã‚µãƒ©ãƒãƒ³ãƒ€ãƒ¼ ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³(short).vmd";
+	const wchar_t* motion_file_path = L"E:/ç´ æ/ç²›è–!! ãƒ­ãƒªç¥ãƒ¬ã‚¯ã‚¤ã‚¨ãƒ /ç²›è–!! ãƒ­ãƒªç¥ãƒ¬ã‚¯ã‚¤ã‚¨ãƒ _ã‚µãƒ“.vmd";
+	// const wchar_t* motion_file_path = L"E:/ç´ æ/èè‰ç¥çš„å®‰é­‚æ›²_by_Sika_26cecb8a1f3d7acefad07f3e001b7fdb/äº”çŸ­èº«æï¼ˆå¯è‰ï¼‰.vmd";
+	//const wchar_t* motion_file_path = L"../../../3dmodel/Nyanyanyanyanyanyanya!/ã«ã‚ƒã‚“æŒ¯ã‚Šä»˜ã‘.vmd";
 	std::ifstream motion_file{ motion_file_path,std::ios::binary };
 
 	auto vmd_header = mmdl::load_vmd_header<::vmd_header>(motion_file);
@@ -106,8 +114,8 @@ int main()
 	motion_file.close();
 
 	//
-	// ƒNƒŠƒAƒoƒŠƒ…[
-	// ƒŠƒ\[ƒX‚Ì¶¬‚É•K—v
+	// ã‚¯ãƒªã‚¢ãƒãƒªãƒ¥ãƒ¼
+	// ãƒªã‚½ãƒ¼ã‚¹ã®ç”Ÿæˆæ™‚ã«å¿…è¦
 	//
 
 	D3D12_CLEAR_VALUE frame_buffer_clear_value{
@@ -122,14 +130,14 @@ int main()
 
 
 	//
-	// ƒŠƒ\[ƒX
+	// ãƒªã‚½ãƒ¼ã‚¹
 	//
 
-	// FRAME_BUFFER_NUM‚Ì”‚ÌƒtƒŒ[ƒ€ƒoƒbƒtƒ@
+	// FRAME_BUFFER_NUMã®æ•°ã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡
 	auto frame_buffer_resource = [&swap_chain]() {
 		std::array<dx12w::resource_and_state, FRAME_BUFFER_NUM> result{};
 
-		// ƒXƒƒbƒvƒ`ƒF[ƒ“‚©‚çƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚ğæ“¾
+		// ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ãƒ¼ãƒ³ã‹ã‚‰ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã‚’å–å¾—
 		for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
 		{
 			ID3D12Resource* tmp = nullptr;
@@ -140,11 +148,11 @@ int main()
 		return result;
 	}();
 
-	// ƒfƒvƒXƒoƒbƒtƒ@
+	// ãƒ‡ãƒ—ã‚¹ãƒãƒƒãƒ•ã‚¡
 	auto depth_buffer = dx12w::create_commited_texture_resource(device.get(), DEPTH_BUFFER_FORMAT, WINDOW_WIDTH, WINDOW_HEIGHT,
 		2, 1, 1, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, &depth_clear_value);
 
-	// pmx‚Ì’¸“_ƒoƒbƒtƒ@
+	// pmxã®é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡
 	auto pmx_vertex_buffer_resource = [&device, &pmx_vertex]() {
 		auto result = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(model_vertex_data) * pmx_vertex.size());
 
@@ -156,7 +164,7 @@ int main()
 		return result;
 	}();
 
-	// pmx‚ÌƒCƒ“ƒfƒbƒNƒX‚Ìƒoƒbƒtƒ@
+	// pmxã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã®ãƒãƒƒãƒ•ã‚¡
 	auto pmx_index_buffer_resource = [&device, &pmx_surface]() {
 		auto result = dx12w::create_commited_upload_buffer_resource(device.get(), sizeof(index) * pmx_surface.size());
 
@@ -168,154 +176,154 @@ int main()
 		return result;
 	}();
 
-	// model_data‚ğƒ}ƒbƒv‚·‚éƒŠƒ\[ƒX
+	// model_dataã‚’ãƒãƒƒãƒ—ã™ã‚‹ãƒªã‚½ãƒ¼ã‚¹
 	auto model_data_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
 
-	// camera_data‚ğƒ}ƒbƒv‚·‚éƒŠƒ\[ƒX
+	// camera_dataã‚’ãƒãƒƒãƒ—ã™ã‚‹ãƒªã‚½ãƒ¼ã‚¹
 	auto camera_data_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
 
-	// direction_light_data‚ğƒ}ƒbƒv‚·‚é—p‚ÌƒŠƒ\[ƒX
+	// direction_light_dataã‚’ãƒãƒƒãƒ—ã™ã‚‹ç”¨ã®ãƒªã‚½ãƒ¼ã‚¹
 	auto direction_light_data_resource = dx12w::create_commited_upload_buffer_resource(device.get(), dx12w::alignment<UINT64>(sizeof(direction_light_data), 256));
 
-	// pmx‚ğ•`‰æ‚·‚é’¸“_ƒVƒF[ƒ_
+	// pmxã‚’æç”»ã™ã‚‹é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€
 	auto pmx_vertex_shader = []() {
 		std::ifstream shader_file{ L"shader/VertexShader.cso",std::ios::binary };
 		return dx12w::load_blob(shader_file);
 	}();
 
-	// pmx‚ğ•`‰æ‚·‚éƒsƒNƒZƒ‹ƒVƒF[ƒ_
+	// pmxã‚’æç”»ã™ã‚‹ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€
 	auto pmx_index_shader = []() {
 		std::ifstream shader_file{ L"shader/PixelShader.cso",std::ios::binary };
 		return dx12w::load_blob(shader_file);
 	}();
 
-	// 4x4‚Ì”’‚¢ƒeƒNƒXƒ`ƒƒ
+	// 4x4ã®ç™½ã„ãƒ†ã‚¯ã‚¹ãƒãƒ£
 	auto white_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 255);
 
-	// 4x4‚Ì•‚¢ƒeƒNƒXƒ`ƒƒ
+	// 4x4ã®é»’ã„ãƒ†ã‚¯ã‚¹ãƒãƒ£
 	auto black_texture_resource = get_fill_4x4_texture_resource(device, command_manager, PMX_TEXTURE_FORMAT, 0);
 
-	// ƒeƒNƒXƒ`ƒƒ‚ÌƒŠƒ\[ƒX
+	// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒªã‚½ãƒ¼ã‚¹
 	auto pmx_texture_resrouce = get_pmx_texture_resource(device, command_manager, pmx_texture_path, PMX_TEXTURE_FORMAT, directory_path);
 
-	// ƒ}ƒeƒŠƒAƒ‹‚ÌƒŠƒ\[ƒX
+	// ãƒãƒ†ãƒªã‚¢ãƒ«ã®ãƒªã‚½ãƒ¼ã‚¹
 	auto pmx_material_resource = get_pmx_material_resource(device, pmx_material);
 
 
 	//
-	// ƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv‚Æƒrƒ…[
+	// ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—ã¨ãƒ“ãƒ¥ãƒ¼
 	//
 
-	// ƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚É•`‰æ‚·‚é‚ÌƒŒƒ“ƒ_[ƒ^[ƒQƒbƒg‚ğw’è‚·‚é—p‚ÌƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
+	// ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã«æç”»ã™ã‚‹æ™‚ã®ãƒ¬ãƒ³ãƒ€ãƒ¼ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’æŒ‡å®šã™ã‚‹ç”¨ã®ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
 	auto frame_buffer_descriptor_heap_RTV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, FRAME_BUFFER_NUM);
-	// FRAME_BUFFER_NUM‚Ì”‚Ìƒrƒ…[‚ğì¬
+	// FRAME_BUFFER_NUMã®æ•°ã®ãƒ“ãƒ¥ãƒ¼ã‚’ä½œæˆ
 	for (std::size_t i = 0; i < FRAME_BUFFER_NUM; i++)
 		dx12w::create_texture2D_RTV(device.get(), frame_buffer_descriptor_heap_RTV.get_CPU_handle(i), frame_buffer_resource[i].first.get(), FRAME_BUFFER_FORMAT, 0, 0);
 
-	// ƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚É•`‰æ‚·‚é‚ÌƒfƒvƒXƒoƒbƒtƒ@‚ğw’è‚·‚é—p‚ÌƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
+	// ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã«æç”»ã™ã‚‹æ™‚ã®ãƒ‡ãƒ—ã‚¹ãƒãƒƒãƒ•ã‚¡ã‚’æŒ‡å®šã™ã‚‹ç”¨ã®ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
 	auto depth_buffer_descriptor_heap_DSV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
 	dx12w::create_texture2D_DSV(device.get(), depth_buffer_descriptor_heap_DSV.get_CPU_handle(0), depth_buffer.first.get(), DEPTH_BUFFER_FORMAT, 0);
 
-	// pmx‚ÌƒfƒBƒXƒNƒŠƒvƒ^ƒe[ƒuƒ‹
-	// ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ¶¬‚Ég—p‚·‚é‚ªAƒfƒXƒNƒŠƒvƒ^‚Ì‘å‚«‚³‚ğŒˆ’è‚·‚é–‚É‚à—˜—p‚·‚é
+	// pmxã®ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ†ãƒ¼ãƒ–ãƒ«
+	// ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ç”Ÿæˆæ™‚ã«ä½¿ç”¨ã™ã‚‹ãŒã€ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ã®å¤§ãã•ã‚’æ±ºå®šã™ã‚‹äº‹ã«ã‚‚åˆ©ç”¨ã™ã‚‹
 	std::vector<std::vector<dx12w::descriptor_range_type>> const pmx_descriptor_table{
 
-		// 1‚Â‚ß‚ÌƒfƒBƒXƒNƒŠƒvƒ^ƒe[ƒuƒ‹
-		// ƒ}ƒeƒŠƒAƒ‹‚ÉˆË‘¶‚µ‚È‚¢‹¤’Ê‚Ìƒrƒ…[
+		// 1ã¤ã‚ã®ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ†ãƒ¼ãƒ–ãƒ«
+		// ãƒãƒ†ãƒªã‚¢ãƒ«ã«ä¾å­˜ã—ãªã„å…±é€šã®ãƒ“ãƒ¥ãƒ¼
 		{
-			// ƒ‚ƒfƒ‹‚Ìƒf[ƒ^AƒJƒƒ‰‚Ìƒf[ƒ^Aƒ‰ƒCƒg‚Ìƒf[ƒ^‚Ì3‚Â‚Ì’è”ƒoƒbƒtƒ@
+			// ãƒ¢ãƒ‡ãƒ«ã®ãƒ‡ãƒ¼ã‚¿ã€ã‚«ãƒ¡ãƒ©ã®ãƒ‡ãƒ¼ã‚¿ã€ãƒ©ã‚¤ãƒˆã®ãƒ‡ãƒ¼ã‚¿ã®3ã¤ã®å®šæ•°ãƒãƒƒãƒ•ã‚¡
 			{D3D12_DESCRIPTOR_RANGE_TYPE_CBV,3}
 		},
 
-		// 2‚Â‚ß‚ÌƒfƒBƒXƒNƒŠƒvƒ^ƒe[ƒuƒ‹
-		// ƒ}ƒeƒŠƒAƒ‹‚ÉˆË‘¶‚µ‚½‚»‚ê‚¼‚ê‚Ìƒrƒ…[
+		// 2ã¤ã‚ã®ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ†ãƒ¼ãƒ–ãƒ«
+		// ãƒãƒ†ãƒªã‚¢ãƒ«ã«ä¾å­˜ã—ãŸãã‚Œãã‚Œã®ãƒ“ãƒ¥ãƒ¼
 		{
-			// ƒ}ƒeƒŠƒAƒ‹‚ÌƒeƒNƒXƒ`ƒƒ
+			// ãƒãƒ†ãƒªã‚¢ãƒ«ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£
 			{D3D12_DESCRIPTOR_RANGE_TYPE_SRV},
-			// ƒfƒBƒt[ƒY‚È‚Ç‚Ìî•ñ
+			// ãƒ‡ã‚£ãƒ•ãƒ¼ã‚ºãªã©ã®æƒ…å ±
 			{D3D12_DESCRIPTOR_RANGE_TYPE_CBV},
-			// æZƒXƒtƒBƒAƒ}ƒbƒvA‰ÁZƒXƒtƒBƒAƒ}ƒbƒvAƒgƒD[ƒ“‚Ì3‚Â‚ÌƒVƒF[ƒ_ƒŠƒ\[ƒXƒrƒ…[
+			// ä¹—ç®—ã‚¹ãƒ•ã‚£ã‚¢ãƒãƒƒãƒ—ã€åŠ ç®—ã‚¹ãƒ•ã‚£ã‚¢ãƒãƒƒãƒ—ã€ãƒˆã‚¥ãƒ¼ãƒ³ã®3ã¤ã®ã‚·ã‚§ãƒ¼ãƒ€ãƒªã‚½ãƒ¼ã‚¹ãƒ“ãƒ¥ãƒ¼
 			{D3D12_DESCRIPTOR_RANGE_TYPE_SRV,3}
 		}
 	};
 
-	// pmx‚ğ•`‰æ‚·‚é‚Ì‹¤’Ê‚Ìƒrƒ…[‚Ì”‚Æƒ}ƒeƒŠƒAƒ‹‚²‚Æ‚É‚±‚Æ‚È‚éƒrƒ…[‚Ì”
+	// pmxã‚’æç”»ã™ã‚‹æ™‚ã®å…±é€šã®ãƒ“ãƒ¥ãƒ¼ã®æ•°ã¨ãƒãƒ†ãƒªã‚¢ãƒ«ã”ã¨ã«ã“ã¨ãªã‚‹ãƒ“ãƒ¥ãƒ¼ã®æ•°
 	UINT const pmx_common_view_num = dx12w::calc_descriptor_num(pmx_descriptor_table[0]);
 	UINT const pmx_material_view_num = dx12w::calc_descriptor_num(pmx_descriptor_table[1]);
 
-	// pmx‚ğ•`‰æ‚·‚é—p‚ÌƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
+	// pmxã‚’æç”»ã™ã‚‹ç”¨ã®ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
 	auto pmx_descriptor_heap_CBV_SRV_UAV = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
 		pmx_common_view_num + pmx_material_view_num * pmx_material.size());
-	// 1.mode_data‚Ìƒrƒ…[
+	// 1.mode_dataã®ãƒ“ãƒ¥ãƒ¼
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(0), model_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(model_data), 256));
-	// 2.ƒJƒƒ‰‚Ìƒf[ƒ^‚Ìƒrƒ…[
+	// 2.ã‚«ãƒ¡ãƒ©ã®ãƒ‡ãƒ¼ã‚¿ã®ãƒ“ãƒ¥ãƒ¼
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(1), camera_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(camera_data), 256));
-	// 3.ƒ‰ƒCƒg‚Ìƒf[ƒ^‚Ìƒrƒ…[
+	// 3.ãƒ©ã‚¤ãƒˆã®ãƒ‡ãƒ¼ã‚¿ã®ãƒ“ãƒ¥ãƒ¼
 	dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(2), direction_light_data_resource.first.get(), dx12w::alignment<UINT64>(sizeof(direction_light_data), 256));
-	// ƒ}ƒeƒŠƒAƒ‹‚²‚Æ‚ÉˆÙ‚È‚éƒrƒ…[‚ğì¬‚µ‚Ä‚­
+	// ãƒãƒ†ãƒªã‚¢ãƒ«ã”ã¨ã«ç•°ãªã‚‹ãƒ“ãƒ¥ãƒ¼ã‚’ä½œæˆã—ã¦ã
 	for (std::size_t i = 0; i < pmx_material.size(); i++)
 	{
-		// 4.ƒeƒNƒXƒ`ƒƒ‚Ìƒrƒ…[
+		// 4.ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒ“ãƒ¥ãƒ¼
 		dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 0),
 			pmx_texture_resrouce[pmx_material_2[i].texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
-		// 5.ƒfƒBƒtƒ…[ƒYƒJƒ‰[‚È‚Ç‚Ìî•ñ‚ª‚ ‚ématerial_data‚Ìƒrƒ…[
+		// 5.ãƒ‡ã‚£ãƒ•ãƒ¥ãƒ¼ã‚ºã‚«ãƒ©ãƒ¼ãªã©ã®æƒ…å ±ãŒã‚ã‚‹material_dataã®ãƒ“ãƒ¥ãƒ¼
 		dx12w::create_CBV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 1),
 			pmx_material_resource[i].first.get(), dx12w::alignment<UINT64>(sizeof(material_data), 256));
 
-		// 6.æZƒXƒtƒBƒAƒ}ƒbƒv‚Ìƒrƒ…[
-		// æZƒXƒtƒBƒAƒ}ƒbƒv‚ğg—p‚·‚éê‡
+		// 6.ä¹—ç®—ã‚¹ãƒ•ã‚£ã‚¢ãƒãƒƒãƒ—ã®ãƒ“ãƒ¥ãƒ¼
+		// ä¹—ç®—ã‚¹ãƒ•ã‚£ã‚¢ãƒãƒƒãƒ—ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆ
 		if (pmx_material_2[i].sphere_mode == sphere_mode::sph)
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 2),
 				pmx_texture_resrouce[pmx_material_2[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
-		// ‚µ‚È‚¢ê‡‚Í”’F‚ÌƒeƒNƒXƒ`ƒƒ
+		// ã—ãªã„å ´åˆã¯ç™½è‰²ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£
 		else
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 2),
 				white_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 
-		// 7.‰ÁZƒXƒtƒBƒAƒ}ƒbƒv‚Ìƒrƒ…[
-		// ‰ÁZƒXƒtƒBƒAƒ}ƒbƒv‚ğg—p‚·‚éê‡
+		// 7.åŠ ç®—ã‚¹ãƒ•ã‚£ã‚¢ãƒãƒƒãƒ—ã®ãƒ“ãƒ¥ãƒ¼
+		// åŠ ç®—ã‚¹ãƒ•ã‚£ã‚¢ãƒãƒƒãƒ—ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆ
 		if (pmx_material_2[i].sphere_mode == sphere_mode::spa)
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 3),
 				pmx_texture_resrouce[pmx_material_2[i].sphere_texture_index].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
-		// ‚µ‚È‚¢ê‡‚Í•F‚ÌƒeƒNƒXƒ`ƒƒ
+		// ã—ãªã„å ´åˆã¯é»’è‰²ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£
 		else {
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 3),
 				black_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 
-		// 8.ƒgƒD[ƒ“ƒeƒNƒXƒ`ƒƒ‚Ìƒrƒ…[
-		// ”ñ‹¤—L‚ÌƒgƒD[ƒ“
-		// ƒCƒ“ƒfƒbƒNƒX‚É–³Œø‚È’l‚ª“ü‚Á‚Ä‚¢‚éê‡‚ª‚ ‚é‚Ì‚Å–³‹‚·‚é
+		// 8.ãƒˆã‚¥ãƒ¼ãƒ³ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ãƒ“ãƒ¥ãƒ¼
+		// éå…±æœ‰ã®ãƒˆã‚¥ãƒ¼ãƒ³
+		// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã«ç„¡åŠ¹ãªå€¤ãŒå…¥ã£ã¦ã„ã‚‹å ´åˆãŒã‚ã‚‹ã®ã§ç„¡è¦–ã™ã‚‹
 		if (pmx_material_2[i].toon_type == toon_type::unshared && pmx_material_2[i].toon_texture < pmx_texture_path.size())
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 4),
 				pmx_texture_resrouce[pmx_material_2[i].toon_texture].first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
-		// ‚»‚êˆÈŠO‚Í”’F‚ÌƒeƒNƒXƒ`ƒƒ
-		// ‹¤—L‚ÌƒgƒD[ƒ“‚É‚Â‚¢‚Ä‚ÍuPmxEditor/_data/toonv‚É‰æ‘œ‚ª‚ ‚Á‚½‚¯‚ÇA‚Æ‚è‚ ‚¦‚¸‚Í–³‹
+		// ãã‚Œä»¥å¤–ã¯ç™½è‰²ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£
+		// å…±æœ‰ã®ãƒˆã‚¥ãƒ¼ãƒ³ã«ã¤ã„ã¦ã¯ã€ŒPmxEditor/_data/toonã€ã«ç”»åƒãŒã‚ã£ãŸã‘ã©ã€ã¨ã‚Šã‚ãˆãšã¯ç„¡è¦–
 		else
 		{
 			dx12w::create_texture2D_SRV(device.get(), pmx_descriptor_heap_CBV_SRV_UAV.get_CPU_handle(3 + pmx_material_view_num * i + 4),
 				white_texture_resource.first.get(), PMX_TEXTURE_FORMAT, 1, 0, 0, 0.f);
 		}
 
-		// pmx‚É‚ÍƒTƒuƒeƒNƒXƒ`ƒƒ‚ÌƒXƒtƒBƒAƒ}ƒbƒv‚Ìî•ñ‚à‚ ‚é‚ªA‚Æ‚è‚ ‚¦‚¸‚Í–³‹
+		// pmxã«ã¯ã‚µãƒ–ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ã‚¹ãƒ•ã‚£ã‚¢ãƒãƒƒãƒ—ã®æƒ…å ±ã‚‚ã‚ã‚‹ãŒã€ã¨ã‚Šã‚ãˆãšã¯ç„¡è¦–
 	}
 
-	// pmxx‚Ì’¸“_ƒoƒbƒtƒ@‚Ìƒrƒ…[
+	// pmxxã®é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ“ãƒ¥ãƒ¼
 	D3D12_VERTEX_BUFFER_VIEW pmx_vertex_buffer_view{
 		.BufferLocation = pmx_vertex_buffer_resource.first->GetGPUVirtualAddress(),
 		.SizeInBytes = static_cast<UINT>(sizeof(model_vertex_data) * pmx_vertex.size()),
 		.StrideInBytes = static_cast<UINT>(sizeof(model_vertex_data)),
 	};
 
-	// pmx‚ÌƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ìƒrƒ…[
+	// pmxã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒ“ãƒ¥ãƒ¼
 	D3D12_INDEX_BUFFER_VIEW pmx_index_buffer_view{
 		.BufferLocation = pmx_index_buffer_resource.first->GetGPUVirtualAddress(),
 		.SizeInBytes = static_cast<UINT>(sizeof(index) * pmx_surface.size()),
@@ -323,21 +331,21 @@ int main()
 	};
 
 
-	// imgui—p‚ÌƒfƒBƒXƒNƒŠƒvƒ^ƒq[ƒv
-	// ‘å‚«‚³‚Í1‚Å‚¢‚¢‚Á‚Û‚¢?
+	// imguiç”¨ã®ãƒ‡ã‚£ã‚¹ã‚¯ãƒªãƒ—ã‚¿ãƒ’ãƒ¼ãƒ—
+	// å¤§ãã•ã¯1ã§ã„ã„ã£ã½ã„?
 	auto imgui_descriptor_heap = dx12w::create_descriptor_heap(device.get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 
 
 	//
-	// ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ÆƒOƒ‰ƒtƒBƒNƒXƒpƒCƒvƒ‰ƒCƒ“
+	// ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã¨ã‚°ãƒ©ãƒ•ã‚£ã‚¯ã‚¹ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³
 	//
 
-	// pmx‚ÌƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚É•`‰æ‚·‚éÛ‚Ìƒ‹[ƒgƒVƒOƒlƒ`ƒƒ
+	// pmxã®ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã«æç”»ã™ã‚‹éš›ã®ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£
 	auto pmx_root_signature = dx12w::create_root_signature(device.get(), pmx_descriptor_table,
-		{/*’Êí‚ÌƒeƒNƒXƒ`ƒƒ‚ÌƒTƒ“ƒvƒ‰*/ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER},
-		/*ƒgƒD[ƒ“—pƒTƒ“ƒvƒ‰*/{D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_COMPARISON_FUNC_NEVER} });
+		{/*é€šå¸¸ã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã®ã‚µãƒ³ãƒ—ãƒ©*/ {D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_TEXTURE_ADDRESS_MODE_WRAP,D3D12_TEXTURE_ADDRESS_MODE_WRAP ,D3D12_COMPARISON_FUNC_NEVER},
+		/*ãƒˆã‚¥ãƒ¼ãƒ³ç”¨ã‚µãƒ³ãƒ—ãƒ©*/{D3D12_FILTER_MIN_MAG_MIP_POINT ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_TEXTURE_ADDRESS_MODE_CLAMP,D3D12_TEXTURE_ADDRESS_MODE_CLAMP ,D3D12_COMPARISON_FUNC_NEVER} });
 
-	// pmx‚ğƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚É•`‰æ‚·‚éÛ‚ÌƒOƒ‰ƒtƒBƒNƒXƒpƒCƒvƒ‰ƒCƒ“
+	// pmxã‚’ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã«æç”»ã™ã‚‹éš›ã®ã‚°ãƒ©ãƒ•ã‚£ã‚¯ã‚¹ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³
 	auto pmx_graphics_pipeline_state = dx12w::create_graphics_pipeline(device.get(), pmx_root_signature.get(),
 		{ { "POSITION",DXGI_FORMAT_R32G32B32_FLOAT },{ "NORMAL",DXGI_FORMAT_R32G32B32_FLOAT },{ "TEXCOORD",DXGI_FORMAT_R32G32_FLOAT },
 		{ "BONEINDEX",DXGI_FORMAT_R32G32B32A32_UINT },{ "BONEWEIGHT",DXGI_FORMAT_R32G32B32A32_FLOAT } },
@@ -346,7 +354,7 @@ int main()
 
 
 	//
-	// Imgui‚Ìİ’è
+	// Imguiã®è¨­å®š
 	//
 
 	// Setup Dear ImGui context
@@ -371,8 +379,8 @@ int main()
 	// bullet
 	//
 
-	// ‚±‚¢‚Â‚ªbullet_world‚æ‚èæiŒãHj‚ÉÁ‚¦‚é‚ÆƒGƒ‰[‚Í‚­‚Ì‚Å’ˆÓ
-	// TODO: bullet_world‚Æ‚Ì‰ğ•ú‚Ì‡‚É‚Â‚¢‚Ä‚â‚é!
+	// ã“ã„ã¤ãŒbullet_worldã‚ˆã‚Šå…ˆï¼ˆå¾Œï¼Ÿï¼‰ã«æ¶ˆãˆã‚‹ã¨ã‚¨ãƒ©ãƒ¼ã¯ãã®ã§æ³¨æ„
+	// TODO: bullet_worldã¨ã®è§£æ”¾ã®é †ã«ã¤ã„ã¦ã‚„ã‚‹!
 	std::vector<bullet_rigidbody> bullet_rigidbody(pmx_rigidbody.size());
 	for (std::size_t i = 0; i < bullet_rigidbody.size(); i++) {
 		bullet_rigidbody[i] = create_shape_bullet_rigidbody(pmx_rigidbody[i]);
@@ -403,12 +411,12 @@ int main()
 		| btIDebugDraw::DBG_DrawContactPoints
 		| btIDebugDraw::DBG_DrawConstraints);
 
-	// ƒfƒoƒbƒN—p‚ÌƒCƒ“ƒXƒ^ƒ“ƒXŠ„“–‚Ä
+	// ãƒ‡ãƒãƒƒã‚¯ç”¨ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹å‰²å½“ã¦
 	bullet_world.dynamics_world.setDebugDrawer(&debug_draw);
 	
 
 	//
-	// ‚»‚Ì‘¼İ’è
+	// ãã®ä»–è¨­å®š
 	//
 
 	D3D12_VIEWPORT viewport{
@@ -442,19 +450,19 @@ int main()
 	float model_rotation_y = 0.f;
 	float model_rotation_z = 0.f;
 
-	// qƒ{[ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğæ“¾‚·‚é‚½‚ß‚Ì”z—ñ‚ğæ“¾
+	// å­ãƒœãƒ¼ãƒ³ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å–å¾—ã™ã‚‹ãŸã‚ã®é…åˆ—ã‚’å–å¾—
 	auto const to_children_bone_index = get_to_children_bone_index(pmx_bone);
 
-	// ƒ{[ƒ“‚Ì–¼‘O‚©‚ç‘Î‰‚·‚éƒ{[ƒ“‚ÌƒCƒ“ƒfƒbƒNƒX‚ğæ“¾‚·‚éÛ‚Ég—p‚·‚é
+	// ãƒœãƒ¼ãƒ³ã®åå‰ã‹ã‚‰å¯¾å¿œã™ã‚‹ãƒœãƒ¼ãƒ³ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’å–å¾—ã™ã‚‹éš›ã«ä½¿ç”¨ã™ã‚‹
 	auto const bone_name_to_bone_index = get_bone_name_to_bone_index(pmx_bone);
 
-	// ƒ{[ƒ“‚Ì–¼‘O‚©‚ç‘Î‰‚·‚éƒ{[ƒ“‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğæ“¾‚·‚éÛ‚Ég—p‚·‚é
+	// ãƒœãƒ¼ãƒ³ã®åå‰ã‹ã‚‰å¯¾å¿œã™ã‚‹ãƒœãƒ¼ãƒ³ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å–å¾—ã™ã‚‹éš›ã«ä½¿ç”¨ã™ã‚‹
 	auto const bone_name_to_bone_motion_data = get_bone_name_to_bone_motion_data(vmd_frame_data);
 
-	// ƒ‚[ƒt‚Ì–¼‘O‚©‚Á‚½‘Î‰‚·‚éƒ‚[ƒt‚ÌƒCƒ“ƒfƒbƒNƒX‚é‚ğæ“¾‚·‚éÛ‚Ég—p‚·‚é
+	// ãƒ¢ãƒ¼ãƒ•ã®åå‰ã‹ã£ãŸå¯¾å¿œã™ã‚‹ãƒ¢ãƒ¼ãƒ•ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚‹ã‚’å–å¾—ã™ã‚‹éš›ã«ä½¿ç”¨ã™ã‚‹
 	auto const morph_index_to_morph_vertex_index = get_morph_index_to_morph_vertex_index(pmx_vertex_morph);
 
-	// ƒ‚[ƒt‚Ì–¼‘O‚©‚ç‘Î‰‚·‚éƒ‚[ƒt‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğæ“¾‚·‚éÛ‚Ég—p‚·‚é
+	// ãƒ¢ãƒ¼ãƒ•ã®åå‰ã‹ã‚‰å¯¾å¿œã™ã‚‹ãƒ¢ãƒ¼ãƒ•ã®ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å–å¾—ã™ã‚‹éš›ã«ä½¿ç”¨ã™ã‚‹
 	auto const morph_name_to_morph_motion_data = get_morph_name_to_morph_motion_data(vmd_morph_data);
 
 	direction_light_data direction_light{
@@ -466,11 +474,11 @@ int main()
 	bool auto_animation = false;
 	bool use_vpd = false;
 
-	// IK‚Ìˆ—‚Åƒ{[ƒ“‚ğ‰ñ“]‚³‚¹‚é”
+	// IKã®å‡¦ç†ã§ãƒœãƒ¼ãƒ³ã‚’å›è»¢ã•ã›ã‚‹æ•°
 	int ik_rotation_num = -1;
-	// IK‚É‚æ‚Á‚ÄÅŒã‚É‰ñ“]‚³‚¹‚½ƒ{[ƒ“‚ÌŠe§ŒÀ‚ğ–³‹‚µ‚½‰ñ“]‚ğ•\¦
+	// IKã«ã‚ˆã£ã¦æœ€å¾Œã«å›è»¢ã•ã›ãŸãƒœãƒ¼ãƒ³ã®å„åˆ¶é™ã‚’ç„¡è¦–ã—ãŸå›è»¢ã‚’è¡¨ç¤º
 	bool check_ideal_rotation = false;
-	// c—]‰ñ“]‚ğ“K—p‚·‚é‚©‚Ç‚¤‚©
+	// æ®‹ä½™å›è»¢ã‚’é©ç”¨ã™ã‚‹ã‹ã©ã†ã‹
 	bool is_residual = false;
 
 	float offset_x = 0.f;
@@ -480,7 +488,7 @@ int main()
 	auto prev_frame_time = std::chrono::system_clock::now();
 	double elapsed = 0.0;
 
-	// •¨—‰‰Z—p
+	// ç‰©ç†æ¼”ç®—ç”¨
 	auto pysics_prev_time = std::chrono::system_clock::now();
 
 	std::vector<bone_data> bone_data(MAX_BONE_NUM);
@@ -501,7 +509,7 @@ int main()
 		command_manager.reset_list(0);
 
 		//
-		// ƒf[ƒ^‚ÌXV
+		// ãƒ‡ãƒ¼ã‚¿ã®æ›´æ–°
 		//
 
 		auto const view = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
@@ -512,47 +520,47 @@ int main()
 			camera_far_z
 		);
 
-		// ƒ{[ƒ“‚Ìƒf[ƒ^‚ğ‚ğ‰Šú‰»
+		// ãƒœãƒ¼ãƒ³ã®ãƒ‡ãƒ¼ã‚¿ã‚’ã‚’åˆæœŸåŒ–
 		initialize_bone_data(bone_data);
 
-		// w’è‚³‚ê‚Ä‚¢‚éƒ{[ƒ“‚É“K“–‚Ès—ñ‚ğİ’è
+		// æŒ‡å®šã•ã‚Œã¦ã„ã‚‹ãƒœãƒ¼ãƒ³ã«é©å½“ãªè¡Œåˆ—ã‚’è¨­å®š
 		if (use_vpd)
 			set_bone_data_from_vpd(bone_data, vpd_data, bone_name_to_bone_index);
 		else
 			set_bone_data_from_vmd(bone_data, bone_name_to_bone_motion_data, pmx_bone, bone_name_to_bone_index, frame_num);
 
-		// IKƒfƒoƒbƒN—p
+		// IKãƒ‡ãƒãƒƒã‚¯ç”¨
 		{
-			auto iter = bone_name_to_bone_index.find(L"‰E‘«‚h‚j");
+			auto iter = bone_name_to_bone_index.find(L"å³è¶³ï¼©ï¼«");
 			if (iter != bone_name_to_bone_index.end())
 				bone_data[iter->second].transform += XMVECTOR{ offset_x, offset_y, offset_z };
 		}
 
-		// •¨—‰‰ZƒfƒoƒbƒO—p
+		// ç‰©ç†æ¼”ç®—ãƒ‡ãƒãƒƒã‚°ç”¨
 		{
 			bone_data[15].rotation = XMQuaternionMultiply(bone_data[15].rotation, XMQuaternionRotationRollPitchYaw(head_rotation_x, head_rotation_y, head_rotation_z));
 		}
 
-		auto const root_index = bone_name_to_bone_index.contains(L"‘S‚Ä‚Ìe") ? bone_name_to_bone_index.at(L"‘S‚Ä‚Ìe") : 0;
+		auto const root_index = bone_name_to_bone_index.contains(L"å…¨ã¦ã®è¦ª") ? bone_name_to_bone_index.at(L"å…¨ã¦ã®è¦ª") : 0;
 
-		// ‚»‚ê‚¼‚ê‚Ìe‚Ìƒm[ƒh‚Ì‰ñ“]AˆÚ“®‚Ìs—ñ‚ğq‚Ö“`”d‚³‚¹‚é
+		// ãã‚Œãã‚Œã®è¦ªã®ãƒãƒ¼ãƒ‰ã®å›è»¢ã€ç§»å‹•ã®è¡Œåˆ—ã‚’å­ã¸ä¼æ’­ã•ã›ã‚‹
 		set_to_world_matrix(bone_data, to_children_bone_index, root_index, XMMatrixIdentity(), pmx_bone);
 
 		// IK
 		int ik_rotation_counter = 0;
 		recursive_aplly_ik(bone_data, root_index, to_children_bone_index, pmx_bone, ik_rotation_num, &ik_rotation_counter, check_ideal_rotation);
 
-		// •t—^‚Ì‰ğŒˆ
+		// ä»˜ä¸ã®è§£æ±º
 		recursive_aplly_grant(bone_data, root_index, to_children_bone_index, pmx_bone);
 
 		for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
 		{
-			// ƒ{[ƒ“’Ç]
+			// ãƒœãƒ¼ãƒ³è¿½å¾“
 			if (pmx_rigidbody[i].rigidbody_type == 0)
 			{
 				auto const bone_index = pmx_rigidbody[i].bone_index;
 
-				// ‘ÎÛƒ{[ƒ“‚Ìƒ[ƒ‹ƒhÀ•W‚Ö‚Ì•ÏŠ·s—ñ
+				// å¯¾è±¡ãƒœãƒ¼ãƒ³ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã¸ã®å¤‰æ›è¡Œåˆ—
 				auto const to_world =
 					XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_index].position)) *
 					XMMatrixRotationQuaternion(bone_data[bone_index].rotation) *
@@ -560,24 +568,24 @@ int main()
 					XMMatrixTranslationFromVector(bone_data[bone_index].transform) *
 					bone_data[bone_index].to_world;
 
-				// ‘ÎÛƒ{[ƒ“‚Ìƒ[ƒ‹ƒhÀ•W‚Ö‚Ì•ÏŠ·‚Ì‰ñ“]‚Ì‚İ‚ğ•\‚·ƒNƒI[ƒ^ƒjƒIƒ“
+				// å¯¾è±¡ãƒœãƒ¼ãƒ³ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã¸ã®å¤‰æ›ã®å›è»¢ã®ã¿ã‚’è¡¨ã™ã‚¯ã‚ªãƒ¼ã‚¿ãƒ‹ã‚ªãƒ³
 				auto const to_world_rot = XMQuaternionRotationMatrix(to_world);
 
-				// ƒ{[ƒ“‚Ìƒ[ƒ‹ƒhÀ•W
+				// ãƒœãƒ¼ãƒ³ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™
 				auto const bone_world_pos = XMVector3Transform(XMLoadFloat3(&pmx_bone[bone_index].position), to_world);
 
-				// ƒ[ƒJƒ‹À•W‚Å‚Ìƒ{[ƒ“‚ÌÀ•W‚©‚ç„‘Ì‚ÌÀ•W‚Ö‚ÌƒxƒNƒgƒ‹
+				// ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ã§ã®ãƒœãƒ¼ãƒ³ã®åº§æ¨™ã‹ã‚‰å‰›ä½“ã®åº§æ¨™ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
 				auto const bone_to_rigidbody_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_rigidbody[i].position), XMLoadFloat3(&pmx_bone[bone_index].position));
 
-				// ƒ[ƒ‹ƒhÀ•W‚Å‚Ìƒ{[ƒ“‚ÌÀ•W‚©‚ç„‘Ì‚ÌÀ•W‚Ö‚ÌƒxƒNƒgƒ‹
+				// ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã§ã®ãƒœãƒ¼ãƒ³ã®åº§æ¨™ã‹ã‚‰å‰›ä½“ã®åº§æ¨™ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
 				auto const bone_to_rigidbody_world_vec = XMVector3Rotate(bone_to_rigidbody_local_vec, to_world_rot);
 
-				// ‰ñ“]‚Ì‡Œv
+				// å›è»¢ã®åˆè¨ˆ
 				auto const rot_sum = XMQuaternionMultiply(
 					XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z)
 					, to_world_rot);
 
-				// bullet‚ÌƒNƒ‰ƒX‚Éî•ñ‚ğ”½‰f
+				// bulletã®ã‚¯ãƒ©ã‚¹ã«æƒ…å ±ã‚’åæ˜ 
 				btTransform transform;
 				transform.setIdentity();
 				transform.setOrigin(btVector3(
@@ -586,16 +594,16 @@ int main()
 					bone_world_pos.m128_f32[2] + bone_to_rigidbody_world_vec.m128_f32[2]));
 				transform.setRotation(btQuaternion(rot_sum.m128_f32[0], rot_sum.m128_f32[1], rot_sum.m128_f32[2], rot_sum.m128_f32[3]));
 				
-				// „‘Ì‚É”½‰f
+				// å‰›ä½“ã«åæ˜ 
 				bullet_rigidbody[i].motion_state->setWorldTransform(transform);
 			}
 
-			// ‘S‚Ä‚Ì„‘Ì‚ğƒAƒNƒeƒBƒu‚É‚·‚é
+			// å…¨ã¦ã®å‰›ä½“ã‚’ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
 			bullet_rigidbody[i].rigidbody->activate(true);
 		}
 
 		//
-		// •¨—ƒGƒ“ƒWƒ“‚ÌƒVƒ…ƒ~ƒŒ[ƒVƒ‡ƒ“
+		// ç‰©ç†ã‚¨ãƒ³ã‚¸ãƒ³ã®ã‚·ãƒ¥ãƒŸãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³
 		//
 
 		auto delta_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - pysics_prev_time).count();
@@ -613,29 +621,29 @@ int main()
 
 
 		//
-		// •¨—ƒGƒ“ƒWƒ“‚ÌŒ‹‰Ê‚ğ•`‰æ‚·‚é‚½‚ß‚É€”õ
+		// ç‰©ç†ã‚¨ãƒ³ã‚¸ãƒ³ã®çµæœã‚’æç”»ã™ã‚‹ãŸã‚ã«æº–å‚™
 		//
 
-		// ƒfƒoƒbƒO—p‚Ì•`‰æî•ñ‚ğƒŠƒZƒbƒg
+		// ãƒ‡ãƒãƒƒã‚°ç”¨ã®æç”»æƒ…å ±ã‚’ãƒªã‚»ãƒƒãƒˆ
 		debug_draw.sphereData.clear();
 		debug_draw.boxData.clear();
 		debug_draw.capsuleData.clear();
 
-		// ƒfƒoƒbƒOî•ñ‚ğˆ—
+		// ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã‚’å‡¦ç†
 		bullet_world.dynamics_world.debugDrawWorld();
 
 		//
-		// ƒ}ƒbƒv‚·‚é
+		// ãƒãƒƒãƒ—ã™ã‚‹
 		//
 
-		// ’¸“_
+		// é ‚ç‚¹
 		{
 			model_vertex_data* tmp = nullptr;
 			pmx_vertex_buffer_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 			std::copy(pmx_vertex.begin(), pmx_vertex.end(), tmp);
 
 			
-			// imgui‚©‚çƒ‚[ƒt‚ª‚¹‚ñ‚½‚­‚³‚ê‚Ä‚¢‚éê‡
+			// imguiã‹ã‚‰ãƒ¢ãƒ¼ãƒ•ãŒã›ã‚“ãŸãã•ã‚Œã¦ã„ã‚‹å ´åˆ
 			if (0 <= morph_index && morph_index < pmx_vertex_morph.size())
 			{
 				for (auto const& m : pmx_vertex_morph[morph_index].data)
@@ -647,7 +655,7 @@ int main()
 			}
 			else
 			{
-				// ƒAƒjƒ[ƒVƒ‡ƒ“‚©‚çƒ‚[ƒt‚ğ‚µ‚Ä‚¢‚·‚éê‡
+				// ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‹ã‚‰ãƒ¢ãƒ¼ãƒ•ã‚’ã—ã¦ã„ã™ã‚‹å ´åˆ
 				for (auto const& morph : pmx_vertex_morph)
 				{
 					auto weight = get_morph_motion_weight(morph_name_to_morph_motion_data, morph.name, frame_num);
@@ -661,18 +669,18 @@ int main()
 			}
 			
 
-			// ƒOƒ‹[ƒvƒ‚[ƒt
+			// ã‚°ãƒ«ãƒ¼ãƒ—ãƒ¢ãƒ¼ãƒ•
 			for (auto const& morph : pmx_group_morph)
 			{
 				auto weight = get_morph_motion_weight(morph_name_to_morph_motion_data, morph.name, frame_num);
 
-				// ƒOƒ‹[ƒv‚ÉŠÜ‚Ü‚ê‚é’¸“_ƒ‚[ƒt‚ğ‘–¸
+				// ã‚°ãƒ«ãƒ¼ãƒ—ã«å«ã¾ã‚Œã‚‹é ‚ç‚¹ãƒ¢ãƒ¼ãƒ•ã‚’èµ°æŸ»
 				for (auto const& gm : morph.data)
 				{
 					auto iter = morph_index_to_morph_vertex_index.find(gm.index);
 					if (iter != morph_index_to_morph_vertex_index.end())
 					{
-						// ’¸“_ƒ‚[ƒt‚ÉŠÜ‚Ü‚ê‚é’¸“_‚ğ‘–¸
+						// é ‚ç‚¹ãƒ¢ãƒ¼ãƒ•ã«å«ã¾ã‚Œã‚‹é ‚ç‚¹ã‚’èµ°æŸ»
 						for (auto const& m : pmx_vertex_morph[iter->second].data)
 						{
 							tmp[m.index].position.x += m.offset.x * weight * gm.morph_factor;
@@ -691,33 +699,33 @@ int main()
 			model_data* tmp = nullptr;
 			model_data_resource.first->Map(0, nullptr, reinterpret_cast<void**>(&tmp));
 
-			// ƒ‚ƒfƒ‹‚Ìƒ[ƒ‹ƒhs—ñ
+			// ãƒ¢ãƒ‡ãƒ«ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—
 			tmp->world = XMMatrixRotationX(model_rotation_x) * XMMatrixRotationY(model_rotation_y) * XMMatrixRotationZ(model_rotation_z);
-			// ƒ‚ƒfƒ‹‚Ìƒ{[ƒ“‚Ìs—ñ
+			// ãƒ¢ãƒ‡ãƒ«ã®ãƒœãƒ¼ãƒ³ã®è¡Œåˆ—
 			bone_data_to_bone_matrix(bone_data, tmp->bone, pmx_bone);
 
 
 			//
-			// •¨—‰‰Z‚ÌŒ‹‰Ê‚ğƒ{[ƒ“‚Ìs—ñ‚É”½‰f‚³‚¹‚é
+			// ç‰©ç†æ¼”ç®—ã®çµæœã‚’ãƒœãƒ¼ãƒ³ã®è¡Œåˆ—ã«åæ˜ ã•ã›ã‚‹
 			//
 			
 			for (std::size_t i = 0; i < pmx_rigidbody.size(); i++)
 			{
-				// •¨—‰‰Z‚É‚æ‚Á‚ÄˆÚ“®‚·‚éƒ{[ƒ“
+				// ç‰©ç†æ¼”ç®—ã«ã‚ˆã£ã¦ç§»å‹•ã™ã‚‹ãƒœãƒ¼ãƒ³
 				if (pmx_rigidbody[i].rigidbody_type == 1)
 				{
 					auto const bone_index = pmx_rigidbody[i].bone_index;
 					btTransform transform{};
 					bullet_rigidbody[i].motion_state->getWorldTransform(transform);
 
-					// •¨—‰‰ZŒã‚ÌˆÊ’u
+					// ç‰©ç†æ¼”ç®—å¾Œã®ä½ç½®
 					auto const trans = XMVECTOR{
 						static_cast<float>(transform.getOrigin().x()),
 						static_cast<float>(transform.getOrigin().y()),
 						static_cast<float>(transform.getOrigin().z()),
 					};
 
-					// •¨—‰‰ZŒã‚Ìp¨
+					// ç‰©ç†æ¼”ç®—å¾Œã®å§¿å‹¢
 					auto const rot = XMVECTOR{
 						static_cast<float>(transform.getRotation().x()),
 						static_cast<float>(transform.getRotation().y()),
@@ -725,28 +733,28 @@ int main()
 						static_cast<float>(transform.getRotation().w())
 					};
 
-					// „‘Ì‚Ì‚à‚Æ‚à‚Æ‚Ì‰ñ“]
+					// å‰›ä½“ã®ã‚‚ã¨ã‚‚ã¨ã®å›è»¢
 					auto const rigidbody_rot = XMQuaternionRotationRollPitchYaw(pmx_rigidbody[i].rotation.x, pmx_rigidbody[i].rotation.y, pmx_rigidbody[i].rotation.z);
 
-					// •¨—‰‰Z‚É‚æ‚Á‚Ä‰ñ“]‚µ‚½—Ê
+					// ç‰©ç†æ¼”ç®—ã«ã‚ˆã£ã¦å›è»¢ã—ãŸé‡
 					auto const local_rigidbody_rot = XMQuaternionMultiply(XMQuaternionInverse(rigidbody_rot), rot);
 
-					// ƒ[ƒJƒ‹À•W‚Å‚Ì„‘Ì‚©‚çƒ{[ƒ“‚Ö‚ÌƒxƒNƒgƒ‹
+					// ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ã§ã®å‰›ä½“ã‹ã‚‰ãƒœãƒ¼ãƒ³ã¸ã®ãƒ™ã‚¯ãƒˆãƒ«
 					auto const rigidbody_to_bone_local_vec = XMVectorSubtract(XMLoadFloat3(&pmx_bone[bone_index].position), XMLoadFloat3(&pmx_rigidbody[i].position));
 
-					// •¨—‰‰ZŒã‚Ì„‘Ì‚©‚ç‚İ‚½ƒxƒNƒgƒ‹‚É•ÏŠ·
+					// ç‰©ç†æ¼”ç®—å¾Œã®å‰›ä½“ã‹ã‚‰ã¿ãŸãƒ™ã‚¯ãƒˆãƒ«ã«å¤‰æ›
 					auto const rigidbody_to_bone_world_vec = XMVector3Rotate(rigidbody_to_bone_local_vec, local_rigidbody_rot);
 
-					// C³Œã‚Ìƒ[ƒ‹ƒhÀ•W‚Å‚Ìƒ{[ƒ“‚ÌˆÊ’u
+					// ä¿®æ­£å¾Œã®ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ã§ã®ãƒœãƒ¼ãƒ³ã®ä½ç½®
 					auto new_world_bone_position = trans + rigidbody_to_bone_world_vec;
 
-					// ƒ{[ƒ“s—ñ‚É”½‰f
+					// ãƒœãƒ¼ãƒ³è¡Œåˆ—ã«åæ˜ 
 					tmp->bone[bone_index] = XMMatrixTranslationFromVector(-XMLoadFloat3(&pmx_bone[bone_index].position)) *
 						XMMatrixRotationQuaternion(local_rigidbody_rot) *
 						XMMatrixTranslationFromVector(XMLoadFloat3(&pmx_bone[bone_index].position)) *
 						XMMatrixTranslationFromVector(XMVectorSubtract(new_world_bone_position, XMLoadFloat3(&pmx_bone[bone_index].position)));
 
-					// ƒ{[ƒ“‚ÌˆÊ’u‚ğƒfƒoƒbƒO‚Ì‚½‚ß‚É•`‰æ‚·‚é
+					// ãƒœãƒ¼ãƒ³ã®ä½ç½®ã‚’ãƒ‡ãƒãƒƒã‚°ã®ãŸã‚ã«æç”»ã™ã‚‹
 					debug_draw.boxData.emplace_back(XMMatrixScaling(0.2f, 0.2f, 0.2f)* XMMatrixTranslationFromVector(new_world_bone_position), std::array<float, 3>{0.f, 1.f, 1.f });
 				}
 			}
@@ -790,7 +798,7 @@ int main()
 		}
 
 		//
-		// Imgui‚Ì€”õ
+		// Imguiã®æº–å‚™
 		//
 
 		// Start the Dear ImGui frame
@@ -832,7 +840,7 @@ int main()
 
 
 		//
-		// pmx‚Ì•`‰æ‚ÌƒRƒ}ƒ“ƒh‚ğÏ‚Ş
+		// pmxã®æç”»ã®ã‚³ãƒãƒ³ãƒ‰ã‚’ç©ã‚€
 		//
 
 		command_manager.get_list()->RSSetViewports(1, &viewport);
@@ -858,25 +866,25 @@ int main()
 		command_manager.get_list()->IASetIndexBuffer(&pmx_index_buffer_view);
 		command_manager.get_list()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		// ‹¤’Ê‚Ìƒrƒ…[‚Ìİ’è
+		// å…±é€šã®ãƒ“ãƒ¥ãƒ¼ã®è¨­å®š
 		command_manager.get_list()->SetGraphicsRootDescriptorTable(0, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(0));
 
 		UINT index_offset = 0;
 		for (std::size_t i = 0; i < pmx_material.size(); i++)
 		{
-			// ƒ}ƒeƒŠƒAƒ‹‚²‚Æ‚Ìƒrƒ…[‚Ìİ’è
-			// ‹¤’Ê‚Ìƒrƒ…[‚É‚Â‚¢‚Ä‚Í‚·‚Å‚Éİ’è‚µ‚Ä‚ ‚é‚Ì‚Å•K—v‚È‚µ
+			// ãƒãƒ†ãƒªã‚¢ãƒ«ã”ã¨ã®ãƒ“ãƒ¥ãƒ¼ã®è¨­å®š
+			// å…±é€šã®ãƒ“ãƒ¥ãƒ¼ã«ã¤ã„ã¦ã¯ã™ã§ã«è¨­å®šã—ã¦ã‚ã‚‹ã®ã§å¿…è¦ãªã—
 			command_manager.get_list()->SetGraphicsRootDescriptorTable(1, pmx_descriptor_heap_CBV_SRV_UAV.get_GPU_handle(pmx_common_view_num + pmx_material_view_num * i));
 
-			// ƒ}ƒeƒŠƒAƒ‹‚Ì’¸“_‚ÌƒIƒtƒZƒbƒg‚ğw’è‚µ•`‰æ
+			// ãƒãƒ†ãƒªã‚¢ãƒ«ã®é ‚ç‚¹ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’æŒ‡å®šã—æç”»
 			command_manager.get_list()->DrawIndexedInstanced(pmx_material_2[i].vertex_number, 1, index_offset, 0, 0);
 
-			// ƒIƒtƒZƒbƒg‚ÌXV
+			// ã‚ªãƒ•ã‚»ãƒƒãƒˆã®æ›´æ–°
 			index_offset += pmx_material_2[i].vertex_number;
 		}
 
 		//
-		// „‘Ì‚ÌDebug—p‚Ì•`‰æ
+		// å‰›ä½“ã®Debugç”¨ã®æç”»
 		//
 
 		if (is_display_rigidbody)
@@ -884,7 +892,7 @@ int main()
 			command_manager.get_list()->RSSetViewports(1, &viewport);
 			command_manager.get_list()->RSSetScissorRects(1, &scissor_rect);
 
-			// ƒfƒvƒXƒoƒbƒtƒ@‚Í‚¢‚Á‚½‚ñƒNƒŠƒA‚µ‚Ä‚¨‚­
+			// ãƒ‡ãƒ—ã‚¹ãƒãƒƒãƒ•ã‚¡ã¯ã„ã£ãŸã‚“ã‚¯ãƒªã‚¢ã—ã¦ãŠã
 			command_manager.get_list()->ClearDepthStencilView(depth_buffer_descriptor_heap_DSV.get_CPU_handle(), D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 
 			command_manager.get_list()->OMSetRenderTargets(1, &frame_buffer_cpu_handle, false, &depth_buffer_cpu_handle);
@@ -896,7 +904,7 @@ int main()
 
 
 		//
-		// Imgui‚Ì•`‰æ‚ÌƒRƒ}ƒ“ƒh‚ğÏ‚Ş
+		// Imguiã®æç”»ã®ã‚³ãƒãƒ³ãƒ‰ã‚’ç©ã‚€
 		//
 
 		auto imgui_descriptor_heap_ptr = imgui_descriptor_heap.get();
@@ -909,7 +917,7 @@ int main()
 
 
 		//
-		// ƒRƒ}ƒ“ƒh”­s
+		// ã‚³ãƒãƒ³ãƒ‰ç™ºè¡Œ
 		//
 
 		command_manager.get_list()->Close();
@@ -922,7 +930,7 @@ int main()
 
 
 		//
-		// ‚»‚Ì‘¼
+		// ãã®ä»–
 		//
 
 		if (auto_animation)

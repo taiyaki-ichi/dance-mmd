@@ -4,9 +4,9 @@
 #include"../external/imgui/imgui_impl_win32.h"
 #include"../external/bullet3/src/btBulletCollisionCommon.h"
 #include"../external/bullet3/src/btBulletDynamicsCommon.h"
-#include"../external/mmd-loader/mmdl/pmx_loader.hpp"
-#include"../external/mmd-loader/mmdl/vpd_loader.hpp"
-#include"../external/mmd-loader/mmdl/vmd_loader.hpp"
+#include"../external/mmd-loader/mmdl/pmx/loader.hpp"
+#include"../external/mmd-loader/mmdl/vpd/loader.hpp"
+#include"../external/mmd-loader/mmdl/vmd/loader.hpp"
 #define STBI_WINDOWS_UTF8
 #define STB_IMAGE_IMPLEMENTATION
 #include"../external/stb/stb_image.h"
@@ -71,17 +71,17 @@ int main()
 	//wchar_t const* directory_path = L"E:/素材/Tda式初音ミクV4X_Ver1.00/";
 
 	std::ifstream file{ file_path ,std::ios::binary };
-	auto const pmx_header = mmdl::load_header<model_header_data>(file);
-	auto const pmx_info = mmdl::load_info<model_info_data>(file);
-	auto const pmx_vertex = mmdl::load_vertex<std::vector<model_vertex_data>>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
-	auto const pmx_surface = mmdl::load_surface<std::vector<index>>(file, pmx_header.vertex_index_size);
-	auto const pmx_texture_path = mmdl::load_texture_path<std::vector<std::wstring>>(file);
-	auto const [pmx_material, pmx_material_2] = mmdl::load_material<std::pair<std::vector<material_data>, std::vector<material_data_2>>>(file, pmx_header.texture_index_size);
-	auto const pmx_bone = mmdl::load_bone<std::vector<model_bone_data>>(file, pmx_header.bone_index_size);
-	auto const [pmx_vertex_morph, pmx_group_morph] = mmdl::load_morph<std::pair<std::vector<vertex_morph>, std::vector<group_morph>>>(file, pmx_header.vertex_index_size, pmx_header.bone_index_size, pmx_header.material_index_size, pmx_header.morph_index_size);
-	mmdl::load_display_frame(file, pmx_header.bone_index_size, pmx_header.morph_index_size);
-	auto const pmx_rigidbody = mmdl::load_rigidbody<std::vector<rigidbody>>(file, pmx_header.bone_index_size);
-	auto const pmx_joint = mmdl::load_joint<std::vector<joint>>(file, pmx_header.rigid_body_index_size);
+	auto const pmx_header = mmdl::pmx::load_header<model_header_data>(file);
+	auto const pmx_info = mmdl::pmx::load_info<model_info_data>(file);
+	auto const pmx_vertex = mmdl::pmx::load_vertex<std::vector<model_vertex_data>>(file, pmx_header.add_uv_number, pmx_header.bone_index_size);
+	auto const pmx_surface = mmdl::pmx::load_surface<std::vector<index>>(file, pmx_header.vertex_index_size);
+	auto const pmx_texture_path = mmdl::pmx::load_texture_path<std::vector<std::wstring>>(file);
+	auto const [pmx_material, pmx_material_2] = mmdl::pmx::load_material<std::pair<std::vector<material_data>, std::vector<material_data_2>>>(file, pmx_header.texture_index_size);
+	auto const pmx_bone = mmdl::pmx::load_bone<std::vector<model_bone_data>>(file, pmx_header.bone_index_size);
+	auto const [pmx_vertex_morph, pmx_group_morph] = mmdl::pmx::load_morph<std::pair<std::vector<vertex_morph>, std::vector<group_morph>>>(file, pmx_header.vertex_index_size, pmx_header.bone_index_size, pmx_header.material_index_size, pmx_header.morph_index_size);
+	mmdl::pmx::load_display_frame(file, pmx_header.bone_index_size, pmx_header.morph_index_size);
+	auto const pmx_rigidbody = mmdl::pmx::load_rigidbody<std::vector<rigidbody>>(file, pmx_header.bone_index_size);
+	auto const pmx_joint = mmdl::pmx::load_joint<std::vector<joint>>(file, pmx_header.rigid_body_index_size);
 	file.close();
 
 
@@ -92,7 +92,7 @@ int main()
 	//wchar_t const* pose_file_path = L"../../../3dmodel/ポーズ25/4.vpd";
 	wchar_t const* pose_file_path = L"../../../3dmodel/Pose Pack 6 - Snorlaxin/9.vpd";
 	std::ifstream pose_file{ pose_file_path };
-	auto vpd_data = mmdl::load_vpd_data<std::vector<::vpd_data>>(pose_file);
+	auto vpd_data = mmdl::vpd::load<std::vector<::vpd_data>>(pose_file);
 	pose_file.close();
 
 
@@ -108,9 +108,9 @@ int main()
 	//const wchar_t* motion_file_path = L"../../../3dmodel/Nyanyanyanyanyanyanya!/にゃん振り付け.vmd";
 	std::ifstream motion_file{ motion_file_path,std::ios::binary };
 
-	auto vmd_header = mmdl::load_vmd_header<::vmd_header>(motion_file);
-	auto vmd_frame_data = mmdl::load_vmd_frame_data<std::vector<::vmd_frame_data>>(motion_file, vmd_header.frame_data_num);
-	auto vmd_morph_data = mmdl::load_vmd_morph_data<std::vector<::vmd_morph_data>>(motion_file);
+	auto vmd_header = mmdl::vmd::load_header<::vmd_header>(motion_file);
+	auto vmd_frame_data = mmdl::vmd::load_frame_data<std::vector<::vmd_frame_data>>(motion_file, vmd_header.frame_data_num);
+	auto vmd_morph_data = mmdl::vmd::load_morph_data<std::vector<::vmd_morph_data>>(motion_file);
 	motion_file.close();
 
 	//

@@ -97,39 +97,9 @@
     <ClInclude Include="..\external\directx12-wrapper\dx12w\dx12w_window.hpp">
       <Filter>directx12_wrapper</Filter>
     </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\utility.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
     <ClInclude Include="function.hpp" />
     <ClInclude Include="struct.hpp" />
     <ClInclude Include="parameter.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_buffer.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader_traits.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_buffer.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader_traits.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader_traits.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_buffer.hpp">
-      <Filter>mmdl</Filter>
-    </ClInclude>
     <ClInclude Include="loader_traits.hpp" />
     <ClInclude Include="bullet_world.hpp" />
     <ClInclude Include="bullet_rigidbody.hpp" />
@@ -140,6 +110,36 @@
     </ClInclude>
     <ClInclude Include="..\external\bullet3\src\btBulletDynamicsCommon.h">
       <Filter>bullet3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\utility\io_helper.hpp">
+      <Filter>mmdl\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd\buffer.hpp">
+      <Filter>mmdl\vpd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd\loader.hpp">
+      <Filter>mmdl\vpd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd\loader_traits.hpp">
+      <Filter>mmdl\vpd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd\buffer.hpp">
+      <Filter>mmdl\vmd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd\loader.hpp">
+      <Filter>mmdl\vmd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd\loader_traits.hpp">
+      <Filter>mmdl\vmd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx\buffer.hpp">
+      <Filter>mmdl\pmx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx\loader.hpp">
+      <Filter>mmdl\pmx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx\loader_traits.hpp">
+      <Filter>mmdl\pmx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -160,6 +160,18 @@
     </Filter>
     <Filter Include="bullet3">
       <UniqueIdentifier>{34eee105-0c8d-4eee-a66c-9b05c63433eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mmdl\pmx">
+      <UniqueIdentifier>{24b475a1-fb28-45a8-a000-8c01c14951dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mmdl\vmd">
+      <UniqueIdentifier>{47369eba-b749-497d-87e2-407f36e20ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mmdl\vpd">
+      <UniqueIdentifier>{03b8b6f9-a8c0-4e09-9633-9bb5b593c337}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mmdl\utility">
+      <UniqueIdentifier>{a8ef2094-93b1-477e-88f7-d22a2860d7bd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -6,7 +6,7 @@
 #include<unordered_map>
 #include<string>
 #include<algorithm>
-#include"../external/mmd-loader/mmdl/vpd_loader.hpp"
+#include"../external/mmd-loader/mmdl/vpd/loader.hpp"
 #include"../external/directx12-wrapper/dx12w/dx12w.hpp"
 #include"struct.hpp"
 #include<tuple>

@@ -84,7 +84,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -105,7 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,7 +126,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -149,7 +149,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -202,16 +202,16 @@
     <ClInclude Include="..\external\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\external\imgui\imstb_textedit.h" />
     <ClInclude Include="..\external\imgui\imstb_truetype.h" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_buffer.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\pmx_loader_traits.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\utility.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_buffer.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vmd_loader_traits.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_buffer.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader.hpp" />
-    <ClInclude Include="..\external\mmd-loader\mmdl\vpd_loader_traits.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx\buffer.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx\loader.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\pmx\loader_traits.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\utility\io_helper.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd\buffer.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd\loader.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vmd\loader_traits.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd\buffer.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd\loader.hpp" />
+    <ClInclude Include="..\external\mmd-loader\mmdl\vpd\loader_traits.hpp" />
     <ClInclude Include="..\external\stb\stb_image.h" />
     <ClInclude Include="bullet_debug_draw.hpp" />
     <ClInclude Include="bullet_rigidbody.hpp" />
